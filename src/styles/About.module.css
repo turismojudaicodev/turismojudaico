@@ -1,0 +1,21 @@
+.main {
+  margin-block: 2rem;
+}
+
+.main p,
+.main ul {
+  margin-block: 1em;
+}
+
+.main ul {
+  list-style-type: none;
+}
+
+.main ul li {
+  background-image: url(../../public/icons/check-mark.svg);
+  background-position: left center;
+  background-size: 1rem 1rem;
+  background-repeat: no-repeat;
+  margin-block: .5em;
+  padding-left: 2em;
+}

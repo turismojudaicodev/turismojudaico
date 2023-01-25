@@ -1,0 +1,26 @@
+.navLinks {
+  background-color: #ccccba;
+  list-style: none;
+  padding: 1em;
+}
+
+.navLinks li:nth-child(n+2):nth-child(-n+5) {
+  margin-block: .5em;
+}
+
+.navLinks a {
+  color: #5092B9;
+  text-decoration: none;
+  text-transform: capitalize;
+}
+
+.navActive {
+  position: absolute;
+  transition: transform ease .3s;
+  width: 100%;
+}
+
+.navInactive {
+  composes: navActive;
+  transform: translateY(-100%);
+}
