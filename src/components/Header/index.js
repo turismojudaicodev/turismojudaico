@@ -1,8 +1,10 @@
 import Link from 'next/link'
-import styles from './Header.module.css'
 import { useRouter } from 'next/router'
 import { useState } from 'react'
+import Image from 'next/image'
 import NavMenu from '@/components/NavMenu'
+import styles from './Header.module.css'
+import imgLogoSrc from '../../../public/images/logo.png'
 
 export default function Header() {
   const [navActive, setNavActive] = useState(false)
@@ -23,14 +25,28 @@ export default function Header() {
   return (
     <header className={styles.header}>
       <div className={styles.headerTop}>
-        <select onChange={changeLang}>
-          <option value="es">Español</option>
-          <option value="en">Inglés</option>
-        </select>
-        <div onClick={toggleNav} className={ navActive ? styles.navButtonActive : styles.navButton }>
-          <div></div>
-          <div></div>
-          <div></div>
+        <div className={styles.logoContainer}>
+          <Link href="/">
+            <div className={styles.logoContainer}>
+              <Image  
+                src={imgLogoSrc} 
+                width={75}
+                height={75}
+                alt="Our logo" 
+              />
+            </div>
+          </Link>
+        </div>
+        <div className={styles.controlers}>
+          <select onChange={changeLang} className={styles.languageSelector}>
+            <option value="es">Español</option>
+            <option value="en">English</option>
+          </select>
+          <div onClick={toggleNav} className={ navActive ? styles.navButtonActive : styles.navButton }>
+            <div></div>
+            <div></div>
+            <div></div>
+          </div>
         </div>
       </div>
       <NavMenu active={navActive} />

@@ -1,4 +1,41 @@
 .footer {
-  text-align: center;
+  background-color: var(--clr-bg-2);
   margin-top: 2rem;
+}
+
+.footer a {
+  width: fit-content;
+}
+
+.colsContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.colsContainer h3 {
+  margin-block: 1em;
+}
+
+.newsletter input {
+  display: block;
+  margin-bottom: .5em;
+}
+
+.socialLinks {
+  display: flex;
+  flex-direction: column;
+  gap: .5em;
+}
+
+.socialLinks a {
+  align-items: center;
+  display: flex;
+  gap: .25em;
+}
+
+.footerBottom {
+  display: flex;
+  flex-direction: column;
+  gap: .75em;
+  padding-block: 2em;
 }

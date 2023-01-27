@@ -3,12 +3,24 @@
 }
 
 .headerTop {
-  background-color: lightblue;
+  background-color: var(--clr-bg-2);
   display: flex;
   justify-content: space-around;
   padding: 1em;
   position: relative;
-  z-index: 2;
+  z-index: 10;
+}
+
+.controlers {
+  align-items: center;
+  display: flex;
+}
+
+.languageSelector option[value="es"] {
+  background-image: url("/public/icons/spain-flag.svg");
+  background-position: left center;
+  background-size: 1rem 1rem;
+  background-repeat: no-repeat;
 }
 
 .navButton {
