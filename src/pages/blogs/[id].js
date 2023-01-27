@@ -1,0 +1,62 @@
+import { remark } from 'remark'
+import html from 'remark-html'
+import Image from 'next/image'
+import Layout from '@/components/Layout'
+
+export async function getStaticPaths() {
+  const res = await fetch('http://localhost:1337/api/blogs')
+  const { data: blogs } = await res.json()
+
+  const paths = blogs.map((blog) => ({
+    params: { id: blog.id.toString() },
+  }))
+
+  return {
+    paths,
+    fallback: true,
+  }
+}
+
+export async function getStaticProps({ params: { id } }) {
+  const res = await fetch(`http://localhost:1337/api/blogs/${id}`)
+  const data = await res.json()
+
+  const blogAttrs = data.data.attributes
+
+  const processedContent = await remark().use(html).process(blogAttrs.content)
+  const contentHtml = processedContent.toString()
+
+  const blog = {
+    ...blogAttrs,
+    content: contentHtml,
+  }
+
+  return {
+    props: {
+      blog,
+    },
+  }
+}
+
+export default function Blog({ blog }) {
+  return (
+    <Layout>
+      {blog ? (
+        <div>
+          <h1>{blog.title}</h1>
+          <p>{blog.description}</p>
+          <Image
+            src={blog.img || '/images/logo.png'}
+            height={250}
+            width={300}
+            alt="Blog main image"
+          />
+          <div dangerouslySetInnerHTML={{ __html: blog.content }} />
+        </div>
+      ) : (
+        <div>Cargando blog...</div>
+      )}
+      <main></main>
+    </Layout>
+  )
+}
