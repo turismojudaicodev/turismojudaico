@@ -1,5 +1,6 @@
 import { remark } from 'remark'
 import html from 'remark-html'
+import { formatDate } from 'helpers'
 import Image from 'next/image'
 import Layout from '@/components/Layout'
 
@@ -52,6 +53,7 @@ export default function Blog({ blog }) {
             alt="Blog main image"
           />
           <div dangerouslySetInnerHTML={{ __html: blog.content }} />
+          <p>Publicado el {formatDate(blog.publishedAt)}</p>
         </div>
       ) : (
         <div>Cargando blog...</div>
