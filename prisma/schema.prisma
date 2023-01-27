@@ -1,0 +1,39 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Blog {
+  id         Int        @id @default(autoincrement())
+  title      String     @unique
+  createdAt  DateTime   @default(now())
+  categories Category[]
+}
+
+model Audioguide {
+  id    Int    @id @default(autoincrement())
+  title String @unique
+}
+
+model Citytour {
+  id      Int    @id @default(autoincrement())
+  title   String @unique
+  country String
+}
+
+model Post {
+  id Int @id @default(autoincrement())
+}
+
+model Category {
+  id    Int    @id @default(autoincrement())
+  name  String
+  blogs Blog[]
+}
