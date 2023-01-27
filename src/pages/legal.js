@@ -1,15 +1,15 @@
-import Layout from '@/components/Layout'
 import Head from 'next/head'
+import Layout from '@/components/Layout'
 
-export default function Audioguides() {
+export default function Legal() {
   return (
     <>
       <Head>
-        <title>title</title>
+        <title>Política de privacidad</title>
       </Head>
       <Layout>
         <main>
-          audioguias
+          legales
         </main>
       </Layout>
     </>
