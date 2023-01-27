@@ -39,3 +39,15 @@
   gap: .75em;
   padding-block: 2em;
 }
+
+@media (min-width: 701px) {
+  .colsContainer {
+    flex-direction: row;
+    justify-content: space-evenly;
+  }
+
+  .footerBottom {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}

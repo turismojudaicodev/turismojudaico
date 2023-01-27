@@ -1,0 +1,21 @@
+.form {
+  display: flex;
+  margin-inline: auto;
+  margin-top: 30vh;
+  max-width: 175px;
+  flex-direction: column;
+}
+
+.form > div {
+  margin-top: .5rem;
+}
+
+.form button {
+  margin-top: 1em;
+}
+
+.errorMsg {
+  display: block;
+  margin-block: 1em;
+  text-align: center;
+}
