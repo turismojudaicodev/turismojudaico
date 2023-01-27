@@ -1,10 +1,10 @@
 .navLinks {
   background-color: #ccccba;
   list-style: none;
-  padding: 1em;
+  padding: .5em 1em;
 }
 
-.navLinks li:nth-child(n+2):nth-child(-n+5) {
+.navLinks li {
   margin-block: .5em;
 }
 
