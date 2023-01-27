@@ -1,0 +1,16 @@
+{
+  "blogs": [
+    {
+      "id": 1,
+      "title": "Segunda bicicleteada Judaica",
+      "img": "/images/logo.png",
+      "content": "El pasado domingo 6 de septiembre de 2015, Turismo Judaico organizó el segundo City Tour Judaico en bicicleta para celebrar Rosh Hashana.\n\nEn intima relación con la misión de Turismo Judaico de transformar sitios judaicos en interesantes lugares turísticos..., esta actividad tuvo por objetivo, recorrer la ciudad de Buenos Aires, visitando y conociendo monumentos y sitios judaicos en lugares públicos, aprendiendo sobre dichos lugares visitados y conociendo sobre la historia y vida de la comunidad judía argentina.\n\nEl recorrido comenzó en la Plazoleta Barón Hirsch, luego visitamos el monumento de la shoa en Parque Centenario.\nA continuación pedaleamos hasta la Sociedad Hebraica Argentina para conocer los frisos escultóricos que hablan sobre la paz en su entrada.\nEl próximo destino fue la renombrada estación de subte, \"Estación de la memoria\", en homenaje a los caídos en el atentado a la AMIA, con una muestra llamada \"Memoria Ilustrada, el arte pide justicia en el subte \".\nDesde pasamos por el el Templo Libertad y fuimos a conocer y entender el significado del monumento de memoria Activa en Plaza lavalle frente a Tribunales.\nDesde allá pedaleamos hasta Puerto Madero para conocer la estatua de Ana Frank, en la Plazoleta Reina de Holanda.\nPara finalizar pasamos por la entrada del Museo Antiguo Hotel de inmigrantes y luego pedaleamos hasta la plaza donde finalizamos el recorrido. Pero antes de llegar..., conocimos un último monumento del héroe sin tumba del diplomático sueco Raoul Wallenberg.\nEl recorrido en bicicleta finalizó en la celebración de Rosh Hashana Urbano, organizado por Limud BA, en donde almorzamos todos juntos una rica vianda de comida judía y nos quedamos a disfrutar de las propuestas culturales que se desarrollaban en la plaza para celebrar junto la llegada del 5776."
+    }
+  ],
+  "audioguides": [],
+  "citytours": [],
+  "categories": {
+    "main": [],
+    "sub": []
+  }
+}
