@@ -16,13 +16,6 @@
   display: flex;
 }
 
-.languageSelector option[value="es"] {
-  background-image: url("/public/icons/spain-flag.svg");
-  background-position: left center;
-  background-size: 1rem 1rem;
-  background-repeat: no-repeat;
-}
-
 .navButton {
   display: flex;
   flex-direction: column;

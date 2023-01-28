@@ -1,3 +1,4 @@
+import { getBlogs } from 'lib/blogs'
 import Head from 'next/head'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -5,8 +6,7 @@ import Layout from '@/components/Layout'
 import utils from '@/styles/utils.module.css'
 
 export async function getStaticProps() {
-  const res = await fetch('http://localhost:1337/api/blogs')
-  const blogs = await res.json()
+  const blogs = await getBlogs()
   return {
     props: {
       blogs: blogs.data,

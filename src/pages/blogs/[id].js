@@ -1,14 +1,14 @@
 import { remark } from 'remark'
 import html from 'remark-html'
 import { formatDate } from 'helpers'
+import { getBlog, getBlogs } from 'lib/blogs'
 import Image from 'next/image'
 import Layout from '@/components/Layout'
 
 export async function getStaticPaths() {
-  const res = await fetch('http://localhost:1337/api/blogs')
-  const { data: blogs } = await res.json()
+  const { data } = await getBlogs()
 
-  const paths = blogs.map((blog) => ({
+  const paths = data.map((blog) => ({
     params: { id: blog.id.toString() },
   }))
 
@@ -19,8 +19,7 @@ export async function getStaticPaths() {
 }
 
 export async function getStaticProps({ params: { id } }) {
-  const res = await fetch(`http://localhost:1337/api/blogs/${id}`)
-  const data = await res.json()
+  const data = await getBlog(id)
 
   const blogAttrs = data.data.attributes
 
