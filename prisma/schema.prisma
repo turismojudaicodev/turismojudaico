@@ -10,11 +10,17 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id       String @id @default(cuid())
+  username String @unique
+  password String
+  role     String
+}
+
 model Blog {
-  id         Int        @id @default(autoincrement())
-  title      String     @unique
-  createdAt  DateTime   @default(now())
-  categories Category[]
+  id        Int      @id @default(autoincrement())
+  title     String   @unique
+  createdAt DateTime @default(now())
 }
 
 model Audioguide {
@@ -29,11 +35,24 @@ model Citytour {
 }
 
 model Post {
-  id Int @id @default(autoincrement())
+  id      Int    @id @default(autoincrement())
+  country String
+  city    String
+
+  category      Category    @relation(fields: [categoryId], references: [id])
+  categoryId    Int
+  subCategory   SubCategory @relation(fields: [subCategoryId], references: [id])
+  subCategoryId Int
 }
 
 model Category {
-  id    Int    @id @default(autoincrement())
-  name  String
-  blogs Blog[]
+  id   Int    @id @default(autoincrement())
+  name String
+  Post Post[]
+}
+
+model SubCategory {
+  id   Int    @id @default(autoincrement())
+  name String
+  Post Post[]
 }
