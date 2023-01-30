@@ -1,0 +1,23 @@
+.blog {
+  border: 2px solid gray;
+  border-radius: var(--border-radius);
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  max-width: 600px;
+}
+
+.imgContainer {
+  position: relative; 
+}
+
+.imgContainer img {
+  object-fit: contain;
+}
+
+.info {
+  margin-block: 1rem;
+}
+
+.info *:not(:last-child) {
+  margin-bottom: .75rem;
+}

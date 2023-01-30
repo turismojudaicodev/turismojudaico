@@ -1,44 +1,68 @@
 import { remark } from 'remark'
 import html from 'remark-html'
 import { formatDate } from 'helpers'
-import { getBlog, getBlogs } from 'lib/blogs'
 import Image from 'next/image'
 import Layout from '@/components/Layout'
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/router'
+// export async function getStaticPaths() {
+//   const res = await fetch('http://localhost:1337/api/blogs')
+//   const blogs = await res.json()
 
-export async function getStaticPaths() {
-  const { data } = await getBlogs()
+//   const paths = blogs.data.map((blog) => ({
+//     params: { id: blog.id.toString() },
+//   }))
+//   return {
+//     paths,
+//     fallback: false,
+//   }
+// }
 
-  const paths = data.map((blog) => ({
-    params: { id: blog.id.toString() },
-  }))
+// export async function getStaticProps({ params: { id } }) {
+//   const res = await fetch('http://localhost:1337/api/blogs/' + id)
+//   const blogData = await res.json()
 
-  return {
-    paths,
-    fallback: true,
-  }
-}
+//   if (!blogData)
+//     return {
+//       props: {
+//         blog: {},
+//       },
+//     }
 
-export async function getStaticProps({ params: { id } }) {
-  const data = await getBlog(id)
+//   const processedContent = await remark().use(html).process(blogAttrs.content)
+//   const contentHtml = processedContent.toString()
 
-  const blogAttrs = data.data.attributes
+//   const blog = {
+//     ...blogAttrs,
+//     content: contentHtml,
+//   }
 
-  const processedContent = await remark().use(html).process(blogAttrs.content)
-  const contentHtml = processedContent.toString()
+//   return {
+//     props: {
+//       blog,
+//     },
+//   }
+// }
 
-  const blog = {
-    ...blogAttrs,
-    content: contentHtml,
-  }
+export default function Blog() {
+  const [blog, setBlog] = useState(null)
+  const router = useRouter()
+  const blogId = router.query.id
+  console.log(router)
 
-  return {
-    props: {
-      blog,
-    },
-  }
-}
+  useEffect(() => {
+    async function getBlog() {
+      const res = await fetch(`http://localhost:1337/api/blogs/${blogId}`)
+      const blogData = await res.json()
+      console.log(blogData)
+      const blog = blogData.attributes
+      setBlog(blog)
+    }
+    getBlog()
+  }, [blogId])
 
-export default function Blog({ blog }) {
+  if (!blog) return <Layout>Cargando blog...</Layout>
+  console.log(blog)
   return (
     <Layout>
       {blog ? (
