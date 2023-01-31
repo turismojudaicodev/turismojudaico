@@ -4,20 +4,21 @@ import Link from 'next/link'
 import Layout from '@/components/Layout'
 import styles from '@/styles/Blogs.module.css'
 import utils from '@/styles/utils.module.css'
-import { API_URL } from 'lib/api'
+import { promisePool } from 'lib/db'
 
 export async function getStaticProps() {
-  const res = await fetch(`${API_URL}/blogs`)
-  const blogs = await res.json()
+  const [rows, fields] = await promisePool.query('SELECT * FROM `blogs`')
 
   return {
     props: {
-      blogs: blogs.data,
+      blogs: JSON.parse(JSON.stringify(rows))
     },
   }
 }
 
 export default function Blogs({ blogs }) {
+  console.log('these are the blogs', blogs)
+
   if (!blogs) return <Layout>Cargando contenido...</Layout>
 
   return (
@@ -35,8 +36,8 @@ export default function Blogs({ blogs }) {
                 </div>
                 <div className={styles.info}>
                   <div>
-                    <h3>{blog.attributes.title}</h3>
-                    <p>{blog.attributes.description}</p>
+                    <h3>{blog.title}</h3>
+                    <p>{blog.description}</p>
                   </div>
                   <Link href={`/blogs/${blog.id}`} className={utils.button}>
                     Seguir leyendo
