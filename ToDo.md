@@ -9,9 +9,9 @@
     - Audioguias
     - Notas/Blogs
 
-- Buscador de contenido
-
-- Suscripcion a newsletter
+- FORMS
+  - Buscador de contenido
+  - Suscripcion a newsletter
 
 ## Componentes
 

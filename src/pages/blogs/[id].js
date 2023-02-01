@@ -4,6 +4,8 @@ import { formatDate } from 'helpers'
 import Image from 'next/image'
 import Layout from '@/components/Layout'
 import { promisePool } from 'lib/db'
+import utils from '@/styles/utils.module.css'
+import styles from '@/styles/Blogs.module.css'
 
 export async function getStaticPaths() {
   const [rows, fields] = await promisePool.query('SELECT * FROM `blogs`')
@@ -35,33 +37,32 @@ export async function getStaticProps({ params: { id } }) {
 
   return {
     props: {
-      blog: JSON.parse(JSON.stringify(blogWithContent))
+      blog: JSON.parse(JSON.stringify(blogWithContent)),
     },
   }
 }
 
 export default function Blog({ blog }) {
   if (!blog) return <Layout>Cargando blog...</Layout>
-  
+
   return (
     <Layout>
-      <main>
-        {blog ? (
-          <div>
-            <h1>{blog.title}</h1>
-            <p>{blog.description}</p>
-            <Image
-              src={blog.img || '/images/logo.png'}
-              height={250}
-              width={300}
-              alt="Blog main image"
-            />
-            <div dangerouslySetInnerHTML={{ __html: blog.content }} />
-            <p>Publicado el {formatDate(blog.publishedAt)}</p>
-          </div>
-        ) : (
-          <div>Cargando blog...</div>
-        )}
+      <main className={`${utils.container} ${styles.main}`}>
+        <div>
+          <h2>{blog.title}</h2>
+          <p>{blog.description}</p>
+          <Image
+            src={blog.img || '/images/logo.png'}
+            height={250}
+            width={300}
+            alt="Blog main image"
+          />
+          <div
+            dangerouslySetInnerHTML={{ __html: blog.content }}
+            className={styles.contentContainer}
+          />
+          <p>Publicado el {formatDate(blog.published_at)}</p>
+        </div>
       </main>
     </Layout>
   )

@@ -10,16 +10,16 @@ export default function Header() {
   const [navActive, setNavActive] = useState(false)
 
   const toggleNav = () => {
-    setNavActive(prevState => !prevState)
+    setNavActive((prevState) => !prevState)
   }
 
   const router = useRouter()
 
   const changeLang = (e) => {
-    console.log(e.target)
-    router.push(router.pathname, router.pathname, {
-      locale: e.target.value
-    })
+    console.log(e.target.value)
+    // router.push(router.pathname, router.pathname, {
+    //   locale: e.target.value
+    // })
   }
 
   return (
@@ -28,12 +28,7 @@ export default function Header() {
         <div className={styles.logoContainer}>
           <Link href="/">
             <div className={styles.logoContainer}>
-              <Image  
-                src={imgLogoSrc} 
-                width={75}
-                height={75}
-                alt="Our logo" 
-              />
+              <Image src={imgLogoSrc} width={75} height={75} alt="Our logo" />
             </div>
           </Link>
         </div>
@@ -42,7 +37,10 @@ export default function Header() {
             <option value="es">Español</option>
             <option value="en">English</option>
           </select>
-          <div onClick={toggleNav} className={ navActive ? styles.navButtonActive : styles.navButton }>
+          <div
+            onClick={toggleNav}
+            className={navActive ? styles.navButtonActive : styles.navButton}
+          >
             <div></div>
             <div></div>
             <div></div>
