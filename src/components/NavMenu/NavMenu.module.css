@@ -1,5 +1,6 @@
 .navLinks {
-  background-color: #ccccba;
+  background-color: #fff;
+  box-shadow: 2px 0 15px 2px #ddd;
   list-style: none;
   padding: .5em 1em;
 }
@@ -23,4 +24,21 @@
 .navInactive {
   composes: navActive;
   transform: translateY(-100%);
+}
+
+@media (min-width: 701px) {
+  .navLinks {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .navLinks li {
+    margin-inline: .75em;
+  }
+
+  .navActive {
+    position: relative;
+    transition: none;
+  }
 }

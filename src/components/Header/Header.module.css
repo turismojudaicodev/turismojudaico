@@ -21,14 +21,15 @@
   flex-direction: column;
   height: 24px;
   justify-content: space-between;
+  position: relative;
   width: 25px;
 }
 
 .navButton > div {
-  position: relative;
+  background-color: black;
   height: 4px;
   width: 25px;
-  background-color: black;
+  transition: width ease .4s, rotate ease .3s;
 }
 
 .navButtonActive {
@@ -36,5 +37,20 @@
 }
 
 .navButtonActive > div {
-  background-color: red;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+}
+
+.navButtonActive > div:first-child {
+  rotate: 45deg;
+}
+
+.navButtonActive > div:nth-child(2) {
+  width: 0px;
+}
+
+.navButtonActive > div:last-child {
+  rotate: -45deg;
 }

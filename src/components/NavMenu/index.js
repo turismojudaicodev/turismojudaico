@@ -38,7 +38,9 @@ export default function NavMenu({ active }) {
       <ul className={styles.navLinks}>
         {LINKS.map((link) => (
           <li key={link.url}>
-            <Link href={link.url}>{link.title}</Link>
+            <Link href={link.url} replace>
+              {link.title}
+            </Link>
           </li>
         ))}
       </ul>
