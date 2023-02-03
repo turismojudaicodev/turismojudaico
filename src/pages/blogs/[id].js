@@ -3,12 +3,12 @@ import html from 'remark-html'
 import { formatDate } from 'helpers'
 import Image from 'next/image'
 import Layout from '@/components/Layout'
-import { promisePool } from 'lib/db'
+import { db } from 'lib/db'
 import utils from '@/styles/utils.module.css'
 import styles from '@/styles/Blogs.module.css'
 
 export async function getStaticPaths() {
-  const [rows, fields] = await promisePool.query('SELECT * FROM `blogs`')
+  const [rows, fields] = await db.query('SELECT * FROM `blogs`')
   // console.log('blogs', rows)
   const paths = rows.map((blog) => ({
     params: { id: blog.id.toString() },
@@ -21,10 +21,9 @@ export async function getStaticPaths() {
 }
 
 export async function getStaticProps({ params: { id } }) {
-  const [rows, fields] = await promisePool.query(
-    'SELECT * FROM `blogs` WHERE id = ?',
-    [id]
-  )
+  const [rows, fields] = await db.query('SELECT * FROM `blogs` WHERE id = ?', [
+    id,
+  ])
   const [blog] = rows
   // console.log('this is the blog', blog)
   const processedContent = await remark().use(html).process(blog.content)

@@ -4,15 +4,23 @@ import Link from 'next/link'
 import Layout from '@/components/Layout'
 import styles from '@/styles/Blogs.module.css'
 import utils from '@/styles/utils.module.css'
-import { promisePool } from 'lib/db'
+import { db } from 'lib/db'
 
 export async function getStaticProps() {
-  const [rows, fields] = await promisePool.query('SELECT * FROM `blogs`')
+  let blogs = []
 
-  return {
-    props: {
-      blogs: JSON.parse(JSON.stringify(rows)),
-    },
+  try {
+    const [rows, fields] = await db.query('SELECT * FROM `blogs`')
+    blogs = rows
+  } catch (error) {
+    console.error(error)
+    throw new Error('Error while fetching blogs')
+  } finally {
+    return {
+      props: {
+        blogs: JSON.parse(JSON.stringify(blogs)),
+      },
+    }
   }
 }
 
