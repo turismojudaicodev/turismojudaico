@@ -1,6 +1,10 @@
 :root {
   --clr-bg-1: #fff;
-  --clr-bg-2: lightblue;
+  --clr-bg-2: #7ebbde;
+  /* --clr-bg-2: lightblue; or #5092B9 */
+
+  --clr-fg-1: #333;
+  --clr-fg-2: #fff;
 
   --clr-border-1: #ccc;
   --clr-border-2: #aaa;

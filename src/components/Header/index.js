@@ -5,6 +5,7 @@ import useWidowSize from 'hooks/useWindowSize'
 import Image from 'next/image'
 import NavMenu from '@/components/NavMenu'
 import styles from './Header.module.css'
+import utils from '@/styles/utils.module.css'
 import imgLogoSrc from '../../../public/images/logo.png'
 
 const WINDOW_WIDTH_BREAKPOINT = 701
@@ -36,7 +37,7 @@ export default function Header() {
           </Link>
         </div>
         <div className={styles.controlers}>
-          <select onChange={changeLang} className={styles.languageSelector}>
+          <select onChange={changeLang} className={utils.input}>
             <option value="es">Español</option>
             <option value="en">English</option>
           </select>

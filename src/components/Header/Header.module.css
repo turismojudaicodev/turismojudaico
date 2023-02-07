@@ -3,7 +3,7 @@
 }
 
 .headerTop {
-  background-color: var(--clr-bg-2);
+  background-color: var(--clr-bg-1);
   display: flex;
   justify-content: space-around;
   padding: 1em;
@@ -21,6 +21,7 @@
   flex-direction: column;
   height: 24px;
   justify-content: space-between;
+  margin-left: min(1.5rem, 5vw);
   position: relative;
   width: 25px;
 }

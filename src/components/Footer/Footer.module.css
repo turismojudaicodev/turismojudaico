@@ -1,5 +1,6 @@
 .footer {
   background-color: var(--clr-bg-2);
+  color: var(--clr-fg-2);
 }
 
 .footer a {

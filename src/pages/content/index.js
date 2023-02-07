@@ -3,6 +3,7 @@ import Layout from '@/components/Layout'
 import utils from '@/styles/utils.module.css'
 import { db } from 'lib/db'
 import { useState } from 'react'
+import styles from '@/styles/Content.module.css'
 
 export async function getStaticProps() {
   const postsQuery =
@@ -49,11 +50,6 @@ export default function Content({ posts, categories }) {
     setCurrentCategory(ev.target.value)
   }
 
-  // console.log(
-  //   'subs',
-  //   categories.filter((item, index) => item.category === currentCategory)
-  // )
-
   return (
     <>
       <Head>
@@ -63,30 +59,52 @@ export default function Content({ posts, categories }) {
         <main className={utils.container}>
           <div>
             <h2>Filtrar</h2>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} className={styles.form}>
               <input
                 type="text"
                 className={utils.input}
                 placeholder="Buscar..."
               ></input>
-              <select id="country">
-                <option></option>
-              </select>
-              <select id="city">
-                <option></option>
-              </select>
-              <select id="category" onChange={updateCategory}>
-                {categoriesNames.map((category) => (
-                  <option value={category}>{category}</option>
-                ))}
-              </select>
-              <select id="subCategory">
-                {categories
-                  .filter((item, index) => item.category === currentCategory)
-                  .map((category) => (
-                    <option>{category.sub_category}</option>
+              <div>
+                <label htmlFor="country">País</label>
+                <select id="country" className={utils.input}>
+                  <option></option>
+                </select>
+              </div>
+              <div>
+                <label htmlFor="city">Ciudad</label>
+                <select id="city" className={utils.input}>
+                  <option></option>
+                </select>
+              </div>
+              <div>
+                <label htmlFor="category">Categoría</label>
+                <select
+                  id="category"
+                  className={utils.input}
+                  onChange={updateCategory}
+                >
+                  <option value="any">-</option>
+                  {categoriesNames.map((category) => (
+                    <option value={category} key={category}>
+                      {category}
+                    </option>
                   ))}
-              </select>
+                </select>
+              </div>
+              <div>
+                <label htmlFor="subCategory">Sub categoría</label>
+                <select id="subCategory" className={utils.input}>
+                  <option value="any">-</option>
+                  {categories
+                    .filter((item, index) => item.category === currentCategory)
+                    .map((category) => (
+                      <option key={category.sub_category}>
+                        {category.sub_category}
+                      </option>
+                    ))}
+                </select>
+              </div>
               <button className={utils.button} type="submit">
                 Buscar
               </button>

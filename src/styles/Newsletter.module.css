@@ -1,0 +1,17 @@
+.main {
+  margin: 5rem auto;
+  width: fit-content;
+}
+
+.main h1 {
+  margin-bottom: 1em;
+}
+
+.form button {
+  margin-top: 1em;  
+}
+
+.form label {
+  display: block;
+  margin-top: .5em;
+}

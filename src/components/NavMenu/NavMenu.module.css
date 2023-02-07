@@ -1,5 +1,5 @@
 .navLinks {
-  background-color: #fff;
+  background-color: var(--clr-bg-2);
   box-shadow: 2px 0 15px 2px #ddd;
   list-style: none;
   padding: .5em 1em;
@@ -10,7 +10,7 @@
 }
 
 .navLinks a {
-  color: #5092B9;
+  color: var(--clr-fg-2);
   text-decoration: none;
   text-transform: capitalize;
 }
