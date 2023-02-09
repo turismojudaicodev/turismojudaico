@@ -1,31 +1,26 @@
+// NPM
+import { useEffect, useState } from 'react'
+// Local
 import Head from 'next/head'
+// import { db } from 'lib/db'
+import { fetchStrapi } from 'lib/api'
+// Components
 import Image from 'next/image'
 import Link from 'next/link'
 import Layout from '@/components/Layout'
+// Styles
 import styles from '@/styles/Blogs.module.css'
 import utils from '@/styles/utils.module.css'
-import { db } from 'lib/db'
 
-export async function getStaticProps() {
-  let blogs = []
+export default function Blogs() {
+  const [blogs, setBlogs] = useState([])
 
-  try {
-    const [rows, fields] = await db.query('SELECT * FROM `blogs`')
-    blogs = rows
-  } catch (error) {
-    console.error(error)
-    throw new Error('Error while fetching blogs')
-  } finally {
-    return {
-      props: {
-        blogs: JSON.parse(JSON.stringify(blogs)),
-      },
-    }
-  }
-}
-
-export default function Blogs({ blogs }) {
-  // console.log('these are the blogs', blogs)
+  useEffect(() => {
+    fetchStrapi('blogs').then((data) => {
+      setBlogs(data)
+      console.log(data)
+    })
+  }, [])
 
   if (!blogs) return <Layout>Cargando contenido...</Layout>
 
@@ -42,15 +37,19 @@ export default function Blogs({ blogs }) {
                 <div key={blog.id} className={styles.blog}>
                   <div className={styles.imgContainer}>
                     <Image
-                      src={blog.img ? `${blog.img}` : '/images/logo.png'}
+                      src={
+                        blog.attributes.img
+                          ? `${blog.attributes.img}`
+                          : '/images/logo.png'
+                      }
                       fill
                       alt="img"
                     />
                   </div>
                   <div className={styles.info}>
                     <div>
-                      <h3>{blog.title}</h3>
-                      <p>{blog.description}</p>
+                      <h3>{blog.attributes.title}</h3>
+                      <p>{blog.attributes.description}</p>
                     </div>
                     <Link href={`/blogs/${blog.id}`} className={utils.button}>
                       Seguir leyendo
@@ -64,3 +63,21 @@ export default function Blogs({ blogs }) {
     </>
   )
 }
+
+// export async function getStaticProps() {
+//   let blogs = []
+
+//   try {
+//     const [rows, fields] = await db.query('SELECT * FROM `blogs`')
+//     blogs = rows
+//   } catch (error) {
+//     console.error(error)
+//     throw new Error('Error while fetching blogs')
+//   } finally {
+//     return {
+//       props: {
+//         blogs: JSON.parse(JSON.stringify(blogs)),
+//       },
+//     }
+//   }
+// }
