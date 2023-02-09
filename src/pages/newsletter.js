@@ -4,6 +4,10 @@ import styles from '@/styles/Newsletter.module.css'
 import utils from '@/styles/utils.module.css'
 
 export default function Newsletter() {
+  const handleSubmit = (ev) => {
+    ev.preventDefault()
+  }
+
   return (
     <>
       <Head>
@@ -12,7 +16,7 @@ export default function Newsletter() {
       <Layout>
         <main className={styles.main}>
           <h1>Suscribite a nuestra newsletter</h1>
-          <form className={styles.form}>
+          <form onSubmit={handleSubmit} className={styles.form}>
             <div>
               <label htmlFor="name">Nombre</label>
               <input id="name" type="text" className={utils.input}></input>

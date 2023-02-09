@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import styles from './NavMenu.module.css'
+import utils from '@/styles/utils.module.css'
 
 const LINKS = [
   {
@@ -8,27 +9,27 @@ const LINKS = [
   },
   {
     title: 'city tours judios',
-    url: 'citytours',
+    url: '/citytours',
   },
   {
     title: 'audiogías',
-    url: 'audioguides',
+    url: '/audioguides',
   },
   {
     title: 'blogs',
-    url: 'blogs',
+    url: '/blogs',
   },
   {
     title: 'atracciones judaicas',
-    url: 'content',
+    url: '/content',
   },
   {
     title: 'contacto',
-    url: 'contact',
+    url: '/contact',
   },
   {
     title: 'newsletter',
-    url: 'newsletter',
+    url: '/newsletter',
   },
 ]
 
@@ -38,7 +39,7 @@ export default function NavMenu({ active }) {
       <ul className={styles.navLinks}>
         {LINKS.map((link) => (
           <li key={link.url}>
-            <Link href={link.url} replace>
+            <Link href={`${link.url}`} replace className={utils.navButton}>
               {link.title}
             </Link>
           </li>

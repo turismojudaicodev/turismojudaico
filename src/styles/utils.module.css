@@ -24,6 +24,7 @@
   font: inherit;
   font-size: .9rem;
   padding: .5em 1em;
+  transition: box-shadow .15s ease;
 }
 
 .button:active {
@@ -40,7 +41,15 @@
   text-decoration: underline;
 }
 
+.navButton {
+  transition: opacity .15s ease;
+}
+
 @media (hover: hover) and (pointer: fine) {
+  .navButton:hover {
+    opacity: .75;
+  }
+
   .linkButton:hover {
     text-decoration: underline;
   }
