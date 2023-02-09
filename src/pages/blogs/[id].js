@@ -12,6 +12,7 @@ import Layout from '@/components/Layout'
 // Styles
 import utils from '@/styles/utils.module.css'
 import styles from '@/styles/Blogs.module.css'
+import Head from 'next/head'
 
 export default function Blog() {
   const router = useRouter()
@@ -33,25 +34,30 @@ export default function Blog() {
   if (!blog) return <Layout>Cargando blog...</Layout>
 
   return (
-    <Layout>
-      <main className={`${utils.container} ${styles.main}`}>
-        <div>
-          <h2>{blog.attributes.title}</h2>
-          <p>{blog.attributes.description}</p>
-          <Image
-            src={blog.attributes.img || '/images/logo.png'}
-            height={250}
-            width={300}
-            alt="Blog main image"
-          />
-          <div
-            dangerouslySetInnerHTML={{ __html: blog.attributes.content }}
-            className={styles.contentContainer}
-          />
-          <p>Publicado el {formatDate(blog.attributes.published_at)}</p>
-        </div>
-      </main>
-    </Layout>
+    <>
+      <Head>
+        <title>{blog.attributes.title}</title>
+      </Head>
+      <Layout>
+        <main className={`${utils.container} ${styles.main}`}>
+          <div>
+            <h2>{blog.attributes.title}</h2>
+            <p>{blog.attributes.description}</p>
+            <Image
+              src={blog.attributes.img || '/images/logo.png'}
+              height={250}
+              width={300}
+              alt="Blog main image"
+            />
+            <div
+              dangerouslySetInnerHTML={{ __html: blog.attributes.content }}
+              className={styles.contentContainer}
+            />
+            <p>Publicado el {formatDate(blog.attributes.publishedAt)}</p>
+          </div>
+        </main>
+      </Layout>
+    </>
   )
 }
 
