@@ -31,11 +31,15 @@ export default function Blogs() {
       </Head>
       <Layout>
         <main className={`${utils.container} ${styles.main}`}>
+          <h1 className={utils.bigTitle}>Blogs</h1>
           <div className={styles.blogsContainer}>
             {blogs &&
               blogs.map((blog) => (
                 <div key={blog.id} className={styles.blog}>
-                  <div className={styles.imgContainer}>
+                  <Link
+                    href={`/blogs/${blog.id}`}
+                    className={styles.imgContainer}
+                  >
                     <Image
                       src={
                         blog.attributes.img
@@ -45,12 +49,10 @@ export default function Blogs() {
                       fill
                       alt="img"
                     />
-                  </div>
+                  </Link>
                   <div className={styles.info}>
-                    <div>
-                      <h3>{blog.attributes.title}</h3>
-                      <p>{blog.attributes.description}</p>
-                    </div>
+                    <h3>{blog.attributes.title}</h3>
+                    <p>{blog.attributes.description}</p>
                     <Link href={`/blogs/${blog.id}`} className={utils.button}>
                       Seguir leyendo
                     </Link>

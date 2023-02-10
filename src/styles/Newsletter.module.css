@@ -1,6 +1,7 @@
 .main {
-  margin: 5rem auto;
-  width: fit-content;
+  display: flex;
+  justify-content: center;
+  margin-block: var(--margin-block);
 }
 
 .main h1 {

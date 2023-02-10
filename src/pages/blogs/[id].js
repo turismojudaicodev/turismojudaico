@@ -1,18 +1,17 @@
 // NPM
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
-import { formatDate } from 'helpers'
 // Local
 // import { db } from 'lib/db'
 import { fetchStrapi } from 'lib/api'
-import { formatMarkDown } from 'helpers'
+import { formatMarkDown, formatDate } from 'helpers'
 // Components
+import Head from 'next/head'
 import Image from 'next/image'
 import Layout from '@/components/Layout'
 // Styles
 import utils from '@/styles/utils.module.css'
 import styles from '@/styles/Blogs.module.css'
-import Head from 'next/head'
 
 export default function Blog() {
   const router = useRouter()
@@ -40,8 +39,8 @@ export default function Blog() {
       </Head>
       <Layout>
         <main className={`${utils.container} ${styles.main}`}>
-          <div>
-            <h2>{blog.attributes.title}</h2>
+          <div className={styles.blogInfo}>
+            <h2 className={utils.bigTitle}>{blog.attributes.title}</h2>
             <p>{blog.attributes.description}</p>
             <Image
               src={blog.attributes.img || '/images/logo.png'}
@@ -51,7 +50,7 @@ export default function Blog() {
             />
             <div
               dangerouslySetInnerHTML={{ __html: blog.attributes.content }}
-              className={styles.contentContainer}
+              className={utils.htmlContent}
             />
             <p>Publicado el {formatDate(blog.attributes.publishedAt)}</p>
           </div>

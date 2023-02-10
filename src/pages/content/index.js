@@ -105,20 +105,19 @@ export default function Content() {
         <title>Contenido</title>
       </Head>
       <Layout>
-        <main
-          className={utils.container}
-          style={{ display: 'flex', justifyContent: 'space-evenly' }}
-        >
+        <main className={`${utils.container} ${styles.main}`}>
           <div>
             {errorMessage ? (
               <div>{errorMessage}</div>
             ) : posts.length > 0 ? (
-              <div>
+              <div className={styles.postsContainer}>
                 {posts.map((post) => (
-                  <div key={post.id}>
+                  <div key={post.id} className={styles.post}>
                     <h3>{post.attributes.title}</h3>
                     <p>{post.attributes.description}</p>
-                    <Link href={`/content/${post.id}`}>Ver más</Link>
+                    <Link href={`/content/${post.id}`} className={utils.button}>
+                      Ver más
+                    </Link>
                   </div>
                 ))}
               </div>

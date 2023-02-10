@@ -1,5 +1,13 @@
 .container {
-  margin-inline: var(--inline-margin);
+  margin-inline: var(--margin-inline);
+}
+
+.marginBlock {
+  margin-block: var(--margin-block);
+}
+
+.bigTitle {
+  font-size: 1.75rem;
 }
 
 /* forms */
@@ -52,5 +60,35 @@
 
   .linkButton:hover {
     text-decoration: underline;
+  }
+}
+
+/* html string content formatted */
+.htmlContent > * {
+  margin-block: 1rem;
+}
+
+.htmlContent ol,
+.htmlContent ul {
+  padding-left: 1.5em;
+}
+
+.htmlContent ol {
+  list-style: decimal;
+}
+
+.htmlContent ul {
+  list-style: circle;
+}
+
+.htmlContent a {
+  color: rgb(var(--selection-bg-rgb));
+  text-decoration: underline;
+  transition: opacity ease .15s;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .htmlContent a:hover {
+    opacity: .8;
   }
 }

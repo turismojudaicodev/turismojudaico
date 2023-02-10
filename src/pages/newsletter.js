@@ -15,20 +15,22 @@ export default function Newsletter() {
       </Head>
       <Layout>
         <main className={styles.main}>
-          <h1>Suscribite a nuestra newsletter</h1>
-          <form onSubmit={handleSubmit} className={styles.form}>
-            <div>
-              <label htmlFor="name">Nombre</label>
-              <input id="name" type="text" className={utils.input}></input>
-            </div>
-            <div>
-              <label htmlFor="email">Email</label>
-              <input id="email" type="email" className={utils.input}></input>
-            </div>
-            <button type="submit" className={utils.button}>
-              Enviar
-            </button>
-          </form>
+          <div className={utils.container}>
+            <h1>Suscribite a nuestra newsletter</h1>
+            <form onSubmit={handleSubmit} className={styles.form}>
+              <div>
+                <label htmlFor="name">Nombre</label>
+                <input id="name" type="text" className={utils.input}></input>
+              </div>
+              <div>
+                <label htmlFor="email">Email</label>
+                <input id="email" type="email" className={utils.input}></input>
+              </div>
+              <button type="submit" className={utils.button}>
+                Enviar
+              </button>
+            </form>
+          </div>
         </main>
       </Layout>
     </>

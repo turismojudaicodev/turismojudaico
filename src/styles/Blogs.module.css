@@ -1,15 +1,24 @@
 .main {
-  margin-block: 2rem;
+  margin-block: var(--margin-block);
 }
 
-/* index.js */
-
 .blog {
-  border: 2px solid gray;
+  border: 1px solid var(--clr-border-1);
   border-radius: var(--border-radius);
-  display: grid;
-  grid-template-columns: 1fr 2fr;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
   max-width: 600px;
+  margin-top: 1rem;
+  padding: .5rem;
+}
+
+@media (min-width: 700px) {
+  .blog {
+    align-items: center;
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+  }
 }
 
 .blog p {
@@ -27,8 +36,8 @@
 }
 
 .imgContainer {
-  position: relative; 
-  z-index: -1;
+  height: 150px;
+  position: relative;
 }
 
 .imgContainer img {
@@ -37,27 +46,17 @@
 }
 
 .info {
-  margin-block: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
-.info *:not(:last-child) {
-  margin-bottom: .75rem;
+.info a {
+  width: fit-content;
 }
 
 /* [id].js */
-.contentContainer > * {
-  margin-block: 1rem;
-}
 
-.contentContainer ol,
-.contentContainer ul {
-  padding-left: 1.5em;
-}
-
-.contentContainer ol {
-  list-style: decimal;
-}
-
-.contentContainer ul {
-  list-style: circle;
+.blogInfo > *:not(:last-child) {
+  margin-bottom: 1rem;
 }

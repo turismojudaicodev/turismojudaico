@@ -1,3 +1,23 @@
+.main {
+  display: flex;
+  justify-content: space-evenly;
+  margin-block: var(--margin-block);
+}
+
+.postsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.post {
+  max-width: 600px;
+}
+
+.post > * {
+  margin-block: .25rem;
+}
+
 .form {
   display: flex;
   flex-direction: column;
