@@ -1,0 +1,18 @@
+.loader {
+  animation: rotate 1.25s linear 0s infinite running;
+  border: 6px solid lightblue;
+  border-radius: 50%;
+  border-top: 6px solid rgb(100, 179, 229);
+  height: 75px;
+  position: relative;
+  width: 75px;
+}
+
+@keyframes rotate {
+  0% {
+    rotate: 0deg;
+  }
+  100% {
+    rotate: 360deg;
+  }
+} 

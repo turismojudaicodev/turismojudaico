@@ -6,6 +6,8 @@ import { fetchStrapi } from 'lib/api'
 // Components
 import Head from 'next/head'
 import Layout from '@/components/Layout'
+import LoadingIndicator from '@/components/LoadingIndicator'
+import CardsContainer from '@/components/CardsContainer'
 // Styles
 import styles from '@/styles/Content.module.css'
 import utils from '@/styles/utils.module.css'
@@ -18,6 +20,7 @@ export default function Content() {
   const [currentCountry, setCurrentCountry] = useState(null)
   const [categories, setCategories] = useState([])
   const [currentCategory, setCurrentCategory] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [posts, setPosts] = useState([])
 
@@ -41,12 +44,16 @@ export default function Content() {
       )
       setCategories(categoriesData)
     }
+    setIsLoading(true)
     fetchInitalPosts()
     fetchFormContentData()
+    setIsLoading(false)
   }, [])
 
   const handleSubmit = async (ev) => {
     ev.preventDefault()
+    setIsLoading(true)
+
     const formData = Object.fromEntries(new FormData(ev.target))
 
     let queryParams = '?'
@@ -79,6 +86,7 @@ export default function Content() {
     )
 
     setPosts(result)
+    setIsLoading(false)
   }
 
   const updateCountry = (ev) => {
@@ -106,34 +114,29 @@ export default function Content() {
       </Head>
       <Layout>
         <main className={`${utils.container} ${styles.main}`}>
-          <div>
-            {errorMessage ? (
+          <div className={styles.searchedContentContainer}>
+            {isLoading ? (
+              <LoadingIndicator />
+            ) : errorMessage ? (
               <div>{errorMessage}</div>
             ) : posts.length > 0 ? (
-              <div className={styles.postsContainer}>
-                {posts.map((post) => (
-                  <div key={post.id} className={styles.post}>
-                    <h3>{post.attributes.title}</h3>
-                    <p>{post.attributes.description}</p>
-                    <Link href={`/content/${post.id}`} className={utils.button}>
-                      Ver más
-                    </Link>
-                  </div>
-                ))}
-              </div>
+              <CardsContainer cardsName="posts" cards={posts} />
             ) : (
-              <div>No hay posts que coincidan</div>
+              <div>Aún no hay contenido publicado</div>
             )}
           </div>
           <div>
             <h2>Filtrar</h2>
             <form onSubmit={handleSubmit} className={styles.form}>
-              <input
-                type="text"
-                name="post"
-                className={utils.input}
-                placeholder="Buscar..."
-              ></input>
+              <div>
+                <label htmlFor="post">Título</label>
+                <input
+                  type="text"
+                  name="post"
+                  className={utils.input}
+                  placeholder="Buscar..."
+                ></input>
+              </div>
               <div>
                 <label htmlFor="country">País</label>
                 <select

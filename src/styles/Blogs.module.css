@@ -2,59 +2,6 @@
   margin-block: var(--margin-block);
 }
 
-.blog {
-  border: 1px solid var(--clr-border-1);
-  border-radius: var(--border-radius);
-  display: flex;
-  flex-direction: column;
-  gap: .5rem;
-  max-width: 600px;
-  margin-top: 1rem;
-  padding: .5rem;
-}
-
-@media (min-width: 700px) {
-  .blog {
-    align-items: center;
-    display: grid;
-    grid-template-columns: 1fr 2fr;
-  }
-}
-
-.blog p {
-  display: -webkit-box;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-}
-
-.blogsContainer {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.imgContainer {
-  height: 150px;
-  position: relative;
-}
-
-.imgContainer img {
-  object-fit: contain;
-  z-index: inherit;
-}
-
-.info {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.info a {
-  width: fit-content;
-}
-
 /* [id].js */
 
 .blogInfo > *:not(:last-child) {

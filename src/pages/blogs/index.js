@@ -5,9 +5,8 @@ import Head from 'next/head'
 // import { db } from 'lib/db'
 import { fetchStrapi } from 'lib/api'
 // Components
-import Image from 'next/image'
-import Link from 'next/link'
 import Layout from '@/components/Layout'
+import CardsContainer from '@/components/CardsContainer'
 // Styles
 import styles from '@/styles/Blogs.module.css'
 import utils from '@/styles/utils.module.css'
@@ -32,34 +31,7 @@ export default function Blogs() {
       <Layout>
         <main className={`${utils.container} ${styles.main}`}>
           <h1 className={utils.bigTitle}>Blogs</h1>
-          <div className={styles.blogsContainer}>
-            {blogs &&
-              blogs.map((blog) => (
-                <div key={blog.id} className={styles.blog}>
-                  <Link
-                    href={`/blogs/${blog.id}`}
-                    className={styles.imgContainer}
-                  >
-                    <Image
-                      src={
-                        blog.attributes.img
-                          ? `${blog.attributes.img}`
-                          : '/images/logo.png'
-                      }
-                      fill
-                      alt="img"
-                    />
-                  </Link>
-                  <div className={styles.info}>
-                    <h3>{blog.attributes.title}</h3>
-                    <p>{blog.attributes.description}</p>
-                    <Link href={`/blogs/${blog.id}`} className={utils.button}>
-                      Seguir leyendo
-                    </Link>
-                  </div>
-                </div>
-              ))}
-          </div>
+          {blogs && <CardsContainer cardsName="blogs" cards={blogs} />}
         </main>
       </Layout>
     </>
