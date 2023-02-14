@@ -21,7 +21,7 @@ const LINKS = [
   },
   {
     title: 'atracciones judaicas',
-    url: '/content',
+    url: '/posts',
   },
   {
     title: 'contacto',
