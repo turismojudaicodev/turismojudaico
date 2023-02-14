@@ -2,6 +2,9 @@ import Head from 'next/head'
 import Layout from '@/components/Layout'
 import styles from '@/styles/Contact.module.css'
 import utils from '@/styles/utils.module.css'
+import Link from 'next/link'
+import Image from 'next/image'
+import emailIcon from 'public/icons/email.svg'
 
 export default function Contact() {
   const handleSubmit = (ev) => {
@@ -14,7 +17,9 @@ export default function Contact() {
         <title>title</title>
       </Head>
       <Layout>
-        <main className={styles.main}>
+        <main className={`${utils.container} ${styles.main}`}>
+          <h1 className={utils.bigTitle}>Turismo Judaico</h1>
+          <h2>Contáctenos</h2>
           <div className={styles.contentContainer}>
             <div>
               <h2>Escriba aquí su consulta</h2>
@@ -46,7 +51,24 @@ export default function Contact() {
             </div>
             <div>
               <h2>Datos de contacto</h2>
-              <div>...</div>
+              <div>
+                <ul className={styles.contactDetailsList}>
+                  <li>
+                    <Link
+                      className={`${styles.emailLink} ${utils.underlinedButton}`}
+                      href={'mailto:info@turismojudaico.com'}
+                    >
+                      <Image
+                        src={emailIcon}
+                        width={25}
+                        height={25}
+                        alt="email icon"
+                      />
+                      info@turismojudaico.com
+                    </Link>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
         </main>
