@@ -10,6 +10,16 @@
   font-size: 1.75rem;
 }
 
+.mediumTitle {
+  font-size: 1.5rem;
+}
+
+.centeredMainContent {
+  display: grid;
+  place-content: center;
+  margin-block: var(--margin-block);
+}
+
 /* forms */
 .input {
   border: 2px solid var(--clr-border-1);

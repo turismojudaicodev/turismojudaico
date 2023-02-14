@@ -1,6 +1,12 @@
 .main {
-  margin: var(--margin-block) auto;
-  width: fit-content;
+  margin-block: var(--margin-block);
+  display: grid;
+  justify-content: center;
+  justify-items: left;
+}
+
+.main > h2 {
+  margin-bottom: 1rem;
 }
 
 .contentContainer {
@@ -30,4 +36,15 @@
   min-height: 5.75em;
   max-height: 25.75em;
   position: relative;
+}
+
+.contactDetailsList {
+  list-style: none;
+  margin-top: 1rem;
+}
+
+.emailLink {
+  align-items: center;
+  display: flex;
+  gap: .5rem;
 }

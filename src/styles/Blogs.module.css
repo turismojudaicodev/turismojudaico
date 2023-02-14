@@ -2,6 +2,10 @@
   margin-block: var(--margin-block);
 }
 
+.blogsPageTitle {
+  margin-bottom: 1rem;
+}
+
 /* [id].js */
 
 .blogInfo > *:not(:last-child) {

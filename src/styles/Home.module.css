@@ -1,23 +1,24 @@
+.postsContainer,
+.blogsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-block: var(--margin-block);
+}
+
 /* Enable hover only on non-touch devices */
 @media (hover: hover) and (pointer: fine) {
-  .card:hover {
-    background: rgba(var(--card-rgb), 0.1);
-    border: 1px solid rgba(var(--card-border-rgb), 0.15);
-  }
 
-  .card:hover span {
-    transform: translateX(4px);
-  }
 }
 
 @media (prefers-reduced-motion) {
-  .thirteen::before {
-    animation: none;
-  }
 
-  .card:hover span {
-    transform: none;
-  }
 }
 
 /* Mobile */
@@ -37,13 +38,4 @@
 
 @media (prefers-color-scheme: dark) {
 
-}
-
-@keyframes rotate {
-  from {
-    transform: rotate(360deg);
-  }
-  to {
-    transform: rotate(0deg);
-  }
 }
