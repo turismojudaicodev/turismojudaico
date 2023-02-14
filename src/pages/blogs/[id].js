@@ -9,6 +9,8 @@ import { formatMarkDown, formatDate } from 'helpers'
 import Head from 'next/head'
 import Image from 'next/image'
 import Layout from '@/components/Layout'
+import Message from '@/components/Message'
+import LoadingIndicator from '@/components/LoadingIndicator'
 // Styles
 import utils from '@/styles/utils.module.css'
 import styles from '@/styles/Blogs.module.css'
@@ -18,19 +20,38 @@ export default function Blog() {
   const { id } = router.query
 
   const [blog, setBlog] = useState(null)
+  const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
     if (!id) return
     async function fetchBlog() {
-      const data = await fetchStrapi(`blogs/${id}`)
-      const htmlContent = await formatMarkDown(data.attributes.content)
-      data.attributes.content = htmlContent
-      setBlog(data)
+      try {
+        const data = await fetchStrapi(`blogs/${id}`)
+        const htmlContent = await formatMarkDown(data.attributes.content)
+        data.attributes.content = htmlContent
+        setBlog(data)
+      } catch (error) {
+        setErrorMessage(error?.message)
+      }
     }
     fetchBlog()
   }, [id])
 
-  if (!blog) return <Layout>Cargando blog...</Layout>
+  if (!blog)
+    return (
+      <Layout>
+        <div className={utils.centeredMainContent}>
+          <LoadingIndicator />
+        </div>
+      </Layout>
+    )
+
+  if (errorMessage)
+    return (
+      <Layout>
+        <Message type="error" message={errorMessage} />
+      </Layout>
+    )
 
   return (
     <>

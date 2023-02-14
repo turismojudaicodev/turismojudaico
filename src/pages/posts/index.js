@@ -128,8 +128,8 @@ export default function Content() {
                 <LoadingIndicator />
               ) : errorMessages.length > 0 ? (
                 <div>
-                  {errorMessages.map((errorMsg) => (
-                    <Message type="error" message={errorMsg} />
+                  {errorMessages.map((errorMsg, index) => (
+                    <Message type="error" message={errorMsg} key={index} />
                   ))}
                 </div>
               ) : posts.length > 0 ? (

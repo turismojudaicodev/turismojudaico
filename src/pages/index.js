@@ -1,11 +1,49 @@
+// NPM
+import { useEffect, useState } from 'react'
+// Local
+import { fetchStrapi } from 'lib/api'
+// Components
 import Head from 'next/head'
-import { Inter } from '@next/font/google'
 import Layout from '@/components/Layout'
+import LoadingIndicator from '@/components/LoadingIndicator'
+import CardsContainer from '@/components/CardsContainer'
+import Message from '@/components/Message'
+// Styles
 import styles from '@/styles/Home.module.css'
-
-const inter = Inter({ subsets: ['latin'] })
+import utils from '@/styles/utils.module.css'
 
 export default function Home() {
+  const [blogs, setBlogs] = useState(null)
+  const [posts, setPosts] = useState(null)
+  const [error, setError] = useState({})
+
+  useEffect(() => {
+    async function fetchBlogs() {
+      try {
+        const blogsData = await fetchStrapi(
+          'blogs',
+          '?pagination[page]=1&pagination[pageSize]=10'
+        )
+        setBlogs(blogsData)
+      } catch (error) {
+        setError((prevValue) => ({ ...prevValue, blogs: error.message }))
+      }
+    }
+    async function fetchPosts() {
+      try {
+        const postsData = await fetchStrapi(
+          'posts',
+          '?pagination[page]=1&pagination[pageSize]=10'
+        )
+        setPosts(postsData)
+      } catch (error) {
+        setError((prevValue) => ({ ...prevValue, posts: error.message }))
+      }
+    }
+    fetchBlogs()
+    fetchPosts()
+  }, [])
+
   return (
     <>
       <Head>
@@ -15,8 +53,28 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Layout>
-        <main className={styles.main}>
-          turismojudaico
+        <main className={`${styles.main} ${utils.container}`}>
+          <h1 className={utils.bigTitle}>Bienvenido a turismojudaico</h1>
+          <div className={styles.blogsContainer}>
+            <h2 className={utils.mediumTitle}>Blogs</h2>
+            {!blogs ? (
+              <LoadingIndicator />
+            ) : error.blogs ? (
+              <Message type="error" message={error.blogs} />
+            ) : (
+              <CardsContainer cardsName="blogs" cards={blogs} />
+            )}
+          </div>
+          <div className={styles.postsContainer}>
+            <h2 className={utils.mediumTitle}>Atracciones Judaicas</h2>
+            {!posts ? (
+              <LoadingIndicator />
+            ) : error.posts ? (
+              <Message type="error" message={error.posts} />
+            ) : (
+              <CardsContainer cardsName="posts" cards={posts} />
+            )}
+          </div>
         </main>
       </Layout>
     </>
