@@ -12,6 +12,7 @@ import CardsContainer from '@/components/CardsContainer'
 import styles from '@/styles/Content.module.css'
 import utils from '@/styles/utils.module.css'
 import Link from 'next/link'
+import Message from '@/components/Message'
 
 // function SearchedPosts({ posts }) {}
 
@@ -21,33 +22,39 @@ export default function Content() {
   const [categories, setCategories] = useState([])
   const [currentCategory, setCurrentCategory] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [errorMessage, setErrorMessage] = useState('')
-  const [posts, setPosts] = useState([])
+  const [errorMessages, setErrorMessages] = useState([])
+  const [posts, setPosts] = useState(null)
 
   useEffect(() => {
     async function fetchInitalPosts() {
-      const postsData = await fetchStrapi(
-        'posts',
-        '?pagination[page]=1&pagination[pageSize]=8'
-      )
-      setPosts(postsData)
+      try {
+        const postsData = await fetchStrapi(
+          'posts',
+          '?pagination[page]=1&pagination[pageSize]=8'
+        )
+        setPosts(postsData)
+      } catch (error) {
+        setErrorMessages((prevValue) => prevValue.concat(error.message))
+      }
     }
     async function fetchFormContentData() {
-      const countriesData = await fetchStrapi(
-        'countries',
-        '?populate[cities][fields][0]=name'
-      )
-      setCountries(countriesData)
-      const categoriesData = await fetchStrapi(
-        'categories',
-        '?populate[subCategories][fields][0]=name'
-      )
-      setCategories(categoriesData)
+      try {
+        const countriesData = await fetchStrapi(
+          'countries',
+          '?populate[cities][fields][0]=name'
+        )
+        setCountries(countriesData)
+        const categoriesData = await fetchStrapi(
+          'categories',
+          '?populate[subCategories][fields][0]=name'
+        )
+        setCategories(categoriesData)
+      } catch (error) {
+        setErrorMessages((prevValue) => prevValue.concat(error.message))
+      }
     }
-    setIsLoading(true)
     fetchInitalPosts()
     fetchFormContentData()
-    setIsLoading(false)
   }, [])
 
   const handleSubmit = async (ev) => {
@@ -114,19 +121,26 @@ export default function Content() {
       </Head>
       <Layout>
         <main className={`${utils.container} ${styles.main}`}>
-          <div className={styles.searchedContentContainer}>
-            {isLoading ? (
-              <LoadingIndicator />
-            ) : errorMessage ? (
-              <div>{errorMessage}</div>
-            ) : posts.length > 0 ? (
-              <CardsContainer cardsName="posts" cards={posts} />
-            ) : (
-              <div>Aún no hay contenido publicado</div>
-            )}
+          <div>
+            <h1 className={utils.bigTitle}>Últimos posteos</h1>
+            <div className={styles.searchedContentContainer}>
+              {!posts || isLoading ? (
+                <LoadingIndicator />
+              ) : errorMessages.length > 0 ? (
+                <div>
+                  {errorMessages.map((errorMsg) => (
+                    <Message type="error" message={errorMsg} />
+                  ))}
+                </div>
+              ) : posts.length > 0 ? (
+                <CardsContainer cardsName="posts" cards={posts} />
+              ) : (
+                <Message type="info" message="Aún no hay contenido publicado" />
+              )}
+            </div>
           </div>
           <div>
-            <h2>Filtrar</h2>
+            <h2 className={utils.bigTitle}>Filtrar</h2>
             <form onSubmit={handleSubmit} className={styles.form}>
               <div>
                 <label htmlFor="post">Título</label>

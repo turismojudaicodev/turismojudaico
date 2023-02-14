@@ -1,12 +1,14 @@
 // NPM
 import { useRouter } from 'next/router'
+import { useEffect, useState } from 'react'
 // Local
 import { fetchStrapi } from 'lib/api'
-import { formatMarkDown } from 'helpers'
+import { formatDate, formatMarkDown } from 'helpers'
 // Components
 import Head from 'next/head'
 import Layout from '@/components/Layout'
-import { useEffect, useState } from 'react'
+import LoadingIndicator from '@/components/LoadingIndicator'
+import Message from '@/components/Message'
 // Styles
 import utils from '@/styles/utils.module.css'
 
@@ -15,19 +17,38 @@ export default function Post() {
   const { id } = router.query
 
   const [post, setPost] = useState(null)
+  const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
     if (!id) return
     async function fetchPost() {
-      const data = await fetchStrapi(`posts/${id}`)
-      const htmlContent = await formatMarkDown(data.attributes.content)
-      data.attributes.content = htmlContent
-      setPost(data)
+      try {
+        const data = await fetchStrapi(`posts/${id}`)
+        const htmlContent = await formatMarkDown(data.attributes.content)
+        data.attributes.content = htmlContent
+        setPost(data)
+      } catch (error) {
+        setErrorMessage(error.message)
+      }
     }
     fetchPost()
   }, [id])
 
-  if (!post) return <Layout>Cargando post...</Layout>
+  if (!post)
+    return (
+      <Layout>
+        <div className={utils.centeredMainContent}>
+          <LoadingIndicator />
+        </div>
+      </Layout>
+    )
+
+  if (errorMessage)
+    return (
+      <Layout>
+        <Message type="error" message={errorMessage} />
+      </Layout>
+    )
 
   return (
     <>
@@ -41,6 +62,7 @@ export default function Post() {
             dangerouslySetInnerHTML={{ __html: post.attributes.content }}
             className={utils.htmlContent}
           ></div>
+          <p>Publicado el {formatDate(post.attributes.createdAt)}</p>
         </main>
       </Layout>
     </>
