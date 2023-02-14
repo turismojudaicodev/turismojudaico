@@ -13,15 +13,6 @@
   composes: messageContainer;
 }
 
-/* 
-Para cambiar el color de .icon
-https://codepen.io/sosuke/pen/Pjoqqp
-*/
-
-.error .icon {
-  filter: invert(23%) sepia(92%) saturate(1825%) hue-rotate(340deg) brightness(76%) contrast(97%);
-}
-
 .error .message {
   color: #a92626;
   background-color: #eaa;
@@ -32,15 +23,7 @@ https://codepen.io/sosuke/pen/Pjoqqp
   background-color: #fdf3a8;
 }
 
-.warning .icon {
-  filter: invert(60%) sepia(22%) saturate(2077%) hue-rotate(21deg) brightness(104%) contrast(101%);
-}
-
 .info .message {
   color: #1c79c0;
   background-color: #aaccee;
-}
-
-.info .icon {
-  filter: invert(38%) sepia(75%) saturate(5132%) hue-rotate(190deg) brightness(92%) contrast(78%);
 }
