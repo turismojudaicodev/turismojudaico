@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 // Local
 import { fetchStrapi } from 'lib/api'
 import { formatDate, formatMarkDown } from 'helpers'
+import { handleError } from 'lib/errors'
 // Components
 import Head from 'next/head'
 import Layout from '@/components/Layout'
@@ -17,52 +18,48 @@ export default function Post() {
   const { id } = router.query
 
   const [post, setPost] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
     if (!id) return
     async function fetchPost() {
+      setIsLoading(true)
       try {
-        const data = await fetchStrapi(`posts/${id}`)
+        const { data, error } = await fetchStrapi(`posts/${id}`)
+        if (error) handleError(error)
         const htmlContent = await formatMarkDown(data.attributes.content)
         data.attributes.content = htmlContent
         setPost(data)
       } catch (error) {
         setErrorMessage(error.message)
       }
+      setIsLoading(false)
     }
     fetchPost()
   }, [id])
 
-  if (!post)
-    return (
-      <Layout>
-        <div className={utils.centeredMainContent}>
-          <LoadingIndicator />
-        </div>
-      </Layout>
-    )
-
-  if (errorMessage)
-    return (
-      <Layout>
-        <Message type="error" message={errorMessage} />
-      </Layout>
-    )
-
   return (
     <>
       <Head>
-        <title>{post.attributes.title}</title>
+        <title>{post?.attributes?.title || 'Error al cargar el post'}</title>
       </Head>
       <Layout>
         <main className={`${utils.container} ${utils.marginBlock}`}>
-          <h2 className={utils.bigTitle}>{post.attributes.title}</h2>
-          <div
-            dangerouslySetInnerHTML={{ __html: post.attributes.content }}
-            className={utils.htmlContent}
-          ></div>
-          <p>Publicado el {formatDate(post.attributes.createdAt)}</p>
+          {errorMessage ? (
+            <Message type="error" message={errorMessage} />
+          ) : (!post && !isLoading) || isLoading ? (
+            <LoadingIndicator />
+          ) : (
+            <>
+              <h2 className={utils.bigTitle}>{post.attributes.title}</h2>
+              <div
+                dangerouslySetInnerHTML={{ __html: post.attributes.content }}
+                className={utils.htmlContent}
+              ></div>
+              <p>Publicado el {formatDate(post.attributes.createdAt)}</p>
+            </>
+          )}
         </main>
       </Layout>
     </>

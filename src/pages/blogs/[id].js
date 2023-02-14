@@ -5,6 +5,7 @@ import { useRouter } from 'next/router'
 // import { db } from 'lib/db'
 import { fetchStrapi } from 'lib/api'
 import { formatMarkDown, formatDate } from 'helpers'
+import { handleError } from 'lib/errors'
 // Components
 import Head from 'next/head'
 import Image from 'next/image'
@@ -20,61 +21,55 @@ export default function Blog() {
   const { id } = router.query
 
   const [blog, setBlog] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
     if (!id) return
     async function fetchBlog() {
+      setIsLoading(true)
       try {
-        const data = await fetchStrapi(`blogs/${id}`)
+        const { data, error } = await fetchStrapi(`blogs/${id}`)
+        if (error) handleError(error)
         const htmlContent = await formatMarkDown(data.attributes.content)
         data.attributes.content = htmlContent
         setBlog(data)
       } catch (error) {
-        setErrorMessage(error?.message)
+        setErrorMessage(error.message)
       }
+      setIsLoading(false)
     }
     fetchBlog()
   }, [id])
 
-  if (!blog)
-    return (
-      <Layout>
-        <div className={utils.centeredMainContent}>
-          <LoadingIndicator />
-        </div>
-      </Layout>
-    )
-
-  if (errorMessage)
-    return (
-      <Layout>
-        <Message type="error" message={errorMessage} />
-      </Layout>
-    )
-
   return (
     <>
       <Head>
-        <title>{blog.attributes.title}</title>
+        <title>{blog?.attributes?.title || 'Error al cargar el blog'}</title>
       </Head>
       <Layout>
         <main className={`${utils.container} ${styles.main}`}>
-          <div className={styles.blogInfo}>
-            <h2 className={utils.bigTitle}>{blog.attributes.title}</h2>
-            <p>{blog.attributes.description}</p>
-            <Image
-              src={blog.attributes.img || '/images/logo.png'}
-              height={250}
-              width={300}
-              alt="Blog main image"
-            />
-            <div
-              dangerouslySetInnerHTML={{ __html: blog.attributes.content }}
-              className={utils.htmlContent}
-            />
-            <p>Publicado el {formatDate(blog.attributes.publishedAt)}</p>
-          </div>
+          {errorMessage ? (
+            <Message type="error" message={errorMessage} />
+          ) : (!blog && !isLoading) || isLoading ? (
+            <LoadingIndicator />
+          ) : (
+            <div className={styles.blogInfo}>
+              <h2 className={utils.bigTitle}>{blog.attributes.title}</h2>
+              <p>{blog.attributes.description}</p>
+              <Image
+                src={blog.attributes.img || '/images/logo.png'}
+                height={250}
+                width={300}
+                alt="Blog main image"
+              />
+              <div
+                dangerouslySetInnerHTML={{ __html: blog.attributes.content }}
+                className={utils.htmlContent}
+              />
+              <p>Publicado el {formatDate(blog.attributes.publishedAt)}</p>
+            </div>
+          )}
         </main>
       </Layout>
     </>

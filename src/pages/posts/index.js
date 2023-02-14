@@ -2,19 +2,17 @@
 import { useEffect, useState } from 'react'
 // Local
 import { fetchStrapi } from 'lib/api'
+import { handleError } from 'lib/errors'
 // import { db } from 'lib/db'
 // Components
 import Head from 'next/head'
 import Layout from '@/components/Layout'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import CardsContainer from '@/components/CardsContainer'
+import Message from '@/components/Message'
 // Styles
 import styles from '@/styles/Content.module.css'
 import utils from '@/styles/utils.module.css'
-import Link from 'next/link'
-import Message from '@/components/Message'
-
-// function SearchedPosts({ posts }) {}
 
 export default function Content() {
   const [countries, setCountries] = useState([])
@@ -22,35 +20,39 @@ export default function Content() {
   const [categories, setCategories] = useState([])
   const [currentCategory, setCurrentCategory] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [errorMessages, setErrorMessages] = useState([])
-  const [posts, setPosts] = useState(null)
+  const [errorMessage, setErrorMessage] = useState('')
+  const [posts, setPosts] = useState([])
 
   useEffect(() => {
     async function fetchInitalPosts() {
+      setIsLoading(true)
       try {
-        const postsData = await fetchStrapi(
+        const { data: postsData, error: postsError } = await fetchStrapi(
           'posts',
           '?pagination[page]=1&pagination[pageSize]=8'
         )
+        if (postsError) handleError(postsError)
         setPosts(postsData)
       } catch (error) {
-        setErrorMessages((prevValue) => prevValue.concat(error.message))
+        setErrorMessage(error.message)
       }
+      setIsLoading(false)
     }
     async function fetchFormContentData() {
       try {
-        const countriesData = await fetchStrapi(
-          'countries',
-          '?populate[cities][fields][0]=name'
-        )
+        const { data: countriesData, error: countriesError } =
+          await fetchStrapi('countries', '?populate[cities][fields][0]=name')
+        if (countriesError) handleError(countriesError)
         setCountries(countriesData)
-        const categoriesData = await fetchStrapi(
-          'categories',
-          '?populate[subCategories][fields][0]=name'
-        )
+        const { data: categoriesData, error: categoriesError } =
+          await fetchStrapi(
+            'categories',
+            '?populate[subCategories][fields][0]=name'
+          )
+        if (categoriesError) handleError(categoriesError)
         setCategories(categoriesData)
       } catch (error) {
-        setErrorMessages((prevValue) => prevValue.concat(error.message))
+        setErrorMessage(error.message)
       }
     }
     fetchInitalPosts()
@@ -87,12 +89,16 @@ export default function Content() {
       })
     }
 
-    const result = await fetchStrapi(
-      'posts',
-      queryParams === '?' ? '' : queryParams
-    )
-
-    setPosts(result)
+    try {
+      const { data, error } = await fetchStrapi(
+        'posts',
+        queryParams === '?' ? '' : queryParams
+      )
+      if (error) handleError(error)
+      setPosts(data)
+    } catch (error) {
+      setErrorMessage(error.message)
+    }
     setIsLoading(false)
   }
 
@@ -124,14 +130,10 @@ export default function Content() {
           <div>
             <h1 className={utils.bigTitle}>Últimos posteos</h1>
             <div className={styles.searchedContentContainer}>
-              {!posts || isLoading ? (
+              {errorMessage ? (
+                <Message type="error" message={errorMessage} />
+              ) : (posts.length === 0 && !isLoading) || isLoading ? (
                 <LoadingIndicator />
-              ) : errorMessages.length > 0 ? (
-                <div>
-                  {errorMessages.map((errorMsg, index) => (
-                    <Message type="error" message={errorMsg} key={index} />
-                  ))}
-                </div>
               ) : posts.length > 0 ? (
                 <CardsContainer cardsName="posts" cards={posts} />
               ) : (

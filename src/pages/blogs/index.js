@@ -1,10 +1,11 @@
 // NPM
 import { useEffect, useState } from 'react'
 // Local
-import Head from 'next/head'
 // import { db } from 'lib/db'
 import { fetchStrapi } from 'lib/api'
+import { handleError } from 'lib/errors'
 // Components
+import Head from 'next/head'
 import Layout from '@/components/Layout'
 import CardsContainer from '@/components/CardsContainer'
 // Styles
@@ -15,21 +16,22 @@ import Message from '@/components/Message'
 
 export default function Blogs() {
   const [blogs, setBlogs] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
     async function fetchBlogs() {
+      setIsLoading(true)
       try {
-        const blogsData = await fetchStrapi('blogs')
-        setBlogs(blogsData)
+        const { data, error } = await fetchStrapi('blogs')
+        if (error) handleError(error)
+        setBlogs(data)
       } catch (error) {
-        setErrorMessage(error?.message)
+        setErrorMessage(error.message)
       }
+      setIsLoading(false)
     }
-    setIsLoading(true)
     fetchBlogs()
-    setIsLoading(false)
   }, [])
 
   return (
@@ -42,10 +44,10 @@ export default function Blogs() {
           <h1 className={`${styles.blogsPageTitle} ${utils.bigTitle}`}>
             Blogs
           </h1>
-          {isLoading ? (
-            <LoadingIndicator />
-          ) : errorMessage ? (
+          {errorMessage ? (
             <Message type="error" message={errorMessage} />
+          ) : (blogs.length === 0 && !isLoading) || isLoading ? (
+            <LoadingIndicator />
           ) : blogs.length > 0 ? (
             <CardsContainer cardsName="blogs" cards={blogs} />
           ) : (

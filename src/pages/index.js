@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 // Local
 import { fetchStrapi } from 'lib/api'
+import { handleError } from 'lib/errors'
 // Components
 import Head from 'next/head'
 import Layout from '@/components/Layout'
@@ -13,32 +14,40 @@ import styles from '@/styles/Home.module.css'
 import utils from '@/styles/utils.module.css'
 
 export default function Home() {
-  const [blogs, setBlogs] = useState(null)
-  const [posts, setPosts] = useState(null)
+  const [blogs, setBlogs] = useState([])
+  const [posts, setPosts] = useState([])
+  const [isBlogsLoading, setIsBlogsLoading] = useState(false)
+  const [isPostsLoading, setIsPostsLoading] = useState(false)
   const [error, setError] = useState({})
 
   useEffect(() => {
     async function fetchBlogs() {
+      setIsBlogsLoading(true)
       try {
-        const blogsData = await fetchStrapi(
+        const { data: blogsData, error } = await fetchStrapi(
           'blogs',
           '?pagination[page]=1&pagination[pageSize]=10'
         )
+        if (error) handleError(error)
         setBlogs(blogsData)
       } catch (error) {
         setError((prevValue) => ({ ...prevValue, blogs: error.message }))
       }
+      setIsBlogsLoading(false)
     }
     async function fetchPosts() {
+      setIsPostsLoading(true)
       try {
-        const postsData = await fetchStrapi(
+        const { data: postsData, error } = await fetchStrapi(
           'posts',
           '?pagination[page]=1&pagination[pageSize]=10'
         )
+        if (error) handleError(error)
         setPosts(postsData)
       } catch (error) {
         setError((prevValue) => ({ ...prevValue, posts: error.message }))
       }
+      setIsPostsLoading(false)
     }
     fetchBlogs()
     fetchPosts()
@@ -57,22 +66,26 @@ export default function Home() {
           <h1 className={utils.bigTitle}>Bienvenido a turismojudaico</h1>
           <div className={styles.blogsContainer}>
             <h2 className={utils.mediumTitle}>Blogs</h2>
-            {!blogs ? (
-              <LoadingIndicator />
-            ) : error.blogs ? (
+            {error.blogs ? (
               <Message type="error" message={error.blogs} />
-            ) : (
+            ) : (blogs.length === 0 && !isBlogsLoading) || isBlogsLoading ? (
+              <LoadingIndicator />
+            ) : blogs.length > 0 ? (
               <CardsContainer cardsName="blogs" cards={blogs} />
+            ) : (
+              <Message type="info" message="Aún no hay blogs publicados" />
             )}
           </div>
           <div className={styles.postsContainer}>
             <h2 className={utils.mediumTitle}>Atracciones Judaicas</h2>
-            {!posts ? (
-              <LoadingIndicator />
-            ) : error.posts ? (
+            {error.posts ? (
               <Message type="error" message={error.posts} />
-            ) : (
+            ) : (posts.length === 0 && !isPostsLoading) || isPostsLoading ? (
+              <LoadingIndicator />
+            ) : posts.length > 0 ? (
               <CardsContainer cardsName="posts" cards={posts} />
+            ) : (
+              <Message type="info" message="Aún no hay posts publicados" />
             )}
           </div>
         </main>
