@@ -1,5 +1,7 @@
 // NPM
 import { useEffect, useState } from 'react'
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
+import { useTranslation } from 'next-i18next'
 // Local
 import { fetchStrapi } from 'lib/api'
 import { handleError } from 'lib/errors'
@@ -13,12 +15,22 @@ import Message from '@/components/Message'
 import styles from '@/styles/Home.module.css'
 import utils from '@/styles/utils.module.css'
 
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ['common'])),
+    },
+  }
+}
+
 export default function Home() {
   const [blogs, setBlogs] = useState([])
   const [posts, setPosts] = useState([])
   const [isBlogsLoading, setIsBlogsLoading] = useState(false)
   const [isPostsLoading, setIsPostsLoading] = useState(false)
   const [error, setError] = useState({})
+
+  const { t } = useTranslation('common')
 
   useEffect(() => {
     async function fetchBlogs() {
@@ -71,7 +83,11 @@ export default function Home() {
             ) : (blogs.length === 0 && !isBlogsLoading) || isBlogsLoading ? (
               <LoadingIndicator />
             ) : blogs.length > 0 ? (
-              <CardsContainer cardsName="blogs" cards={blogs} />
+              <CardsContainer
+                cardsName="blogs"
+                cards={blogs}
+                linkText={t('cardsContainerText')}
+              />
             ) : (
               <Message type="info" message="Aún no hay blogs publicados" />
             )}
@@ -83,7 +99,11 @@ export default function Home() {
             ) : (posts.length === 0 && !isPostsLoading) || isPostsLoading ? (
               <LoadingIndicator />
             ) : posts.length > 0 ? (
-              <CardsContainer cardsName="posts" cards={posts} />
+              <CardsContainer
+                cardsName="posts"
+                cards={posts}
+                linkText={t('cardsContainerText')}
+              />
             ) : (
               <Message type="info" message="Aún no hay posts publicados" />
             )}

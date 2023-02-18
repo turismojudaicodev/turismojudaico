@@ -1,29 +1,32 @@
-import Link from 'next/link'
+// NPM
 import { useRouter } from 'next/router'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+// Local
 import useWidowSize from 'hooks/useWindowSize'
+import imgLogoSrc from '../../../public/images/logo.png'
+// Components
+import Link from 'next/link'
 import Image from 'next/image'
 import NavMenu from '@/components/NavMenu'
+// Styles
 import styles from './Header.module.css'
 import utils from '@/styles/utils.module.css'
-import imgLogoSrc from '../../../public/images/logo.png'
 
 const WINDOW_WIDTH_BREAKPOINT = 701
 
 export default function Header() {
   const [navActive, setNavActive] = useState(false)
+  const router = useRouter()
   const { width: windowWidth } = useWidowSize()
+
+  const changeLang = (e) => {
+    router.push(router.pathname, router.pathname, {
+      locale: e.target.value,
+    })
+  }
 
   const toggleNav = () => {
     setNavActive((prevState) => !prevState)
-    console.log(windowWidth)
-  }
-
-  const changeLang = (e) => {
-    console.log(e.target.value)
-    // router.push(router.pathname, router.pathname, {
-    //   locale: e.target.value
-    // })
   }
 
   return (
@@ -37,7 +40,11 @@ export default function Header() {
           </Link>
         </div>
         <div className={styles.controlers}>
-          <select onChange={changeLang} className={utils.input}>
+          <select
+            onChange={changeLang}
+            className={utils.input}
+            defaultValue={router.locale}
+          >
             <option value="es">Español</option>
             <option value="en">English</option>
           </select>

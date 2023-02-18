@@ -1,5 +1,7 @@
 // NPM
 import { useEffect, useState } from 'react'
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
+import { useTranslation, UseTranslation } from 'next-i18next'
 // Local
 import { fetchStrapi } from 'lib/api'
 import { handleError } from 'lib/errors'
@@ -14,6 +16,14 @@ import Message from '@/components/Message'
 import styles from '@/styles/Content.module.css'
 import utils from '@/styles/utils.module.css'
 
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ['common', 'posts'])),
+    },
+  }
+}
+
 export default function Content() {
   const [countries, setCountries] = useState([])
   const [currentCountry, setCurrentCountry] = useState(null)
@@ -22,6 +32,8 @@ export default function Content() {
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [posts, setPosts] = useState([])
+
+  const { t } = useTranslation(['posts', 'common'])
 
   useEffect(() => {
     async function fetchInitalPosts() {
@@ -123,29 +135,39 @@ export default function Content() {
   return (
     <>
       <Head>
-        <title>Contenido</title>
+        <title>{t('head.title', { ns: 'posts' })}</title>
       </Head>
       <Layout>
         <main className={`${utils.container} ${styles.main}`}>
           <div>
-            <h1 className={utils.bigTitle}>Últimos posteos</h1>
+            <h1 className={utils.bigTitle}>
+              {t('body.posts.title', { ns: 'posts' })}
+            </h1>
             <div className={styles.searchedContentContainer}>
               {errorMessage ? (
                 <Message type="error" message={errorMessage} />
               ) : (posts.length === 0 && !isLoading) || isLoading ? (
                 <LoadingIndicator />
               ) : posts.length > 0 ? (
-                <CardsContainer cardsName="posts" cards={posts} />
+                <CardsContainer
+                  cardsName="posts"
+                  cards={posts}
+                  linkText={t('cardsContainerText', { ns: 'common' })}
+                />
               ) : (
                 <Message type="info" message="Aún no hay contenido publicado" />
               )}
             </div>
           </div>
           <div>
-            <h2 className={utils.bigTitle}>Filtrar</h2>
+            <h2 className={utils.bigTitle}>
+              {t('body.filter', { ns: 'posts' })}
+            </h2>
             <form onSubmit={handleSubmit} className={styles.form}>
               <div>
-                <label htmlFor="post">Título</label>
+                <label htmlFor="post">
+                  {t('body.form.title', { ns: 'posts' })}
+                </label>
                 <input
                   type="text"
                   name="post"
@@ -154,7 +176,9 @@ export default function Content() {
                 ></input>
               </div>
               <div>
-                <label htmlFor="country">País</label>
+                <label htmlFor="country">
+                  {t('body.form.country', { ns: 'posts' })}
+                </label>
                 <select
                   id="country"
                   name="country"
@@ -170,7 +194,9 @@ export default function Content() {
                 </select>
               </div>
               <div>
-                <label htmlFor="city">Ciudad</label>
+                <label htmlFor="city">
+                  {t('body.form.city', { ns: 'posts' })}
+                </label>
                 <select id="city" name="city" className={utils.input}>
                   <option value="">-</option>
                   {currentCountry &&
@@ -182,7 +208,9 @@ export default function Content() {
                 </select>
               </div>
               <div>
-                <label htmlFor="category">Categoría</label>
+                <label htmlFor="category">
+                  {t('body.form.category', { ns: 'posts' })}
+                </label>
                 <select
                   id="category"
                   name="category"
@@ -198,7 +226,9 @@ export default function Content() {
                 </select>
               </div>
               <div>
-                <label htmlFor="subCategory">Sub categoría</label>
+                <label htmlFor="subCategory">
+                  {t('body.form.subCategory', { ns: 'posts' })}
+                </label>
                 <select
                   id="subCategory"
                   name="subCategory"
@@ -219,7 +249,7 @@ export default function Content() {
                 </select>
               </div>
               <button className={utils.button} type="submit">
-                Buscar
+                {t('body.form.submit', { ns: 'posts' })}
               </button>
             </form>
           </div>

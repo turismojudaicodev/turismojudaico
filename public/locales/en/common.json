@@ -1,0 +1,16 @@
+{
+  "buttons": {
+    "keepReading": "Read more",
+    "search": "Search"
+  }, 
+  "links": {
+    "about": "about",
+    "cityTours": "jewish city tours",
+    "audioguides": "audioguides",
+    "blogs": "blogs",
+    "posts": "jewish attractions",
+    "contact": "contact",
+    "newsletter": "newsletter"
+  },
+  "cardsContainerText": "Read more"
+}

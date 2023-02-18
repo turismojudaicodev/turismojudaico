@@ -1,0 +1,17 @@
+{
+  "newsletter": {
+    "title": "Newsletter",
+    "placeholder": "Your email",
+    "suscribe": "Suscribe"
+  },
+  "contact": {
+    "title": "Contact"
+  }, 
+  "socialMedia": {
+    "title": "Our Social Media"
+  },
+  "bottom": {
+    "rights": "© 2023 - Judaic Tourism, all rights reserved.",
+    "legal": "Legal warning"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "head": {
+    "title": "Content"
+  },
+  "body": {
+    "posts": {
+      "title": "Last posts"
+    },
+    "filter": "Filter",
+    "form": {
+      "title": "Title",
+      "placeholder": "Search...",
+      "country": "Country",
+      "city": "City",
+      "category": "Category",
+      "subCategory": "Sub category",
+      "submit": "Search"
+    }
+  }
+}

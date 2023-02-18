@@ -1,0 +1,47 @@
+{
+  "head": {
+    "title": "About"
+  },
+  "body": {
+    "title": "Judaic Tourism",
+    "subTitle": "What is www.turismojudaico.com?",
+    "description": "JUDAICO TOURISM is a social project, carried out by members of local Jewish communities, with the mission of showing Jewish life in cities in Latin America and the rest of the world.",
+    "sections": {
+      "objectives": {
+        "title": "Objectives:",
+        "ul": {
+          "li1": "Strengthen the Jewish identity through the preservation and appreciation of our heritage.", 
+          "li2": "Transform Jewish places into interesting and accessible tourist sites.",
+          "li3": "Connecting travelers with Jewish history, culture, and life from around the world."
+        }
+      },
+      "how": {
+        "title": "How do we do it?",
+        "p1": "We offer information on Jewish sites in all corners of Latin America, including museums, monuments, historical sites, synagogues, and kosher restaurants.",
+        "p2": "We provide historical tours of patrimonial value visiting Jewish sites, we offer local and cultural experiences, travel advice by local hosts, organization and advice of group trips and all kinds of tourist services for Jewish travelers, mainly in Latin America.",
+        "p3": "We work together with members of the local Jewish communities in different cities, offering Jewish tours and experiences all over the world, functioning as one big network. We create each itinerary and each proposal according to the interest of the participants.",
+        "p4": "The hallmark of this project is that all of our Jewish Tours guides are active local members of each Jewish community, telling their own stories of Jewish life and participating as cultural hosts with visitors. Another outstanding aspect of the project is that all the places visited are sites and institutions with which Judaic Tourism works together to open their doors and make their stories known."
+      },
+      "why": {
+        "title": "Why choose us?",
+        "p1": "JEWISH TOURISM is a project where &quot;everyone wins&quot;, both from the social mission, and from the profits, since a part of our income is used as collaboration for community projects and donations to the Jewish sites visited.",
+        "p2": "We invite Jewish travelers from around the world to spend at least one day, or even a few hours, of their vacation or business trip connecting with their roots, visiting different landmarks of local Jewish life, learning about Jewish immigration. and learning about the local Jewish community, in whatever city they are traveling to.",
+        "p3": "We are excited to connect Jewish travelers with local Jewish communities, finding out how participants and communities are empowered and strengthened."
+      },
+      "services": {
+        "title": "Services",
+        "p1": "Our website functions as a &quot;travel guide&quot; that presents tourist information about Jewish places in different cities of Latin America, including information about museums, monuments, historical sites, synagogues, shops and kosher restaurants, among other things.",
+        "p2": "Jewish tours and themed trips are also offered in different cities around the world, working directly with local Jewish communities through specialized guides and local teams.",
+        "p3": "We offer a variety of services to Jewish travelers:",
+        "p4": "and everything a Jewish traveler might need.",
+        "ul": {
+          "li1": "Jewish City Tours and themed trips with cultural and heritage content",
+          "li2": "Information on kosher meals and reservations at kosher restaurants",
+          "li3": "Shabbat dinners",
+          "li4": "Transfers in taxis with drivers who speak Spanish, English and/or Hebrew",
+          "li5": "Guidance and contact information for visiting synagogues"
+        }
+      }
+    }
+  } 
+}

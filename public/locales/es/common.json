@@ -1,0 +1,16 @@
+{
+  "buttons": {
+    "keepReading": "Seguir leyendo",
+    "search": "Buscar"
+  }, 
+  "links": {
+    "about": "quienes somos",
+    "cityTours": "city tours judíos",
+    "audioguides": "audioguías",
+    "blogs": "blogs",
+    "posts": "atracciones judaicas",
+    "contact": "contacto",
+    "newsletter": "newsletter"
+  },
+  "cardsContainerText": "Seguir leyendo"
+}

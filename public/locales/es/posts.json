@@ -1,0 +1,20 @@
+{
+  "head": {
+    "title": "Contenido"
+  },
+  "body": {
+    "posts": {
+      "title": "Últimos posteos"
+    },
+    "filter": "Filter",
+    "form": {
+      "title": "Título",
+      "placeholder": "Buscar...",
+      "country": "País",
+      "city": "Ciudad",
+      "category": "Categoría",
+      "subCategory": "Sub categoría",
+      "submit": "Buscar"
+    }
+  }
+}

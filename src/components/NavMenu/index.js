@@ -1,46 +1,62 @@
+// NPM
+import { useRouter } from 'next/router'
+import { useEffect, useState } from 'react'
+// Components
 import Link from 'next/link'
-import styles from './NavMenu.module.css'
+// Styles
 import utils from '@/styles/utils.module.css'
+import styles from './NavMenu.module.css'
 
 const LINKS = [
   {
-    title: 'quienes somos',
+    name: 'about',
     url: '/about',
   },
   {
-    title: 'city tours judios',
+    name: 'cityTours',
     url: '/citytours',
   },
   {
-    title: 'audiogías',
+    name: 'audioguides',
     url: '/audioguides',
   },
   {
-    title: 'blogs',
+    name: 'blogs',
     url: '/blogs',
   },
   {
-    title: 'atracciones judaicas',
+    name: 'posts',
     url: '/posts',
   },
   {
-    title: 'contacto',
+    name: 'contact',
     url: '/contact',
   },
   {
-    title: 'newsletter',
+    name: 'newsletter',
     url: '/newsletter',
   },
 ]
 
 export default function NavMenu({ active }) {
+  const [links, setLinks] = useState({})
+  const { locale } = useRouter()
+
+  useEffect(() => {
+    async function fetchLocale() {
+      const translation = await import(`public/locales/${locale}/common.json`)
+      setLinks(translation.links)
+    }
+    fetchLocale()
+  })
+
   return (
     <nav className={active ? styles.navActive : styles.navInactive}>
       <ul className={styles.navLinks}>
         {LINKS.map((link) => (
           <li key={link.url}>
             <Link href={`${link.url}`} replace className={utils.navButton}>
-              {link.title}
+              {links[link.name] || link.name}
             </Link>
           </li>
         ))}

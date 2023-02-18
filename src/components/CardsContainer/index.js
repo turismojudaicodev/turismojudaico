@@ -4,8 +4,9 @@ import Image from 'next/image'
 // Styles
 import styles from './CardsContainer.module.css'
 import utils from '@/styles/utils.module.css'
+import StrapiImage from '../StrapiImage'
 
-export default function CardsContainer({ cardsName, cards }) {
+export default function CardsContainer({ linkText, cardsName, cards }) {
   return (
     <div className={styles.cardsContainer}>
       {cards.map((card) => (
@@ -14,7 +15,8 @@ export default function CardsContainer({ cardsName, cards }) {
             href={`/${cardsName}/${card.id}`}
             className={styles.imgContainer}
           >
-            <Image
+            <StrapiImage />
+            {/* <Image
               src={
                 card.attributes.img
                   ? `${card.attributes.img}`
@@ -22,13 +24,13 @@ export default function CardsContainer({ cardsName, cards }) {
               }
               fill
               alt="img"
-            />
+            /> */}
           </Link>
           <div className={styles.info}>
             <h3>{card.attributes.title}</h3>
             <p>{card.attributes.description}</p>
             <Link href={`/${cardsName}/${card.id}`} className={utils.button}>
-              Seguir leyendo
+              {linkText}
             </Link>
           </div>
         </div>

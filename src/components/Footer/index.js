@@ -1,11 +1,16 @@
-import Image from 'next/image'
-import Link from 'next/link'
-import styles from './Footer.module.css'
-import utils from '@/styles/utils.module.css'
-import imgLogoSrc from '../../../public/images/logo.png'
+// NPM
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/router'
+// Local
 import pinterestIcon from '../../../public/icons/pinterest-logo.svg'
 import facebookIcon from '../../../public/icons/facebook-logo.svg'
 import youtubeIcon from '../../../public/icons/youtube-logo.svg'
+// Components
+import Image from 'next/image'
+import Link from 'next/link'
+// Styles
+import styles from './Footer.module.css'
+import utils from '@/styles/utils.module.css'
 
 const SOCIAL_LINKS = [
   {
@@ -26,6 +31,19 @@ const SOCIAL_LINKS = [
 ]
 
 export default function Footer() {
+  const [i18n, setI18n] = useState({})
+  const { locale } = useRouter()
+
+  useEffect(() => {
+    async function fetchLocale() {
+      const translation = await import(`public/locales/${locale}/footer.json`)
+      setI18n(translation)
+    }
+    fetchLocale()
+  }, [locale])
+
+  console.log('render')
+
   const handleEmailSubmit = (ev) => {
     ev.preventDefault()
   }
@@ -35,20 +53,20 @@ export default function Footer() {
       <div className={utils.container}>
         <div className={styles.colsContainer}>
           <div className={styles.newsletter}>
-            <h3>Newsletter</h3>
+            <h3>{i18n?.newsletter?.title}</h3>
             <form onSubmit={handleEmailSubmit} className={styles.newsletter}>
               <input
                 type="email"
-                placeholder="Su email"
+                placeholder={`${i18n?.newsletter?.placeholder}`}
                 className={utils.input}
               ></input>
               <button type="submit" className={utils.button}>
-                Suscribirse
+                {i18n?.newsletter?.suscribe}
               </button>
             </form>
           </div>
           <div>
-            <h3>Contacto</h3>
+            <h3>{i18n?.contact?.title || 'a'}</h3>
             <Link
               href="mailto:info@turismojudaico.com"
               className={utils.linkButton}
@@ -57,7 +75,7 @@ export default function Footer() {
             </Link>
           </div>
           <div>
-            <h3>Nuestras Redes</h3>
+            <h3>{i18n?.socialMedia?.title || ' a'}</h3>
             <div className={styles.socialLinks}>
               {SOCIAL_LINKS.map((link) => (
                 <Link
@@ -79,44 +97,10 @@ export default function Footer() {
           </div>
         </div>
         <div className={styles.footerBottom}>
-          <p>© 2023 - Turismo Judaico, todos los derechos reservados.</p>
+          <p>{i18n?.bottom?.rights}</p>
           <Link href="/legal" className={utils.underlinedButton}>
-            Aviso legal
+            {i18n?.bottom?.legal}
           </Link>
-        </div>
-      </div>
-    </footer>
-  )
-}
-
-function AlternativeFooter() {
-  return (
-    <footer className={styles.footer}>
-      <div className={styles.info}>
-        <div className={styles.logoContainer}>
-          <Image src={imgLogoSrc} width={75} height={75} alt="Our logo" />
-        </div>
-        <p>© 2023 Turismo Judaico, todos los derechos reservados</p>
-        <Link href="mailto:info@turismojudaico.com">
-          info@turismojudaico.com
-        </Link>
-        <Link href="/legal" className={utils.underlinedButton}>
-          Aviso legal
-        </Link>
-      </div>
-      <div>
-        <h3>Nuestras Redes</h3>
-        <div className={styles.socialLinks}>
-          {SOCIAL_LINKS.map((link) => (
-            <Link key={link.url} href={link.url} target="_blank">
-              <Image
-                src={link.icon}
-                width={25}
-                height={25}
-                alt={`${link.name} icon`}
-              />
-            </Link>
-          ))}
         </div>
       </div>
     </footer>

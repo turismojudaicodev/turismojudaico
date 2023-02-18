@@ -1,5 +1,7 @@
 // NPM
 import { useEffect, useState } from 'react'
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
+import { useTranslation, UseTranslation } from 'next-i18next'
 // Local
 // import { db } from 'lib/db'
 import { fetchStrapi } from 'lib/api'
@@ -14,10 +16,20 @@ import utils from '@/styles/utils.module.css'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import Message from '@/components/Message'
 
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ['common'])),
+    },
+  }
+}
+
 export default function Blogs() {
   const [blogs, setBlogs] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
+
+  const { t } = useTranslation('common')
 
   useEffect(() => {
     async function fetchBlogs() {
@@ -49,7 +61,11 @@ export default function Blogs() {
           ) : (blogs.length === 0 && !isLoading) || isLoading ? (
             <LoadingIndicator />
           ) : blogs.length > 0 ? (
-            <CardsContainer cardsName="blogs" cards={blogs} />
+            <CardsContainer
+              cardsName="blogs"
+              cards={blogs}
+              linkText={t('cardsContainerText')}
+            />
           ) : (
             <Message type="info" message="Aún no hay blogs publicados" />
           )}
