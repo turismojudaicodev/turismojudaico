@@ -6,7 +6,7 @@
     "posts": {
       "title": "Últimos posteos"
     },
-    "filter": "Filter",
+    "filter": "Filtrar",
     "form": {
       "title": "Título",
       "placeholder": "Buscar...",

@@ -1,0 +1,22 @@
+{
+  "head": {
+    "title": "Contact"
+  },
+  "body": {
+    "title": "Judaic Tourism",
+    "subTitle": "Contact us",
+    "sections": {
+      "consultation": {
+        "title": "Write your consultation here",
+        "name": "Name",
+        "email": "Email",
+        "telephone": "Telephone",
+        "message": "Message",
+        "submit": "Send"
+      },
+      "details": {
+        "title": "Contact details"
+      }
+    }
+  }
+}

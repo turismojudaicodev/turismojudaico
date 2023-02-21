@@ -1,0 +1,10 @@
+{
+  "head": {
+    "title": "City Tours"
+  }, 
+  "body": {
+    "alert": {
+      "noContent": "There isn't any tour available yet"
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "head": {
+    "title": "Contacto"
+  },
+  "body": {
+    "title": "Turismo Judaico",
+    "subTitle": "Contáctenos",
+    "sections": {
+      "consultation": {
+        "title": "Escriba aquí su consulta",
+        "name": "Nombre",
+        "email": "Email",
+        "telephone": "Teléfono",
+        "message": "Mensaje",
+        "submit": "Enviar"
+      },
+      "details": {
+        "title": "Datos de contacto"
+      }
+    }
+  }
+}

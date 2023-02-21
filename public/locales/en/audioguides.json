@@ -1,0 +1,10 @@
+{
+  "head": {
+    "title": "Audioguides"
+  }, 
+  "body": {
+    "alert": {
+      "noContent": "There isn't any audioguide published yet"
+    }
+  }
+}

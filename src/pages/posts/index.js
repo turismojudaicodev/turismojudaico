@@ -172,7 +172,7 @@ export default function Content() {
                   type="text"
                   name="post"
                   className={utils.input}
-                  placeholder="Buscar..."
+                  placeholder={t('body.form.placeholder')}
                 ></input>
               </div>
               <div>

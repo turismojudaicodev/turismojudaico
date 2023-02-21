@@ -42,8 +42,6 @@ export default function Footer() {
     fetchLocale()
   }, [locale])
 
-  console.log('render')
-
   const handleEmailSubmit = (ev) => {
     ev.preventDefault()
   }

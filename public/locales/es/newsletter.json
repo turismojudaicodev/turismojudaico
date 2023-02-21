@@ -1,0 +1,13 @@
+{
+  "head": {
+    "title": "Newsletter"
+  },
+  "body": {
+    "title": "Suscribite a nuestra newsletter",
+    "form": {
+      "name": "Nombre",
+      "email": "Email",
+      "submit": "Enviar"
+    }
+  }
+}
