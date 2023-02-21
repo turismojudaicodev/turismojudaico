@@ -1,0 +1,13 @@
+.main {
+  margin-block: var(--margin-block);
+}
+
+.main > div:not(:last-child) {
+  margin-bottom: 2rem;
+}
+
+.main h1,
+.main h2,
+.main p {
+  margin-bottom: 1em;
+}

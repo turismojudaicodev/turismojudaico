@@ -23,7 +23,7 @@ export default function Legal() {
         <title>{t('head.title')}</title>
       </Head>
       <Layout>
-        <main className={utils.container}>
+        <main className={`${utils.container} ${styles.main}`}>
           <div>
             <h1>{t('body.sections.s1.title')}</h1>
             <p>{t('body.sections.s1.p1')}</p>
