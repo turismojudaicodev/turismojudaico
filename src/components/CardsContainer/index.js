@@ -1,6 +1,5 @@
 // Components
 import Link from 'next/link'
-import Image from 'next/image'
 // Styles
 import styles from './CardsContainer.module.css'
 import utils from '@/styles/utils.module.css'
@@ -15,16 +14,7 @@ export default function CardsContainer({ linkText, cardsName, cards }) {
             href={`/${cardsName}/${card.id}`}
             className={styles.imgContainer}
           >
-            <StrapiImage />
-            {/* <Image
-              src={
-                card.attributes.img
-                  ? `${card.attributes.img}`
-                  : '/images/logo.png'
-              }
-              fill
-              alt="img"
-            /> */}
+            <StrapiImage image={card.attributes.image} />
           </Link>
           <div className={styles.info}>
             <h3>{card.attributes.title}</h3>
