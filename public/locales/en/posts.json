@@ -4,7 +4,7 @@
   },
   "body": {
     "posts": {
-      "title": "Last posts"
+      "title": "Latest posts"
     },
     "filter": "Filter",
     "form": {
@@ -15,6 +15,7 @@
       "category": "Category",
       "subCategory": "Sub category",
       "submit": "Search"
-    }
+    },
+    "noContent": "There isn't any post published yet"
   }
 }

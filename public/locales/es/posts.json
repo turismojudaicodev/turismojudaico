@@ -15,6 +15,7 @@
       "category": "Categoría",
       "subCategory": "Sub categoría",
       "submit": "Buscar"
-    }
+    },
+    "noContent": "Aún no hay posts publicados"
   }
 }

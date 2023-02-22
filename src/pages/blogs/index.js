@@ -1,7 +1,8 @@
 // NPM
 import { useEffect, useState } from 'react'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
-import { useTranslation, UseTranslation } from 'next-i18next'
+import { useTranslation } from 'next-i18next'
+import { useRouter } from 'next/router'
 // Local
 // import { db } from 'lib/db'
 import { fetchStrapi } from 'lib/api'
@@ -19,7 +20,7 @@ import Message from '@/components/Message'
 export async function getStaticProps({ locale }) {
   return {
     props: {
-      ...(await serverSideTranslations(locale, ['common'])),
+      ...(await serverSideTranslations(locale, ['common', 'blogs'])),
     },
   }
 }
@@ -29,13 +30,17 @@ export default function Blogs() {
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
-  const { t } = useTranslation('common')
+  const { locale } = useRouter()
+  const { t } = useTranslation(['common', 'blogs'])
 
   useEffect(() => {
     async function fetchBlogs() {
       setIsLoading(true)
       try {
-        const { data, error } = await fetchStrapi('blogs')
+        const { data, error } = await fetchStrapi(
+          'blogs',
+          `?locale=${locale}&populate=image`
+        )
         if (error) handleError(error)
         setBlogs(data)
       } catch (error) {
@@ -44,30 +49,33 @@ export default function Blogs() {
       setIsLoading(false)
     }
     fetchBlogs()
-  }, [])
+  }, [locale])
 
   return (
     <>
       <Head>
-        <title>Blogs</title>
+        <title>{t('head.title', { ns: 'blogs' })}</title>
       </Head>
       <Layout>
         <main className={`${utils.container} ${styles.main}`}>
           <h1 className={`${styles.blogsPageTitle} ${utils.bigTitle}`}>
-            Blogs
+            {t('body.title', { ns: 'blogs' })}
           </h1>
           {errorMessage ? (
             <Message type="error" message={errorMessage} />
-          ) : (blogs.length === 0 && !isLoading) || isLoading ? (
+          ) : (blogs.length === 0 && isLoading) || isLoading ? (
             <LoadingIndicator />
           ) : blogs.length > 0 ? (
             <CardsContainer
               cardsName="blogs"
               cards={blogs}
-              linkText={t('cardsContainerText')}
+              linkText={t('cardsContainerText', { ns: 'common' })}
             />
           ) : (
-            <Message type="info" message="Aún no hay blogs publicados" />
+            <Message
+              type="info"
+              message={t('body.noContent', { ns: 'blogs' })}
+            />
           )}
         </main>
       </Layout>

@@ -1,7 +1,8 @@
 // NPM
 import { useEffect, useState } from 'react'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
-import { useTranslation, UseTranslation } from 'next-i18next'
+import { useTranslation } from 'next-i18next'
+import { useRouter } from 'next/router'
 // Local
 import { fetchStrapi } from 'lib/api'
 import { handleError } from 'lib/errors'
@@ -33,6 +34,7 @@ export default function Content() {
   const [errorMessage, setErrorMessage] = useState('')
   const [posts, setPosts] = useState([])
 
+  const { locale } = useRouter()
   const { t } = useTranslation(['posts', 'common'])
 
   useEffect(() => {
@@ -41,7 +43,7 @@ export default function Content() {
       try {
         const { data: postsData, error: postsError } = await fetchStrapi(
           'posts',
-          '?pagination[page]=1&pagination[pageSize]=8'
+          `?locale=${locale}&pagination[page]=1&pagination[pageSize]=8`
         )
         if (postsError) handleError(postsError)
         setPosts(postsData)
@@ -69,7 +71,7 @@ export default function Content() {
     }
     fetchInitalPosts()
     fetchFormContentData()
-  }, [])
+  }, [locale])
 
   const handleSubmit = async (ev) => {
     ev.preventDefault()
@@ -77,7 +79,7 @@ export default function Content() {
 
     const formData = Object.fromEntries(new FormData(ev.target))
 
-    let queryParams = '?'
+    let queryParams = `?locale=${locale}`
     const filters = []
 
     if (formData.post)
@@ -96,8 +98,7 @@ export default function Content() {
 
     if (filters.length > 0) {
       filters.forEach((filter, index) => {
-        if (index !== 0) queryParams += '&'
-        queryParams += `${filter[0]}[${index}]=${filter[1]}`
+        queryParams += `&${filter[0]}[${index}]=${filter[1]}`
       })
     }
 
@@ -146,7 +147,7 @@ export default function Content() {
             <div className={styles.searchedContentContainer}>
               {errorMessage ? (
                 <Message type="error" message={errorMessage} />
-              ) : (posts.length === 0 && !isLoading) || isLoading ? (
+              ) : (posts.length === 0 && isLoading) || isLoading ? (
                 <LoadingIndicator />
               ) : posts.length > 0 ? (
                 <CardsContainer
@@ -155,7 +156,7 @@ export default function Content() {
                   linkText={t('cardsContainerText', { ns: 'common' })}
                 />
               ) : (
-                <Message type="info" message="Aún no hay contenido publicado" />
+                <Message type="info" message={t('body.noContent')} />
               )}
             </div>
           </div>

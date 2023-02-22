@@ -18,54 +18,58 @@ export async function getStaticProps({ locale }) {
 }
 
 export default function About() {
-  const { t } = useTranslation('about')
+  const { t } = useTranslation(['common', 'about'])
 
   return (
     <>
       <Head>
-        <title>{t('head.title')}</title>
+        <title>{t('head.title', { ns: 'about' })}</title>
       </Head>
       <Layout>
         <main className={`${utils.container} ${styles.main}`}>
-          <h1>{t('body.title')}</h1>
-          <h2>{t('body.subTitle')}</h2>
-          <p>{t('body.description')}</p>
+          <h1>{t('body.title', { ns: 'about' })}</h1>
+          <h2>{t('body.subTitle', { ns: 'about' })}</h2>
+          <p>{t('body.description', { ns: 'about' })}</p>
           <div>
-            <h3>{t('body.sections.objectives.title')}</h3>
+            <h3>{t('body.sections.objectives.title', { ns: 'about' })}</h3>
             <ul>
-              <li>{t('body.sections.objectives.ul.li1')}</li>
-              <li>{t('body.sections.objectives.ul.li2')}</li>
-              <li>{t('body.sections.objectives.ul.li3')}</li>
+              <li>{t('body.sections.objectives.ul.li1', { ns: 'about' })}</li>
+              <li>{t('body.sections.objectives.ul.li2', { ns: 'about' })}</li>
+              <li>{t('body.sections.objectives.ul.li3', { ns: 'about' })}</li>
             </ul>
           </div>
           <div>
-            <h3>{t('body.sections.how.title')}</h3>
-            <p>{t('body.sections.how.p1')}</p>
-            <p>{t('body.sections.how.p2')}</p>
-            <p>{t('body.sections.how.p3')}</p>
-            <p>{t('body.sections.how.p4')}</p>
+            <h3>{t('body.sections.how.title', { ns: 'about' })}</h3>
+            <p>{t('body.sections.how.p1', { ns: 'about' })}</p>
+            <p>{t('body.sections.how.p2', { ns: 'about' })}</p>
+            <p>{t('body.sections.how.p3', { ns: 'about' })}</p>
+            <p>{t('body.sections.how.p4', { ns: 'about' })}</p>
           </div>
           <div>
-            <h3>{t('body.sections.why.title')}</h3>
-            <p>{t('body.sections.why.p1')}</p>
-            <p>{t('body.sections.why.p2')}</p>
-            <p>{t('body.sections.why.p3')}</p>
+            <h3>{t('body.sections.why.title', { ns: 'about' })}</h3>
+            <p>{t('body.sections.why.p1', { ns: 'about' })}</p>
+            <p>{t('body.sections.why.p2', { ns: 'about' })}</p>
+            <p>{t('body.sections.why.p3', { ns: 'about' })}</p>
           </div>
           <div>
-            <h3>{t('body.sections.services.title')}</h3>
-            <p>{t('body.sections.services.p1')}</p>
-            <p>{t('body.sections.services.p2')}</p>
-            <p>{t('body.sections.services.p3')}</p>
+            <h3>{t('body.sections.services.title', { ns: 'about' })}</h3>
+            <p>{t('body.sections.services.p1', { ns: 'about' })}</p>
+            <p>{t('body.sections.services.p2', { ns: 'about' })}</p>
+            <p>{t('body.sections.services.p3', { ns: 'about' })}</p>
             <ul>
-              <li>{t('body.sections.services.ul.li1')}</li>
-              <li>{t('body.sections.services.ul.li2')}</li>
-              <li>{t('body.sections.services.ul.li3')}</li>
-              <li>{t('body.sections.services.ul.li4')}</li>
-              <li>{t('body.sections.services.ul.li5')}</li>
+              <li>{t('body.sections.services.ul.li1', { ns: 'about' })}</li>
+              <li>{t('body.sections.services.ul.li2', { ns: 'about' })}</li>
+              <li>{t('body.sections.services.ul.li3', { ns: 'about' })}</li>
+              <li>{t('body.sections.services.ul.li4', { ns: 'about' })}</li>
+              <li>{t('body.sections.services.ul.li5', { ns: 'about' })}</li>
             </ul>
-            <p>{t('body.sections.services.p4')}</p>
-            <Link className={utils.button} href="/contact">
-              Contacto
+            <p>{t('body.sections.services.p4', { ns: 'about' })}</p>
+            <Link
+              className={utils.button}
+              href="/contact"
+              style={{ textTransform: 'capitalize' }}
+            >
+              {t('links.contact', { ns: 'common' })}
             </Link>
           </div>
         </main>

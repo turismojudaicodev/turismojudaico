@@ -1,0 +1,9 @@
+{
+  "head": {
+    "title": "Blogs"
+  }, 
+  "body": {
+    "title": "Blogs",
+    "noContent": "Aún no hay blogs publicados"
+  }
+}
