@@ -2,10 +2,11 @@
 
 ## Funcionalidad
 
-- FORMS
-  - Suscripcion a newsletter
-  - Envío de mail desde Contact page
-
-City tours
-
-Audioguides
+- ### FORMS
+  - [ ] Suscripcion a newsletter
+  - [x] Envío de mail desde Contact page
+- ### CONTENIDO
+  - City tours
+    - [ ] Reserva de tours
+  - Audioguides
+    - [ ] Descarga de archivos

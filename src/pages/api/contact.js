@@ -1,31 +1,46 @@
-import nodemailer from 'nodemailer'
+import { transporter, mailOptions } from 'lib/nodemailer'
+
+function generateEmailContent(data) {
+  const stringData = Object.entries(data).reduce(
+    (str, [key, val]) => (str += `${key}: \n${val}\n\n`),
+    ''
+  )
+
+  const htmlData = Object.entries(data).reduce(
+    (str, [key, val]) =>
+      (str += `
+        <div style="border: 1px solid #888; padding: .5rem 1rem; margin-bottom: .5rem;">
+          <h2 style="text-transform: capitalize;">${key}:</h2>
+          <p>${val || 'No especificado'}</p>
+        </div>
+      `),
+    ''
+  )
+
+  return {
+    text: stringData,
+    html: htmlData,
+  }
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST')
     return res.status(403).json({ error: 'Method not allowed' })
 
-  const transporter = nodemailer.createTransport({
-    host: 'http://localhost',
-    port: 587,
-    secure: false, // upgrade later with STARTTLS
-    auth: {
-      user: 'username',
-      pass: 'password',
-    },
-  })
+  const data = req.body
 
-  const mailData = {
-    from: 'demo@demo.com',
-    to: 'your email',
-    subject: `Message From ${req.body.name}`,
-    text: req.body.message,
-    html: <div>{req.body.message}</div>,
+  if (!data.name || !data.email || !data.message)
+    return res.status(400).json({ error: 'Bad request' })
+
+  try {
+    await transporter.sendMail({
+      ...mailOptions,
+      ...generateEmailContent(data),
+      subject: `Mensaje de ${data.name}: ${data.email}`,
+    })
+    return res.status(200).json({ success: 'Mail sent succesfully' })
+  } catch (error) {
+    console.log('Failed to send email', error)
+    return res.status(400).json({ error: error.message })
   }
-
-  transporter.sendMail(mailData, (err, info) => {
-    if (err) console.log(err)
-    else console.log(info)
-  })
-
-  res.status(200)
 }
