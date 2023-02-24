@@ -41,13 +41,13 @@ export default function Contact() {
               <h2>{t('body.sections.consultation.title')}</h2>
               <form className={styles.form} onSubmit={handleSubmit}>
                 <div>
-                  <label htmlFor="name">
+                  <label htmlFor="name" className={utils.inputRequired}>
                     {t('body.sections.consultation.name')}
                   </label>
                   <input id="name" type="text" className={utils.input}></input>
                 </div>
                 <div>
-                  <label htmlFor="email">
+                  <label htmlFor="email" className={utils.inputRequired}>
                     {t('body.sections.consultation.email')}
                   </label>
                   <input
@@ -63,7 +63,7 @@ export default function Contact() {
                   <input id="tel" type="tel" className={utils.input}></input>
                 </div>
                 <div>
-                  <label htmlFor="message">
+                  <label htmlFor="message" className={utils.inputRequired}>
                     {t('body.sections.consultation.message')}
                   </label>
                   <textarea id="message" className={utils.input}></textarea>

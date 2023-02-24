@@ -6,6 +6,7 @@
     "title": "Suscribite a nuestra newsletter",
     "form": {
       "name": "Nombre",
+      "lastName": "Apellido",
       "email": "Email",
       "submit": "Enviar"
     }

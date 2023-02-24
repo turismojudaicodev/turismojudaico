@@ -1,12 +1,11 @@
 // NPM
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/router'
+import { useRouter, withRouter } from 'next/router'
 // Local
 import pinterestIcon from '../../../public/icons/pinterest-logo.svg'
 import facebookIcon from '../../../public/icons/facebook-logo.svg'
 import youtubeIcon from '../../../public/icons/youtube-logo.svg'
 // Components
-import Image from 'next/image'
 import Link from 'next/link'
 // Styles
 import styles from './Footer.module.css'
@@ -30,7 +29,7 @@ const SOCIAL_LINKS = [
   },
 ]
 
-export default function Footer() {
+function Footer(props) {
   const [i18n, setI18n] = useState({})
   const { locale } = useRouter()
 
@@ -42,8 +41,14 @@ export default function Footer() {
     fetchLocale()
   }, [locale])
 
-  const handleEmailSubmit = (ev) => {
+  const handleEmailSubmit = async (ev) => {
     ev.preventDefault()
+    const formData = Object.fromEntries(new FormData(ev.target))
+    console.log('formData', formData)
+    props.router.push({
+      pathname: `/newsletter`,
+      query: { email: formData.email },
+    })
   }
 
   return (
@@ -55,6 +60,7 @@ export default function Footer() {
             <form onSubmit={handleEmailSubmit} className={styles.newsletter}>
               <input
                 type="email"
+                name="email"
                 placeholder={`${i18n?.newsletter?.placeholder}`}
                 className={utils.input}
               ></input>
@@ -82,12 +88,6 @@ export default function Footer() {
                   target="_blank"
                   className={utils.linkButton}
                 >
-                  {/* <Image
-                    src={link.icon}
-                    width={25} 
-                    height={25} 
-                    alt={`${link.name} icon`} 
-                  /> */}
                   {link.name}
                 </Link>
               ))}
@@ -104,3 +104,5 @@ export default function Footer() {
     </footer>
   )
 }
+
+export default withRouter(Footer)
