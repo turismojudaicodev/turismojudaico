@@ -4,6 +4,8 @@
   }, 
   "body": {
     "title": "Blogs",
-    "noContent": "There isn't any blog published yet"
+    "alerts": {
+      "noContent": "There isn't any blog published yet"
+    }
   }
 }

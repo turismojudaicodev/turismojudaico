@@ -1,3 +1,28 @@
 .main {
   margin-block: var(--margin-block);
 }
+
+.main h1 {
+  margin-bottom: 1rem;
+}
+
+.audioguideCard {
+  display: flex;
+  gap: 1rem;
+}
+
+.audioguideData {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.audioguideData a {
+  width: fit-content;
+}
+
+.imageContainer {
+  position: relative;
+  height: 125px;
+  width: 125px;
+}

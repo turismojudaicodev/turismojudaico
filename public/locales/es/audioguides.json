@@ -3,7 +3,8 @@
     "title": "Audioguías"
   }, 
   "body": {
-    "alert": {
+    "title": "Audioguías",
+    "alerts": {
       "noContent": "Aún no hay audioguías publicadas"
     }
   }

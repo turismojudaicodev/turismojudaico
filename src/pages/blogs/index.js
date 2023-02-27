@@ -74,7 +74,7 @@ export default function Blogs() {
           ) : (
             <Message
               type="info"
-              message={t('body.noContent', { ns: 'blogs' })}
+              message={t('body.alerts.noContent', { ns: 'blogs' })}
             />
           )}
         </main>

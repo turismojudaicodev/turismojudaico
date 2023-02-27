@@ -16,6 +16,8 @@
       "subCategory": "Sub category",
       "submit": "Search"
     },
-    "noContent": "There isn't any post published yet"
+    "alerts": {
+      "noContent": "There isn't any post published yet"
+    }
   }
 }

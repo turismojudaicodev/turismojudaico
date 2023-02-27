@@ -1,6 +1,6 @@
 // NPM
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
-import { useTranslation, UseTranslation } from 'next-i18next'
+import { useTranslation } from 'next-i18next'
 // Components
 import Head from 'next/head'
 import Layout from '@/components/Layout'

@@ -14,7 +14,7 @@ const LINKS = [
   },
   {
     name: 'cityTours',
-    url: '/citytours',
+    url: '/tours',
   },
   {
     name: 'audioguides',

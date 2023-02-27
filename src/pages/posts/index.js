@@ -14,8 +14,9 @@ import LoadingIndicator from '@/components/LoadingIndicator'
 import CardsContainer from '@/components/CardsContainer'
 import Message from '@/components/Message'
 // Styles
-import styles from '@/styles/Content.module.css'
+import styles from '@/styles/Posts.module.css'
 import utils from '@/styles/utils.module.css'
+import ButtonLoader from '@/components/ButtonLoader'
 
 export async function getStaticProps({ locale }) {
   return {
@@ -103,10 +104,7 @@ export default function Content() {
     }
 
     try {
-      const { data, error } = await fetchStrapi(
-        'posts',
-        queryParams === '?' ? '' : queryParams
-      )
+      const { data, error } = await fetchStrapi('posts', queryParams)
       if (error) handleError(error)
       setPosts(data)
     } catch (error) {
@@ -156,7 +154,7 @@ export default function Content() {
                   linkText={t('cardsContainerText', { ns: 'common' })}
                 />
               ) : (
-                <Message type="info" message={t('body.noContent')} />
+                <Message type="info" message={t('body.alerts.noContent')} />
               )}
             </div>
           </div>
@@ -164,7 +162,7 @@ export default function Content() {
             <h2 className={utils.bigTitle}>
               {t('body.filter', { ns: 'posts' })}
             </h2>
-            <form onSubmit={handleSubmit} className={styles.form}>
+            <form onSubmit={handleSubmit} className={utils.form}>
               <div>
                 <label htmlFor="post">
                   {t('body.form.title', { ns: 'posts' })}

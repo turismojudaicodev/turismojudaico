@@ -3,8 +3,25 @@
     "title": "City Tours"
   }, 
   "body": {
-    "alert": {
+    "alerts": {
       "noContent": "There isn't any tour available yet"
+    },
+    "filter": "Filter",
+    "form": {
+      "title": "Title",
+      "placeholder": "Search...",
+      "country": "Country",
+      "submit": "Search"
+    },
+    "reservation": {
+      "title": "Book now",
+      "fullName": "Full name",
+      "passengers": "Passengers",
+      "email": "Email",
+      "telephone": "Telephone",
+      "desiredDate": "Desired date",
+      "message": "Message",
+      "submit": "Book"
     }
   }
 }
