@@ -98,7 +98,7 @@ export default function Home() {
             <h2 className={utils.mediumTitle}>Atracciones Judaicas</h2>
             {error.posts ? (
               <Message type="error" message={error.posts} />
-            ) : (posts.length === 0 && !isPostsLoading) || isPostsLoading ? (
+            ) : (posts.length === 0 && isPostsLoading) || isPostsLoading ? (
               <LoadingIndicator />
             ) : posts.length > 0 ? (
               <CardsContainer

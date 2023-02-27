@@ -12,7 +12,8 @@
         "email": "Email",
         "telephone": "Telephone",
         "message": "Message",
-        "submit": "Send"
+        "submit": "Send",
+        "loading": "Sending"
       },
       "details": {
         "title": "Contact details"

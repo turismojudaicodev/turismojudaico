@@ -14,6 +14,8 @@ import styles from '@/styles/Contact.module.css'
 import utils from '@/styles/utils.module.css'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import Message from '@/components/Message'
+import ButtonLoader from '@/components/ButtonLoader'
+import { handleError } from 'lib/errors'
 
 export async function getStaticProps({ locale }) {
   return {
@@ -23,7 +25,15 @@ export async function getStaticProps({ locale }) {
   }
 }
 
+const contactMessageInitState = {
+  name: '',
+  email: '',
+  tel: '',
+  message: '',
+}
+
 export default function Contact() {
+  const [contactMessage, setContactMessage] = useState(contactMessageInitState)
   const [isLoading, setIsLoading] = useState(false)
   const [infoMessage, setInfoMessage] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
@@ -33,19 +43,18 @@ export default function Contact() {
   const handleSubmit = async (ev) => {
     ev.preventDefault()
     setIsLoading(true)
-    const formData = Object.fromEntries(new FormData(ev.target))
-    console.log('formdata', formData)
     try {
       const res = await fetch('/api/contact', {
         method: 'POST',
-        body: JSON.stringify(formData),
+        body: JSON.stringify(contactMessage),
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
         },
       })
-      const data = await res.json()
-      setInfoMessage(data.success)
+      const { error, success } = await res.json()
+      if (error) throw new Error(error)
+      setInfoMessage(success)
       setTimeout(() => {
         setInfoMessage('')
       }, 3000)
@@ -55,6 +64,7 @@ export default function Contact() {
         setErrorMessage('')
       }, 3000)
     }
+    setContactMessage(contactMessageInitState)
     setIsLoading(false)
   }
 
@@ -70,63 +80,94 @@ export default function Contact() {
           <div className={styles.contentContainer}>
             <div>
               <h2>{t('body.sections.consultation.title')}</h2>
-              {isLoading ? (
-                <LoadingIndicator />
-              ) : (
-                <form className={styles.form} onSubmit={handleSubmit}>
-                  <div>
-                    <label htmlFor="name" className={utils.inputRequired}>
-                      {t('body.sections.consultation.name')}
-                    </label>
-                    <input
-                      id="name"
-                      name="name"
-                      type="text"
-                      className={utils.input}
-                    ></input>
-                  </div>
-                  <div>
-                    <label htmlFor="email" className={utils.inputRequired}>
-                      {t('body.sections.consultation.email')}
-                    </label>
-                    <input
-                      id="email"
-                      name="email"
-                      type="email"
-                      className={utils.input}
-                    ></input>
-                  </div>
-                  <div>
-                    <label htmlFor="tel">
-                      {t('body.sections.consultation.telephone')}
-                    </label>
-                    <input
-                      id="tel"
-                      name="tel"
-                      type="tel"
-                      className={utils.input}
-                    ></input>
-                  </div>
-                  <div>
-                    <label htmlFor="message" className={utils.inputRequired}>
-                      {t('body.sections.consultation.message')}
-                    </label>
-                    <textarea
-                      id="message"
-                      name="message"
-                      className={utils.input}
-                    ></textarea>
-                  </div>
-                  {infoMessage ? (
-                    <Message type="info" message={infoMessage} />
-                  ) : errorMessage ? (
-                    <Message type="error" message={errorMessage} />
-                  ) : null}
-                  <button className={utils.button} type="submit">
-                    {t('body.sections.consultation.submit')}
-                  </button>
-                </form>
-              )}
+              <form className={styles.form} onSubmit={handleSubmit}>
+                <div>
+                  <label htmlFor="name" className={utils.inputRequired}>
+                    {t('body.sections.consultation.name')}
+                  </label>
+                  <input
+                    id="name"
+                    name="name"
+                    type="text"
+                    value={contactMessage.name}
+                    onChange={(ev) => {
+                      setContactMessage((prev) => ({
+                        ...prev,
+                        name: ev.target.value,
+                      }))
+                    }}
+                    required
+                    className={utils.input}
+                  ></input>
+                </div>
+                <div>
+                  <label htmlFor="email" className={utils.inputRequired}>
+                    {t('body.sections.consultation.email')}
+                  </label>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={contactMessage.email}
+                    onChange={(ev) => {
+                      setContactMessage((prev) => ({
+                        ...prev,
+                        email: ev.target.value,
+                      }))
+                    }}
+                    required
+                    className={utils.input}
+                  ></input>
+                </div>
+                <div>
+                  <label htmlFor="tel">
+                    {t('body.sections.consultation.telephone')}
+                  </label>
+                  <input
+                    id="tel"
+                    name="tel"
+                    type="tel"
+                    value={contactMessage.tel}
+                    onChange={(ev) => {
+                      setContactMessage((prev) => ({
+                        ...prev,
+                        tel: ev.target.value,
+                      }))
+                    }}
+                    className={utils.input}
+                  ></input>
+                </div>
+                <div>
+                  <label htmlFor="message" className={utils.inputRequired}>
+                    {t('body.sections.consultation.message')}
+                  </label>
+                  <textarea
+                    id="message"
+                    name="message"
+                    value={contactMessage.message}
+                    onChange={(ev) => {
+                      setContactMessage((prev) => ({
+                        ...prev,
+                        message: ev.target.value,
+                      }))
+                    }}
+                    required
+                    className={utils.input}
+                  ></textarea>
+                </div>
+                {infoMessage ? (
+                  <Message type="info" message={infoMessage} />
+                ) : errorMessage ? (
+                  <Message type="error" message={errorMessage} />
+                ) : null}
+                <ButtonLoader
+                  attributes={{ type: 'submit' }}
+                  isLoading={isLoading}
+                  loadingMessage={t('body.sections.consultation.loading')}
+                >
+                  {t('body.sections.consultation.submit')}
+                </ButtonLoader>
+              </form>
             </div>
             <div>
               <h2>{t('body.sections.details.title')}</h2>

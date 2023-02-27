@@ -82,6 +82,7 @@
   display: inline-block;
   font: inherit;
   font-size: .9rem;
+  height: 38.6px;
   padding: .5em 1em;
   transition: box-shadow .15s ease;
 }

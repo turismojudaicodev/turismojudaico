@@ -12,7 +12,8 @@
         "email": "Email",
         "telephone": "Teléfono",
         "message": "Mensaje",
-        "submit": "Enviar"
+        "submit": "Enviar",
+        "loading": "Enviando"
       },
       "details": {
         "title": "Datos de contacto"
