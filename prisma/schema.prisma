@@ -1,0 +1,99 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int    @id @default(autoincrement())
+  username String @unique
+  email    String @unique
+  password String
+  role     String @default("user")
+}
+
+model Blog {
+  id          Int      @id @default(autoincrement())
+  title       String   @unique
+  description String
+  image       String?
+  content     String   @db.LongText
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Country {
+  id     Int    @id @default(autoincrement())
+  name   String @unique
+  cities City[]
+  Post   Post[]
+}
+
+model City {
+  id        Int     @id @default(autoincrement())
+  name      String
+  country   Country @relation(fields: [countryId], references: [id])
+  countryId Int
+  Post      Post[]
+}
+
+model Category {
+  id            Int           @id @default(autoincrement())
+  name          String        @unique
+  subCategories SubCategory[]
+  Post          Post[]
+}
+
+model SubCategory {
+  id         Int      @id @default(autoincrement())
+  name       String
+  category   Category @relation(fields: [categoryId], references: [id])
+  categoryId Int
+  Post       Post[]
+}
+
+model Post {
+  id            Int         @id @default(autoincrement())
+  title         String      @unique
+  description   String
+  image         String?
+  content       String      @db.LongText
+  category      Category    @relation(fields: [categoryId], references: [id])
+  categoryId    Int
+  subCategory   SubCategory @relation(fields: [subCategoryId], references: [id])
+  subCategoryId Int
+  country       Country     @relation(fields: [countryId], references: [id])
+  countryId     Int
+  city          City        @relation(fields: [cityId], references: [id])
+  cityId        Int
+  Tour          Tour?       @relation(fields: [tourId], references: [id])
+  tourId        Int?
+}
+
+model Tour {
+  id          Int           @id @default(autoincrement())
+  title       String        @unique
+  description String
+  image       String?
+  content     String        @db.LongText
+  posts       Post[]
+  Reservation Reservation[]
+}
+
+model Reservation {
+  id          Int      @id @default(autoincrement())
+  fullName    String
+  passengers  Int
+  email       String
+  telephone   String
+  desiredDate DateTime @db.Date
+  message     String?
+  tour        Tour     @relation(fields: [tourId], references: [id])
+  tourId      Int
+}

@@ -23,5 +23,8 @@
     "react-i18next": "^12.1.5",
     "remark": "^14.0.2",
     "remark-html": "^15.0.1"
+  },
+  "devDependencies": {
+    "prisma": "^4.11.0"
   }
 }
