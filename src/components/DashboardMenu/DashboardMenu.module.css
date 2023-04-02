@@ -1,0 +1,24 @@
+.menu {
+  width: 20vw;
+  min-width: 100px;
+  background-color: #FFF;
+}
+
+.menuTitle {
+  padding-left: 1rem;
+  padding-block: 1rem;
+}
+
+.navSectionList li {
+  list-style: none;
+  padding-left: 1rem;
+}
+
+.navSectionList li > a {
+  display: block;
+  padding-block: 1em;
+}
+
+.navSectionList li {
+  border-top: 1px solid var(--clr-border-1);
+}
