@@ -16,6 +16,14 @@ const DASHBOARD_SECTIONS = [
     url: '/posts',
   },
   {
+    name: 'Países',
+    url: '/countries',
+  },
+  {
+    name: 'Categorías',
+    url: '/categories',
+  },
+  {
     name: 'City Tours',
     url: '/tours',
   },

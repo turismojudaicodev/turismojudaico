@@ -1,6 +1,3 @@
-import { remark } from 'remark'
-import html from 'remark-html'
-
 export function formatDate(date) {
   const newDate = new Date(date)
 
@@ -14,15 +11,14 @@ export function formatDate(date) {
 }
 
 /**
- * Transforms Markdown string into HTML string
- * @param {String} content Markdown content to format
- * @returns {String} HTML formatted content
+ *
+ * @param {String} message The message that will be stored in the state
+ * @param {Function} setMessage Callback function that will set the message
+ * @param {Number} time Time to undo the message
  */
-export async function formatMarkDown(content) {
-  if (!content) throw new Error('Content must be provided')
-
-  const processedContent = await remark().use(html).process(content)
-  const contentHtml = processedContent.toString()
-
-  return contentHtml
+export function setTimedMessage(message, setMessage, time = 2000) {
+  setMessage(message)
+  setTimeout(() => {
+    setMessage('')
+  }, time)
 }
