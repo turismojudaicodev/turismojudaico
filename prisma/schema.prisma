@@ -38,7 +38,7 @@ model Country {
 model City {
   id        Int     @id @default(autoincrement())
   name      String
-  country   Country @relation(fields: [countryId], references: [id])
+  country   Country @relation(fields: [countryId], references: [id], onDelete: Cascade)
   countryId Int
   Post      Post[]
 }
@@ -53,26 +53,26 @@ model Category {
 model SubCategory {
   id         Int      @id @default(autoincrement())
   name       String
-  category   Category @relation(fields: [categoryId], references: [id])
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   categoryId Int
   Post       Post[]
 }
 
 model Post {
-  id            Int         @id @default(autoincrement())
-  title         String      @unique
+  id            Int          @id @default(autoincrement())
+  title         String       @unique
   description   String
   image         String?
-  content       String      @db.LongText
-  category      Category    @relation(fields: [categoryId], references: [id])
-  categoryId    Int
-  subCategory   SubCategory @relation(fields: [subCategoryId], references: [id])
-  subCategoryId Int
-  country       Country     @relation(fields: [countryId], references: [id])
-  countryId     Int
-  city          City        @relation(fields: [cityId], references: [id])
-  cityId        Int
-  Tour          Tour?       @relation(fields: [tourId], references: [id])
+  content       String       @db.LongText
+  category      Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  categoryId    Int?
+  subCategory   SubCategory? @relation(fields: [subCategoryId], references: [id], onDelete: SetNull)
+  subCategoryId Int?
+  country       Country?     @relation(fields: [countryId], references: [id], onDelete: SetNull)
+  countryId     Int?
+  city          City?        @relation(fields: [cityId], references: [id], onDelete: SetNull)
+  cityId        Int?
+  Tour          Tour?        @relation(fields: [tourId], references: [id], onDelete: SetNull)
   tourId        Int?
 }
 
@@ -94,6 +94,6 @@ model Reservation {
   telephone   String
   desiredDate DateTime @db.Date
   message     String?
-  tour        Tour     @relation(fields: [tourId], references: [id])
+  tour        Tour     @relation(fields: [tourId], references: [id], onDelete: Cascade)
   tourId      Int
 }
