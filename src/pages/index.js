@@ -1,11 +1,8 @@
 // NPM
-import { useEffect, useState } from 'react'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import { useTranslation } from 'next-i18next'
-import { useRouter } from 'next/router'
 // Local
-import { fetchStrapi } from 'lib/api'
-import { handleError } from 'lib/errors'
+import { prisma } from 'lib/prisma'
 // Components
 import Head from 'next/head'
 import Layout from '@/components/Layout'
@@ -17,55 +14,19 @@ import styles from '@/styles/Home.module.css'
 import utils from '@/styles/utils.module.css'
 
 export async function getStaticProps({ locale }) {
+  const blogs = await prisma.blog.findMany()
+  const posts = await prisma.post.findMany()
   return {
     props: {
       ...(await serverSideTranslations(locale, ['index', 'common'])),
+      blogs: JSON.parse(JSON.stringify(blogs)),
+      posts: JSON.parse(JSON.stringify(posts)),
     },
   }
 }
 
-export default function Home() {
-  const [blogs, setBlogs] = useState([])
-  const [posts, setPosts] = useState([])
-  const [isBlogsLoading, setIsBlogsLoading] = useState(false)
-  const [isPostsLoading, setIsPostsLoading] = useState(false)
-  const [error, setError] = useState({})
-
-  const { locale } = useRouter()
+export default function Home({ blogs, posts }) {
   const { t } = useTranslation(['index', 'common'])
-
-  useEffect(() => {
-    async function fetchBlogs() {
-      setIsBlogsLoading(true)
-      try {
-        const { data: blogsData, error } = await fetchStrapi(
-          'blogs',
-          `?locale=${locale}&pagination[page]=1&pagination[pageSize]=10&populate=image`
-        )
-        if (error) handleError(error)
-        setBlogs(blogsData)
-      } catch (error) {
-        setError((prevValue) => ({ ...prevValue, blogs: error.message }))
-      }
-      setIsBlogsLoading(false)
-    }
-    async function fetchPosts() {
-      setIsPostsLoading(true)
-      try {
-        const { data: postsData, error } = await fetchStrapi(
-          'posts',
-          `?locale=${locale}&pagination[page]=1&pagination[pageSize]=10&populate=image`
-        )
-        if (error) handleError(error)
-        setPosts(postsData)
-      } catch (error) {
-        setError((prevValue) => ({ ...prevValue, posts: error.message }))
-      }
-      setIsPostsLoading(false)
-    }
-    fetchBlogs()
-    fetchPosts()
-  }, [locale])
 
   return (
     <>
@@ -80,9 +41,7 @@ export default function Home() {
           <h1 className={utils.bigTitle}>{t('body.title', { ns: 'index' })}</h1>
           <div className={styles.blogsContainer}>
             <h2 className={utils.mediumTitle}>Blogs</h2>
-            {error.blogs ? (
-              <Message type="error" message={error.blogs} />
-            ) : (blogs.length === 0 && isBlogsLoading) || isBlogsLoading ? (
+            {!blogs ? (
               <LoadingIndicator />
             ) : blogs.length > 0 ? (
               <CardsContainer
@@ -96,9 +55,7 @@ export default function Home() {
           </div>
           <div className={styles.postsContainer}>
             <h2 className={utils.mediumTitle}>Atracciones Judaicas</h2>
-            {error.posts ? (
-              <Message type="error" message={error.posts} />
-            ) : (posts.length === 0 && !isPostsLoading) || isPostsLoading ? (
+            {!posts ? (
               <LoadingIndicator />
             ) : posts.length > 0 ? (
               <CardsContainer

@@ -14,11 +14,11 @@ export default function CardsContainer({ linkText, cardsName, cards }) {
             href={`/${cardsName}/${card.id}`}
             className={styles.imgContainer}
           >
-            <StrapiImage image={card.attributes.image} />
+            <StrapiImage image={card.image} />
           </Link>
           <div className={styles.info}>
-            <h3>{card.attributes.title}</h3>
-            <p>{card.attributes.description}</p>
+            <h3>{card.title}</h3>
+            <p>{card.description}</p>
             <Link href={`/${cardsName}/${card.id}`} className={utils.button}>
               {linkText}
             </Link>

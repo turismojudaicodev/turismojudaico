@@ -1,78 +1,51 @@
 // NPM
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import { useTranslation } from 'next-i18next'
 import { useRouter } from 'next/router'
 // Local
+import { prisma } from 'lib/prisma'
 import { fetchStrapi } from 'lib/api'
 import { handleError } from 'lib/errors'
-// import { db } from 'lib/db'
 // Components
 import Head from 'next/head'
 import Layout from '@/components/Layout'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import CardsContainer from '@/components/CardsContainer'
 import Message from '@/components/Message'
+import ButtonLoader from '@/components/ButtonLoader'
 // Styles
 import styles from '@/styles/Posts.module.css'
 import utils from '@/styles/utils.module.css'
-import ButtonLoader from '@/components/ButtonLoader'
 
 export async function getStaticProps({ locale }) {
+  const posts = await prisma.post.findMany()
+  const countries = await prisma.country.findMany()
+  const categories = await prisma.category.findMany()
+  const filterOptions = { countries, categories }
+
   return {
     props: {
       ...(await serverSideTranslations(locale, ['common', 'posts'])),
+      posts: JSON.parse(JSON.stringify(posts)),
+      filterOptions: JSON.parse(JSON.stringify(filterOptions)),
     },
   }
 }
 
-export default function Content() {
-  const [countries, setCountries] = useState([])
-  const [currentCountry, setCurrentCountry] = useState(null)
-  const [categories, setCategories] = useState([])
-  const [currentCategory, setCurrentCategory] = useState(null)
+export default function Content({ posts, filterOptions }) {
+  const [filters, setFilters] = useState({
+    post: '',
+    country: '',
+    city: '',
+    category: '',
+    subCategory: '',
+  })
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
-  const [posts, setPosts] = useState([])
 
   const { locale } = useRouter()
   const { t } = useTranslation(['posts', 'common'])
-
-  useEffect(() => {
-    async function fetchInitalPosts() {
-      setIsLoading(true)
-      try {
-        const { data: postsData, error: postsError } = await fetchStrapi(
-          'posts',
-          `?locale=${locale}&pagination[page]=1&pagination[pageSize]=8`
-        )
-        if (postsError) handleError(postsError)
-        setPosts(postsData)
-      } catch (error) {
-        setErrorMessage(error.message)
-      }
-      setIsLoading(false)
-    }
-    async function fetchFormContentData() {
-      try {
-        const { data: countriesData, error: countriesError } =
-          await fetchStrapi('countries', '?populate[cities][fields][0]=name')
-        if (countriesError) handleError(countriesError)
-        setCountries(countriesData)
-        const { data: categoriesData, error: categoriesError } =
-          await fetchStrapi(
-            'categories',
-            '?populate[subCategories][fields][0]=name'
-          )
-        if (categoriesError) handleError(categoriesError)
-        setCategories(categoriesData)
-      } catch (error) {
-        setErrorMessage(error.message)
-      }
-    }
-    fetchInitalPosts()
-    fetchFormContentData()
-  }, [locale])
 
   const handleSubmit = async (ev) => {
     ev.preventDefault()
@@ -115,20 +88,18 @@ export default function Content() {
 
   const updateCountry = (ev) => {
     const countryName = ev.target.value
-    const selectedCountry = countries.find(
-      (country) => country.attributes.name === countryName
-    )
-    // console.log('selectedCountry', selectedCountry)
-    setCurrentCountry(selectedCountry)
+    setFilters((prev) => ({
+      ...prev,
+      country: countryName,
+    }))
   }
 
   const updateCategory = (ev) => {
-    const categoryName = ev.target.value
-    const selectedCategory = categories.find(
-      (category) => category.attributes.name === categoryName
-    )
-    // console.log('selectedCategory', selectedCategory)
-    setCurrentCategory(selectedCategory)
+    const cateogryName = ev.target.value
+    setFilters((prev) => ({
+      ...prev,
+      cateogry: cateogryName,
+    }))
   }
 
   return (
@@ -185,9 +156,9 @@ export default function Content() {
                   onChange={updateCountry}
                 >
                   <option value="">-</option>
-                  {countries.map((country) => (
-                    <option value={country.attributes.name} key={country.id}>
-                      {country.attributes.name}
+                  {filterOptions.countries.map((country) => (
+                    <option value={country.name} key={country.id}>
+                      {country.name}
                     </option>
                   ))}
                 </select>
@@ -198,10 +169,10 @@ export default function Content() {
                 </label>
                 <select id="city" name="city" className={utils.input}>
                   <option value="">-</option>
-                  {currentCountry &&
-                    currentCountry.attributes.cities.data.map((city) => (
-                      <option value={city.attributes.name} key={city.id}>
-                        {city.attributes.name}
+                  {filters.country &&
+                    filters.country.cities.data.map((city) => (
+                      <option value={city.name} key={city.id}>
+                        {city.name}
                       </option>
                     ))}
                 </select>
@@ -217,9 +188,9 @@ export default function Content() {
                   onChange={updateCategory}
                 >
                   <option value="">-</option>
-                  {categories.map((category) => (
-                    <option value={category.attributes.name} key={category.id}>
-                      {category.attributes.name}
+                  {filterOptions.categories.map((category) => (
+                    <option value={category.name} key={category.id}>
+                      {category.name}
                     </option>
                   ))}
                 </select>
@@ -235,16 +206,11 @@ export default function Content() {
                 >
                   <option value="">-</option>
                   {currentCategory &&
-                    currentCategory.attributes.subCategories.data.map(
-                      (subCategory) => (
-                        <option
-                          value={subCategory.attributes.name}
-                          key={subCategory.id}
-                        >
-                          {subCategory.attributes.name}
-                        </option>
-                      )
-                    )}
+                    currentCategory.subCategories.data.map((subCategory) => (
+                      <option value={subCategory.name} key={subCategory.id}>
+                        {subCategory.name}
+                      </option>
+                    ))}
                 </select>
               </div>
               <button className={utils.button} type="submit">
@@ -257,25 +223,3 @@ export default function Content() {
     </>
   )
 }
-
-// export async function getStaticProps() {
-//   const postsQuery =
-//     'SELECT `p`.*, c.name AS `category`, sc.name AS `sub_ategory` FROM posts p, posts_category_links pcl, posts_sub_category_links pscl, categories c, sub_categories sc WHERE pcl.post_id = p.id AND pscl.post_id = p.id AND pcl.category_id = c.id AND pscl.sub_category_id = sc.id;'
-
-//   const [posts, postsFields] = await db.query(postsQuery)
-
-//   const categoriesQuery = `
-//     SELECT c.name AS "category", sc.name AS "sub_category"
-//     FROM categories c, sub_categories sc, sub_categories_category_links sccl
-//     WHERE sccl.category_id = c.id AND sccl.sub_category_id = sc.id;
-//   `
-
-//   const [categories, categoriesFields] = await db.query(categoriesQuery)
-
-//   return {
-//     props: {
-//       posts: JSON.parse(JSON.stringify(posts)),
-//       categories: JSON.parse(JSON.stringify(categories)),
-//     },
-//   }
-// }

@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import { useTranslation } from 'react-i18next'
 // Local
+import { setTimedMessage } from 'helpers'
 import emailIcon from 'public/icons/email.svg'
 // Components
 import Head from 'next/head'
@@ -45,15 +46,9 @@ export default function Contact() {
         },
       })
       const data = await res.json()
-      setInfoMessage(data.success)
-      setTimeout(() => {
-        setInfoMessage('')
-      }, 3000)
+      setTimedMessage(data.success, setInfoMessage, 3000)
     } catch (error) {
-      setErrorMessage(error.message)
-      setTimeout(() => {
-        setErrorMessage('')
-      }, 3000)
+      setTimedMessage(error.message, setErrorMessage, 3000)
     }
     setIsLoading(false)
   }

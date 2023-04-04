@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 // Local
 import { fetchStrapi } from 'lib/api'
-import { formatDate, formatMarkDown } from 'helpers'
+import { formatDate } from 'helpers'
 import { handleError } from 'lib/errors'
 // Components
 import Head from 'next/head'

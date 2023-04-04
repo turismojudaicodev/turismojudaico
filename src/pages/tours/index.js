@@ -6,6 +6,7 @@ import { useRouter } from 'next/router'
 // Local
 import { fetchStrapi } from 'lib/api'
 import { handleError } from 'lib/errors'
+import { prisma } from 'lib/prisma'
 // Components
 import Head from 'next/head'
 import Layout from '@/components/Layout'
@@ -17,40 +18,24 @@ import styles from '@/styles/Citytours.module.css'
 import utils from '@/styles/utils.module.css'
 
 export async function getStaticProps({ locale }) {
+  const tours = prisma.tour.findMany()
+  const countries = prisma.country.findMany()
+
   return {
     props: {
       ...(await serverSideTranslations(locale, ['citytours', 'common'])),
+      tours: JSON.parse(JSON.stringify(tours)),
+      countries: JSON.parse(JSON.stringify(countries)),
     },
   }
 }
 
-export default function Citytours() {
-  const [tours, setTours] = useState([])
-  const [countries, setCountries] = useState([])
+export default function Citytours({ tours, countries }) {
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
   const { locale } = useRouter()
   const { t } = useTranslation(['citytours', 'common'])
-
-  useEffect(() => {
-    async function fetchContent() {
-      setIsLoading(true)
-      try {
-        const { data, error } = await fetchStrapi(
-          'tours',
-          `?locale=${locale}&populate[0]=image&populate[1]=country`
-        )
-        if (error) handleError(error)
-        setTours(data)
-        setCountries(data.map((tour) => tour.attributes.country.data))
-      } catch (error) {
-        setErrorMessage(error.message)
-      }
-      setIsLoading(false)
-    }
-    fetchContent()
-  }, [locale])
 
   const handleSubmit = async (ev) => {
     ev.preventDefault()
@@ -131,8 +116,8 @@ export default function Citytours() {
                 <select id="country" name="country" className={utils.input}>
                   <option value="">-</option>
                   {countries.map((country) => (
-                    <option value={country.attributes.name} key={country.id}>
-                      {country.attributes.name}
+                    <option value={country.name} key={country.id}>
+                      {country.name}
                     </option>
                   ))}
                 </select>

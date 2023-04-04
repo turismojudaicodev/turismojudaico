@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 // Local
 import { fetchStrapi, postStrapi } from 'lib/api'
-import { formatMarkDown } from 'helpers'
 // Components
 import Layout from '@/components/Layout'
 import LoadingIndicator from '@/components/LoadingIndicator'
