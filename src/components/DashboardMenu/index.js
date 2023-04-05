@@ -28,10 +28,6 @@ const DASHBOARD_SECTIONS = [
     url: '/tours',
   },
   {
-    name: 'Reservas',
-    url: '/reservations',
-  },
-  {
     name: 'Ajustes',
     url: '/settings',
   },

@@ -17,7 +17,7 @@
       "submit": "Buscar"
     },
     "alerts": {
-      "noContent": "Aún no hay posts publicados"
+      "noContent": "No hay posts que coincidan con los parametros de búsqueda"
     }
   }
 }

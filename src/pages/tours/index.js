@@ -18,8 +18,8 @@ import styles from '@/styles/Citytours.module.css'
 import utils from '@/styles/utils.module.css'
 
 export async function getStaticProps({ locale }) {
-  const tours = prisma.tour.findMany()
-  const countries = prisma.country.findMany()
+  const tours = await prisma.tour.findMany()
+  const countries = await prisma.country.findMany()
 
   return {
     props: {

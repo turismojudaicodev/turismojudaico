@@ -2,11 +2,9 @@
 import { useState } from 'react'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import { useTranslation } from 'next-i18next'
-import { useRouter } from 'next/router'
 // Local
 import { prisma } from 'lib/prisma'
-import { fetchStrapi } from 'lib/api'
-import { handleError } from 'lib/errors'
+import { getFilteredContent } from 'lib/api'
 // Components
 import Head from 'next/head'
 import Layout from '@/components/Layout'
@@ -22,7 +20,12 @@ export async function getStaticProps({ locale }) {
   const posts = await prisma.post.findMany()
   const countries = await prisma.country.findMany()
   const categories = await prisma.category.findMany()
-  const filterOptions = { countries, categories }
+  const cities = await prisma.city.findMany({ include: { country: true } })
+  const subCategories = await prisma.subCategory.findMany({
+    include: { category: true },
+  })
+
+  const filterOptions = { countries, cities, categories, subCategories }
 
   return {
     props: {
@@ -41,64 +44,44 @@ export default function Content({ posts, filterOptions }) {
     category: '',
     subCategory: '',
   })
+  const [visiblePosts, setVisiblePosts] = useState(posts)
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
-  const { locale } = useRouter()
   const { t } = useTranslation(['posts', 'common'])
 
   const handleSubmit = async (ev) => {
     ev.preventDefault()
     setIsLoading(true)
 
-    const formData = Object.fromEntries(new FormData(ev.target))
-
-    let queryParams = `?locale=${locale}`
-    const filters = []
-
-    if (formData.post)
-      filters.push(['filters[title][$containsi]', `${formData.post}`])
-    if (formData.country)
-      filters.push(['filters[country][name][$eq]', `${formData.country}`])
-    if (formData.city)
-      filters.push(['filters[city][name][$eq]', `${formData.city}`])
-    if (formData.category)
-      filters.push(['filters[category][name][$eq]', `${formData.category}`])
-    if (formData.subCategory)
-      filters.push([
-        'filters[subCategory][name][$eq]',
-        `${formData.subCategory}`,
-      ])
-
-    if (filters.length > 0) {
-      filters.forEach((filter, index) => {
-        queryParams += `&${filter[0]}[${index}]=${filter[1]}`
-      })
-    }
-
     try {
-      const { data, error } = await fetchStrapi('posts', queryParams)
-      if (error) handleError(error)
-      setPosts(data)
+      console.log(filters)
+      const { data, error } = await getFilteredContent(
+        '/api/content/posts',
+        filters
+      )
+      console.log('data', data)
+      if (error) return setErrorMessage(error)
+      setVisiblePosts(data)
+      setFilters({
+        post: '',
+        country: '',
+        city: '',
+        category: '',
+        subCategory: '',
+      })
     } catch (error) {
       setErrorMessage(error.message)
     }
     setIsLoading(false)
   }
 
-  const updateCountry = (ev) => {
-    const countryName = ev.target.value
+  const updateFilters = (ev) => {
+    const filterName = ev.target.name
+    const filterValue = ev.target.value
     setFilters((prev) => ({
       ...prev,
-      country: countryName,
-    }))
-  }
-
-  const updateCategory = (ev) => {
-    const cateogryName = ev.target.value
-    setFilters((prev) => ({
-      ...prev,
-      cateogry: cateogryName,
+      [`${filterName}`]: filterValue,
     }))
   }
 
@@ -116,12 +99,12 @@ export default function Content({ posts, filterOptions }) {
             <div className={styles.searchedContentContainer}>
               {errorMessage ? (
                 <Message type="error" message={errorMessage} />
-              ) : (posts.length === 0 && isLoading) || isLoading ? (
+              ) : (visiblePosts.length === 0 && isLoading) || isLoading ? (
                 <LoadingIndicator />
-              ) : posts.length > 0 ? (
+              ) : visiblePosts.length > 0 ? (
                 <CardsContainer
                   cardsName="posts"
-                  cards={posts}
+                  cards={visiblePosts}
                   linkText={t('cardsContainerText', { ns: 'common' })}
                 />
               ) : (
@@ -141,8 +124,10 @@ export default function Content({ posts, filterOptions }) {
                 <input
                   type="text"
                   name="post"
+                  id="post"
                   className={utils.input}
                   placeholder={t('body.form.placeholder')}
+                  onChange={updateFilters}
                 ></input>
               </div>
               <div>
@@ -153,11 +138,11 @@ export default function Content({ posts, filterOptions }) {
                   id="country"
                   name="country"
                   className={utils.input}
-                  onChange={updateCountry}
+                  onChange={updateFilters}
                 >
                   <option value="">-</option>
                   {filterOptions.countries.map((country) => (
-                    <option value={country.name} key={country.id}>
+                    <option value={country.id} key={country.id}>
                       {country.name}
                     </option>
                   ))}
@@ -167,14 +152,23 @@ export default function Content({ posts, filterOptions }) {
                 <label htmlFor="city">
                   {t('body.form.city', { ns: 'posts' })}
                 </label>
-                <select id="city" name="city" className={utils.input}>
+                <select
+                  id="city"
+                  name="city"
+                  className={utils.input}
+                  onChange={updateFilters}
+                >
                   <option value="">-</option>
                   {filters.country &&
-                    filters.country.cities.data.map((city) => (
-                      <option value={city.name} key={city.id}>
-                        {city.name}
-                      </option>
-                    ))}
+                    filterOptions.cities
+                      .filter(
+                        (city) => city.country.id.toString() === filters.country
+                      )
+                      .map((city) => (
+                        <option value={city.id} key={city.id}>
+                          {city.name}
+                        </option>
+                      ))}
                 </select>
               </div>
               <div>
@@ -185,11 +179,11 @@ export default function Content({ posts, filterOptions }) {
                   id="category"
                   name="category"
                   className={utils.input}
-                  onChange={updateCategory}
+                  onChange={updateFilters}
                 >
                   <option value="">-</option>
                   {filterOptions.categories.map((category) => (
-                    <option value={category.name} key={category.id}>
+                    <option value={category.id} key={category.id}>
                       {category.name}
                     </option>
                   ))}
@@ -203,14 +197,20 @@ export default function Content({ posts, filterOptions }) {
                   id="subCategory"
                   name="subCategory"
                   className={utils.input}
+                  onChange={updateFilters}
                 >
                   <option value="">-</option>
-                  {currentCategory &&
-                    currentCategory.subCategories.data.map((subCategory) => (
-                      <option value={subCategory.name} key={subCategory.id}>
-                        {subCategory.name}
-                      </option>
-                    ))}
+                  {filters.category &&
+                    filterOptions.subCategories
+                      .filter(
+                        (subCat) =>
+                          subCat.category.id.toString() === filters.category
+                      )
+                      .map((subCategory) => (
+                        <option value={subCategory.id} key={subCategory.id}>
+                          {subCategory.name}
+                        </option>
+                      ))}
                 </select>
               </div>
               <button className={utils.button} type="submit">

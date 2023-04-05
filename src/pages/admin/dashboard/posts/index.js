@@ -33,7 +33,7 @@ function ExistingPosts({ posts, setVisiblePosts }) {
 
   return (
     <>
-      <h2 className={styles.actionTitle}>Posts</h2>
+      <h2 className={styles.actionTitle}>Atracciones</h2>
       <div>
         {posts.map((post) => (
           <div className={styles.entryCard} key={post.id}>
@@ -72,15 +72,15 @@ function ExistingPosts({ posts, setVisiblePosts }) {
   )
 }
 
-function PostCreator({ setVisisblePosts, data: configData }) {
+function PostCreator({ setVisiblePosts, data: configData }) {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     image: '',
-    country: '',
-    city: '',
-    category: '',
-    subCategory: '',
+    countryId: '',
+    cityId: '',
+    categoryId: '',
+    subCategoryId: '',
   })
   const [errorMessage, setErrorMessage] = useState('')
   const [infoMessage, setInfoMessage] = useState('')
@@ -107,15 +107,20 @@ function PostCreator({ setVisisblePosts, data: configData }) {
       ...formData,
       content: htmlContent,
     }
-    const response = await postContent('/api/content/posts', post)
+    const response = await postContent('/api/content/posts/new', post)
     const { data, message, error } = response
     if (error) return setTimedMessage(error, setErrorMessage)
 
-    setVisisblePosts((prev) => [...prev, data])
+    setVisiblePosts((prev) => [...prev, data])
+
     setFormData({
       title: '',
       description: '',
       image: '',
+      countryId: '',
+      cityId: '',
+      categoryId: '',
+      subCategoryId: '',
     })
     quill.root.innerHTML = ''
     setTimedMessage(message, setInfoMessage)
@@ -179,38 +184,83 @@ function PostCreator({ setVisisblePosts, data: configData }) {
         </div>
         <div>
           <label htmlFor="country">País</label>
-          <select id="country" name="country" className={styles.input}>
+          <select
+            id="country"
+            name="country"
+            className={styles.input}
+            onChange={(ev) =>
+              setFormData((prev) => ({ ...prev, countryId: ev.target.value }))
+            }
+          >
             <option value=""> </option>
             {countries.map((country) => (
-              <option value={country.id}>{country.name}</option>
+              <option value={country.id} key={country.id}>
+                {country.name}
+              </option>
             ))}
           </select>
         </div>
         <div>
           <label htmlFor="city">Ciudad</label>
-          <select id="city" name="city" className={styles.input}>
+          <select
+            id="city"
+            name="city"
+            className={styles.input}
+            onChange={(ev) =>
+              setFormData((prev) => ({ ...prev, cityId: ev.target.value }))
+            }
+          >
             <option value=""> </option>
-            {cities.map((city) => (
-              <option value={city.id}>{city.name}</option>
-            ))}
+            {cities.map(
+              (city) =>
+                formData.countryId === city.country.id.toString() && (
+                  <option value={city.id} key={city.id}>
+                    {city.name}
+                  </option>
+                )
+            )}
           </select>
         </div>
         <div>
           <label htmlFor="category">Categoría</label>
-          <select id="category" name="category" className={styles.input}>
+          <select
+            id="category"
+            name="category"
+            className={styles.input}
+            onChange={(ev) =>
+              setFormData((prev) => ({ ...prev, categoryId: ev.target.value }))
+            }
+          >
             <option value=""> </option>
             {categories.map((category) => (
-              <option value={category.id}>{category.name}</option>
+              <option value={category.id} key={category.id}>
+                {category.name}
+              </option>
             ))}
           </select>
         </div>
         <div>
           <label htmlFor="subCategory">Sub Categoría</label>
-          <select id="subCategory" name="subCategory" className={styles.input}>
+          <select
+            id="subCategory"
+            name="subCategory"
+            className={styles.input}
+            onChange={(ev) =>
+              setFormData((prev) => ({
+                ...prev,
+                subCategoryId: ev.target.value,
+              }))
+            }
+          >
             <option value=""> </option>
-            {subCategories.map((subCategory) => (
-              <option value={subCategory.id}>{subCategory.name}</option>
-            ))}
+            {subCategories.map(
+              (subCategory) =>
+                formData.categoryId === subCategory.category.id.toString() && (
+                  <option value={subCategory.id} key={subCategory.id}>
+                    {subCategory.name}
+                  </option>
+                )
+            )}
           </select>
         </div>
         <button className={styles.submitButton} type="submit">
@@ -224,14 +274,13 @@ function PostCreator({ setVisisblePosts, data: configData }) {
 }
 
 export default function Dashboard({ authorized, data }) {
-  const { posts, countries, cities, categories, subCategories } = data
+  const { posts } = data
   const [view, setView] = useState({ read: true, create: false })
-  const [visiblePosts, setVisisblePosts] = useState(posts)
-  console.log(data)
+  const [visiblePosts, setVisiblePosts] = useState(posts)
 
   return (
     <AdminLayout>
-      <h1 className={utils.bigTitle}>Posts</h1>
+      <h1 className={utils.bigTitle}>Atracciones Judaicas</h1>
       <button
         className={
           view.read ? styles.actionButtonSelected : styles.actionButton
@@ -250,26 +299,29 @@ export default function Dashboard({ authorized, data }) {
       </button>
 
       {view.read && (
-        <ExistingPosts
-          posts={visiblePosts}
-          setVisisblePosts={setVisisblePosts}
-        />
+        <ExistingPosts posts={visiblePosts} setVisiblePosts={setVisiblePosts} />
       )}
       {view.create && (
-        <PostCreator setVisisblePosts={setVisisblePosts} data={data} />
+        <PostCreator setVisiblePosts={setVisiblePosts} data={data} />
       )}
     </AdminLayout>
   )
 }
 
-export async function getStaticProps(context) {
-  console.log('staticProps context', context)
-
+export async function getStaticProps() {
   const posts = await prisma.post.findMany()
   const categories = await prisma.category.findMany()
-  const subCategories = await prisma.subCategory.findMany()
+  const subCategories = await prisma.subCategory.findMany({
+    include: {
+      category: true,
+    },
+  })
   const countries = await prisma.country.findMany()
-  const cities = await prisma.city.findMany()
+  const cities = await prisma.city.findMany({
+    include: {
+      country: true,
+    },
+  })
 
   const data = { posts, categories, subCategories, countries, cities }
 

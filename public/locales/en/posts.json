@@ -17,7 +17,7 @@
       "submit": "Search"
     },
     "alerts": {
-      "noContent": "There isn't any post published yet"
+      "noContent": "There isn't any post available"
     }
   }
 }

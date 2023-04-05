@@ -4,7 +4,6 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import { useTranslation } from 'next-i18next'
 import { useRouter } from 'next/router'
 // Local
-import { fetchStrapi } from 'lib/api'
 import { handleError } from 'lib/errors'
 // Components
 import Layout from '@/components/Layout'
@@ -30,26 +29,7 @@ export default function Audioguides() {
   const [errorMessage, setErrorMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
-  const { locale } = useRouter()
   const { t } = useTranslation('audioguides')
-
-  useEffect(() => {
-    async function fetchAudioguides() {
-      setIsLoading(true)
-      try {
-        const { data, error } = await fetchStrapi(
-          'audioguides',
-          `?locale=${locale}&populate[0]=image&populate[1]=audio`
-        )
-        if (error) handleError(error)
-        setAudioguides(data)
-      } catch (error) {
-        setErrorMessage(error.message)
-      }
-      setIsLoading(false)
-    }
-    fetchAudioguides()
-  }, [locale])
 
   return (
     <>
