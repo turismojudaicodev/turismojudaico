@@ -2,7 +2,6 @@
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 // Local
-import { fetchStrapi } from 'lib/api'
 import { formatDate } from 'helpers'
 import { handleError } from 'lib/errors'
 // Components
@@ -20,24 +19,6 @@ export default function Post() {
   const [post, setPost] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
-
-  useEffect(() => {
-    if (!id) return
-    async function fetchPost() {
-      setIsLoading(true)
-      try {
-        const { data, error } = await fetchStrapi(`posts/${id}`)
-        if (error) handleError(error)
-        const htmlContent = await formatMarkDown(data.attributes.content)
-        data.attributes.content = htmlContent
-        setPost(data)
-      } catch (error) {
-        setErrorMessage(error.message)
-      }
-      setIsLoading(false)
-    }
-    fetchPost()
-  }, [id])
 
   return (
     <>

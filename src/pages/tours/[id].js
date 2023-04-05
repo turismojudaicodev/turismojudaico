@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 // Local
-import { fetchStrapi, postStrapi } from 'lib/api'
+import { prisma } from 'lib/prisma'
 // Components
 import Layout from '@/components/Layout'
 import LoadingIndicator from '@/components/LoadingIndicator'
@@ -12,12 +12,33 @@ import styles from '@/styles/Citytours.module.css'
 import utils from '@/styles/utils.module.css'
 import StrapiImage from '@/components/StrapiImage'
 
-export default function CityTour() {
+export async function getStaticPaths() {
+  const tours = await prisma.tour.findMany()
+  const paths = tours.map((tour) => ({
+    params: { id: tour.id.toString() },
+  }))
+
+  return {
+    paths,
+    fallback: false,
+  }
+}
+
+export async function getStaticProps({ params: { id } }) {
+  const tour = await prisma.tour.findUnique({ where: { id: Number(id) } })
+
+  return {
+    props: {
+      tour: JSON.parse(JSON.stringify(tour)),
+    },
+  }
+}
+
+export default function CityTour({ tour }) {
   const router = useRouter()
   const { id } = router.query
 
   const [i18n, setI18n] = useState({})
-  const [tour, setTour] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
@@ -31,24 +52,6 @@ export default function CityTour() {
     fetchLocale()
   }, [router.locale])
 
-  useEffect(() => {
-    if (!id) return
-    async function fetchTour() {
-      setIsLoading(true)
-      try {
-        const { data, error } = await fetchStrapi(`tours/${id}`)
-        if (error) handleError(error)
-        const htmlContent = await formatMarkDown(data.attributes.content)
-        data.attributes.content = htmlContent
-        setTour(data)
-      } catch (error) {
-        setErrorMessage(error.message)
-      }
-      setIsLoading(false)
-    }
-    fetchTour()
-  }, [id])
-
   const handleSubmit = async (ev) => {
     ev.preventDefault()
     const formData = Object.fromEntries(new FormData(ev.target))
@@ -56,8 +59,7 @@ export default function CityTour() {
       ...formData,
       tour: id,
     }
-    const response = await postStrapi('reservations', reservationData)
-    console.log('res', response)
+    console.log(reservationData)
   }
 
   return (
@@ -143,15 +145,15 @@ export default function CityTour() {
           <LoadingIndicator />
         ) : (
           <div>
-            <h2 className={utils.bigTitle}>{tour.attributes.title}</h2>
-            <p>{tour.attributes.description}</p>
+            <h2 className={utils.bigTitle}>{tour.title}</h2>
+            <p>{tour.description}</p>
             <div
               style={{ position: 'relative', width: '250px', height: '250px' }}
             >
               <StrapiImage />
             </div>
             <div
-              dangerouslySetInnerHTML={{ __html: tour.attributes.content }}
+              dangerouslySetInnerHTML={{ __html: tour.content }}
               className={utils.htmlContent}
             />
           </div>

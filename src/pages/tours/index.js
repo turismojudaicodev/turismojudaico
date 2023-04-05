@@ -1,10 +1,9 @@
 // NPM
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import { useTranslation } from 'next-i18next'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/router'
 // Local
-import { fetchStrapi } from 'lib/api'
 import { handleError } from 'lib/errors'
 import { prisma } from 'lib/prisma'
 // Components
@@ -39,32 +38,33 @@ export default function Citytours({ tours, countries }) {
 
   const handleSubmit = async (ev) => {
     ev.preventDefault()
-    setIsLoading(true)
 
-    let queryParams = `?locale=${locale}`
+    // setIsLoading(true)
 
-    const formData = Object.fromEntries(new FormData(ev.target))
-    const filters = []
+    // let queryParams = `?locale=${locale}`
 
-    if (formData.tour)
-      filters.push(['filters[title][$containsi]', `${formData.tour}`])
-    if (formData.country)
-      filters.push(['filters[country][name][$eq]', `${formData.country}`])
+    // const formData = Object.fromEntries(new FormData(ev.target))
+    // const filters = []
 
-    if (filters.length > 0) {
-      filters.forEach((filter, index) => {
-        queryParams += `&${filter[0]}[${index}]=${filter[1]}`
-      })
-    }
+    // if (formData.tour)
+    //   filters.push(['filters[title][$containsi]', `${formData.tour}`])
+    // if (formData.country)
+    //   filters.push(['filters[country][name][$eq]', `${formData.country}`])
 
-    try {
-      const { data, error } = await fetchStrapi('tours', queryParams)
-      if (error) handleError(error)
-      setTours(data)
-    } catch (error) {
-      setErrorMessage(error.message)
-    }
-    setIsLoading(false)
+    // if (filters.length > 0) {
+    //   filters.forEach((filter, index) => {
+    //     queryParams += `&${filter[0]}[${index}]=${filter[1]}`
+    //   })
+    // }
+
+    // try {
+    //   const { data, error } = await fetchStrapi('tours', queryParams)
+    //   if (error) handleError(error)
+    //   setTours(data)
+    // } catch (error) {
+    //   setErrorMessage(error.message)
+    // }
+    // setIsLoading(false)
   }
 
   return (
