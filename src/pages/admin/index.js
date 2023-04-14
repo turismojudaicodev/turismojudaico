@@ -13,11 +13,14 @@ import ButtonLoader from '@/components/ButtonLoader'
 export function getServerSideProps({ req, res }) {
   let authorized = false
 
-  const user = hasCookie('user')
-    ? JSON.parse(getCookie('user', { req, res }))
+  console.log('tiene cookie', hasCookie('user', { req, res }))
+
+  const user = hasCookie('user', { req, res })
+    ? JSON.stringify(getCookie('user', { req, res }))
     : null
   console.log('user', user)
-  if (user && user.role.toLowerCase() === 'admin') authorized = true
+  console.log('ccks', req.cookies)
+  if (user && user.role === 'admin') authorized = true
 
   return {
     props: {
