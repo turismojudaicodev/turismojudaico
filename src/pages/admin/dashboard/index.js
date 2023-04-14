@@ -32,10 +32,11 @@ export default function Dashboard({ authorized }) {
 
   return (
     <AdminLayout>
+      <h1 className={utils.bigTitle}>Turismo Judaico</h1>
+      <p>Bienvenido al panel de administrador de Turismo Judaico.</p>
       <p>
-        Bienvenido al panel de administrador de Turismo Judaico.
-        <br /> Seleccione una de las secciones disponibles en el menú de
-        navegación de la izquierda.
+        Seleccione una de las secciones disponibles en el menú de navegación de
+        la izquierda.
       </p>
     </AdminLayout>
   )

@@ -1,5 +1,8 @@
 .main {
   margin-block: var(--margin-block);
+  display: grid;
+  height: calc(100vh - var(--margin-block) * 2);
+  place-content: center;
 }
 
 .form {

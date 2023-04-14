@@ -63,7 +63,7 @@ function ExistingPosts({ posts, setVisiblePosts }) {
             </div>
           </div>
         ))}
-        <div className={styles.messageContainer}>
+        <div className={utils.messageContainer}>
           {errorMessage && <Message type="error" message={errorMessage} />}
           {infoMessage && <Message type="info" message={infoMessage} />}
         </div>

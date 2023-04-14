@@ -20,6 +20,15 @@
   margin-block: var(--margin-block);
 }
 
+.messageContainer {
+  left: 50%;
+  position: fixed;
+  top: 1rem;
+  translate: -50% 0;
+  transition: top .3 ease;
+  z-index: 100;
+}
+
 /* forms */
 .form {
   display: flex;

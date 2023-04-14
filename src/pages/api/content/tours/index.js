@@ -2,15 +2,10 @@ import { prisma } from 'lib/prisma'
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
-    const { post } = req.body
+    const { posts } = req.body
 
     const conditionsObj = {}
-    Object.entries(req.body)
-      .filter(([key, value]) => value !== '' && key !== 'post')
-      .forEach(
-        ([key, value]) =>
-          (conditionsObj[`${key}Id`] = { equals: parseInt(value) })
-      )
+    if (posts) conditionsObj.posts = posts
 
     try {
       const result = await prisma.post.findMany({
@@ -21,10 +16,7 @@ export default async function handler(req, res) {
           ...conditionsObj,
         },
         include: {
-          country: true,
-          city: true,
-          category: true,
-          subCategory: true,
+          posts: true,
         },
       })
       if (!result)

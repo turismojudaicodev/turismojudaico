@@ -33,7 +33,6 @@ export default function Citytours({ tours, countries }) {
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
-  const { locale } = useRouter()
   const { t } = useTranslation(['citytours', 'common'])
 
   const handleSubmit = async (ev) => {

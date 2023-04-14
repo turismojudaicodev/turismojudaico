@@ -103,7 +103,7 @@ function ExistingContent({
           </div>
         ))}
       </div>
-      <div className={styles.messageContainer}>
+      <div className={utils.messageContainer}>
         {errorMessage && <Message type="error" message={errorMessage} />}
         {infoMessage && <Message type="info" message={infoMessage} />}
       </div>
@@ -192,7 +192,7 @@ function Form({
           </button>
         </form>
       </div>
-      <div className={styles.messageContainer}>
+      <div className={utils.messageContainer}>
         {errorMessage && <Message type="error" message={errorMessage} />}
         {infoMessage && <Message type="info" message={infoMessage} />}
       </div>

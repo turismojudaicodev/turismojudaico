@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 // Local
 import { setTimedMessage } from 'helpers'
 import emailIcon from 'public/icons/email.svg'
+import { postContent } from 'lib/api'
 // Components
 import Head from 'next/head'
 import Link from 'next/link'
@@ -35,18 +36,11 @@ export default function Contact() {
     ev.preventDefault()
     setIsLoading(true)
     const formData = Object.fromEntries(new FormData(ev.target))
-    console.log('formdata', formData)
+
     try {
-      const res = await fetch('/api/contact', {
-        method: 'POST',
-        body: JSON.stringify(formData),
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-      })
-      const data = await res.json()
-      setTimedMessage(data.success, setInfoMessage, 3000)
+      const { message, error } = await postContent('/api/contact', formData)
+      if (error) return setTimedMessage(error, setErrorMessage, 3000)
+      setTimedMessage(message, setInfoMessage, 3000)
     } catch (error) {
       setTimedMessage(error.message, setErrorMessage, 3000)
     }
