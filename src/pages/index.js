@@ -9,23 +9,25 @@ import Layout from '@/components/Layout'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import CardsContainer from '@/components/CardsContainer'
 import Message from '@/components/Message'
+import ToursContainer from '@/components/ToursContainer'
 // Styles
 import styles from '@/styles/Home.module.css'
 import utils from '@/styles/utils.module.css'
 
 export async function getStaticProps({ locale }) {
-  const blogs = await prisma.blog.findMany()
-  const posts = await prisma.post.findMany()
+  const blogs = await prisma.blog.findMany({ where: { active: true } })
+  const tours = await prisma.tour.findMany({ where: { active: true } })
+
   return {
     props: {
       ...(await serverSideTranslations(locale, ['index', 'common'])),
       blogs: JSON.parse(JSON.stringify(blogs)),
-      posts: JSON.parse(JSON.stringify(posts)),
+      tours: JSON.parse(JSON.stringify(tours)),
     },
   }
 }
 
-export default function Home({ blogs, posts }) {
+export default function Home({ blogs, tours }) {
   const { t } = useTranslation(['index', 'common'])
 
   return (
@@ -39,6 +41,16 @@ export default function Home({ blogs, posts }) {
       <Layout>
         <main className={`${styles.main} ${utils.container}`}>
           <h1 className={utils.bigTitle}>{t('body.title', { ns: 'index' })}</h1>
+          <div className={styles.postsContainer}>
+            <h2 className={utils.mediumTitle}>Tours destacados</h2>
+            {!tours ? (
+              <LoadingIndicator />
+            ) : tours.length > 0 ? (
+              <ToursContainer tours={tours} />
+            ) : (
+              <Message type="info" message="Aún no hay posts publicados" />
+            )}
+          </div>
           <div className={styles.blogsContainer}>
             <h2 className={utils.mediumTitle}>Blogs</h2>
             {!blogs ? (
@@ -51,20 +63,6 @@ export default function Home({ blogs, posts }) {
               />
             ) : (
               <Message type="info" message="Aún no hay blogs publicados" />
-            )}
-          </div>
-          <div className={styles.postsContainer}>
-            <h2 className={utils.mediumTitle}>Atracciones Judaicas</h2>
-            {!posts ? (
-              <LoadingIndicator />
-            ) : posts.length > 0 ? (
-              <CardsContainer
-                cardsName="posts"
-                cards={posts}
-                linkText={t('cardsContainerText', { ns: 'common' })}
-              />
-            ) : (
-              <Message type="info" message="Aún no hay posts publicados" />
             )}
           </div>
         </main>
