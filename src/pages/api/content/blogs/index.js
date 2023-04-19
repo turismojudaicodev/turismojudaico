@@ -4,7 +4,7 @@ import { prisma } from 'lib/prisma'
 export default async function handler(req, res) {
   if (req.method === 'GET') {
   } else if (req.method === 'POST') {
-    const { title, description, image, content } = req.body
+    const { title, description, image, content, active } = req.body
     if (!title || !description || !content) {
       return res.status(400).json({ error: 'Campos obligatorios incompletos' })
     }
@@ -13,6 +13,7 @@ export default async function handler(req, res) {
         title,
         description,
         content,
+        active,
       },
     })
     res.status(201).json({ data: result, message: 'Blog creado exitosamente' })

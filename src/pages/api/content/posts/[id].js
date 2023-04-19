@@ -16,10 +16,10 @@ export default async function handler(req, res) {
     const formData = req.body
     const parsedFormData = {
       ...formData,
-      country: formData.country || null,
-      city: formData.city || null,
-      category: formData.category || null,
-      subCategory: formData.subCategory || null,
+      countryId: parseInt(formData.countryId) || undefined,
+      cityId: parseInt(formData.cityId) || undefined,
+      categoryId: parseInt(formData.categoryId) || undefined,
+      subCategoryId: parseInt(formData.subCategoryId) || undefined,
     }
     const result = await prisma.post.update({
       where: { id: postId },

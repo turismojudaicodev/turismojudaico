@@ -78,9 +78,11 @@ function BlogCreator({ setVisisbleBlogs }) {
     title: '',
     description: '',
     image: '',
+    active: true,
   })
   const [errorMessage, setErrorMessage] = useState('')
   const [infoMessage, setInfoMessage] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
   let { quill, quillRef } = useQuill({
     theme: 'snow',
@@ -98,6 +100,7 @@ function BlogCreator({ setVisisbleBlogs }) {
 
   const handleSubmit = async (ev) => {
     ev.preventDefault()
+    setIsLoading(true)
     const htmlContent = quill.root.innerHTML
     const blog = {
       ...formData,
@@ -106,6 +109,7 @@ function BlogCreator({ setVisisbleBlogs }) {
     const response = await postContent('/api/content/blogs', blog)
     const { data, message, error } = response
 
+    setIsLoading(false)
     if (error) return setTimedMessage(error, setErrorMessage)
 
     setVisisbleBlogs((prev) => [...prev, data])
@@ -113,6 +117,7 @@ function BlogCreator({ setVisisbleBlogs }) {
       title: '',
       description: '',
       image: '',
+      active: true,
     })
     quill.root.innerHTML = ''
     setTimedMessage(message, setInfoMessage)
@@ -174,8 +179,23 @@ function BlogCreator({ setVisisbleBlogs }) {
             <div ref={quillRef} />
           </div>
         </div>
+        <div>
+          <label htmlFor="active">Visible</label>
+          <input
+            style={{ width: '25px' }}
+            type="checkbox"
+            name="active"
+            id="active"
+            value={formData.active}
+            defaultChecked
+            onChange={() =>
+              setFormData((value) => ({ ...value, active: !active }))
+            }
+            className={styles.input}
+          ></input>
+        </div>
         <button className={styles.submitButton} type="submit">
-          Crear
+          {isLoading ? 'Creando...' : 'Crear'}
         </button>
         {errorMessage && <Message type="error" message={errorMessage} />}
         {infoMessage && <Message type="info" message={infoMessage} />}
@@ -219,9 +239,7 @@ export default function Dashboard({ authorized, blogs }) {
   )
 }
 
-export async function getStaticProps(context) {
-  console.log('staticProps context', context)
-
+export async function getStaticProps() {
   const blogs = await prisma.blog.findMany()
 
   return {

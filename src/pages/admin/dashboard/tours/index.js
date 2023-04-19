@@ -77,10 +77,12 @@ function TourCreator({ setVisibleTours, data: configData }) {
     title: '',
     description: '',
     image: '',
+    active: true,
     posts: [],
   })
   const [errorMessage, setErrorMessage] = useState('')
   const [infoMessage, setInfoMessage] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
   const { posts } = configData
 
   let { quill, quillRef } = useQuill({
@@ -99,6 +101,7 @@ function TourCreator({ setVisibleTours, data: configData }) {
 
   const handleSubmit = async (ev) => {
     ev.preventDefault()
+    setIsLoading(true)
     const htmlContent = quill.root.innerHTML
     const tour = {
       ...formData,
@@ -106,6 +109,7 @@ function TourCreator({ setVisibleTours, data: configData }) {
     }
     const response = await postContent('/api/content/tours/new', tour)
     const { data, message, error } = response
+    setIsLoading(false)
     if (error) return setTimedMessage(error, setErrorMessage)
 
     setVisibleTours((prev) => [...prev, data])
@@ -114,6 +118,7 @@ function TourCreator({ setVisibleTours, data: configData }) {
       title: '',
       description: '',
       image: '',
+      active: true,
       posts: [],
     })
     quill.root.innerHTML = ''
@@ -176,8 +181,23 @@ function TourCreator({ setVisibleTours, data: configData }) {
             <div ref={quillRef} />
           </div>
         </div>
+        <div>
+          <label htmlFor="active">Visible</label>
+          <input
+            style={{ width: '25px' }}
+            type="checkbox"
+            name="active"
+            id="active"
+            value={formData.active}
+            defaultChecked
+            onChange={(ev) =>
+              setFormData((value) => ({ ...value, active: !active }))
+            }
+            className={styles.input}
+          ></input>
+        </div>
         <button className={styles.submitButton} type="submit">
-          Crear
+          {isLoading ? 'Cargando...' : 'Crear'}
         </button>
         {errorMessage && <Message type="error" message={errorMessage} />}
         {infoMessage && <Message type="info" message={infoMessage} />}

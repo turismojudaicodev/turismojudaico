@@ -51,9 +51,11 @@ export default function Blog({ blog }) {
     title: blog.title,
     description: blog.description,
     image: blog.image,
+    active: blog.active,
   })
   const [errorMessage, setErrorMessage] = useState('')
   const [infoMessage, setInfoMessage] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     if (quill) {
@@ -63,6 +65,7 @@ export default function Blog({ blog }) {
 
   const handleUpdate = async (ev) => {
     ev.preventDefault()
+    setIsLoading(true)
 
     const res = await updateUniqueContent(
       '/api/content/blogs',
@@ -72,15 +75,15 @@ export default function Blog({ blog }) {
         content: quill.root.innerHTML,
       }
     )
-    const { data, message, error } = res
+    setIsLoading(false)
+    const { message, error } = res
     if (error) return setTimedMessage(error, setErrorMessage)
     setTimedMessage(message, setInfoMessage)
-    console.log(data)
   }
 
   return (
     <AdminLayout>
-      <h2 className={styles.actionTitle}>Crear Blog</h2>
+      <h2 className={styles.actionTitle}>Editar Blog</h2>
       <form className={styles.formCreate} onSubmit={handleUpdate}>
         <div>
           <label className={utils.inputRequired} htmlFor="title">
@@ -134,8 +137,23 @@ export default function Blog({ blog }) {
             <div ref={quillRef} />
           </div>
         </div>
+        <div>
+          <label htmlFor="active">Activo</label>
+          <input
+            style={{ width: '25px' }}
+            type="checkbox"
+            name="active"
+            id="active"
+            value={formData.active}
+            defaultChecked
+            onChange={() =>
+              setFormData((value) => ({ ...value, active: !active }))
+            }
+            className={styles.input}
+          ></input>
+        </div>
         <button className={styles.submitButton} type="submit">
-          Confirmar
+          {isLoading ? 'Cargando...' : 'Confirmar'}
         </button>
         {errorMessage && <Message type="error" message={errorMessage} />}
         {infoMessage && <Message type="info" message={infoMessage} />}

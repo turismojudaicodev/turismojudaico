@@ -6,7 +6,7 @@ function parseValueInt(value) {
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
-    const { title, description, content } = req.body
+    const { title, description, content, active } = req.body
     if (!title || !description || !content)
       return res
         .status(400)
@@ -18,6 +18,7 @@ export default async function handler(req, res) {
           title,
           description,
           content,
+          active,
           // posts: [],
         },
       })

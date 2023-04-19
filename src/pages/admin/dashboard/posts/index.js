@@ -77,6 +77,7 @@ function PostCreator({ setVisiblePosts, data: configData }) {
     title: '',
     description: '',
     image: '',
+    active: true,
     countryId: '',
     cityId: '',
     categoryId: '',
@@ -84,6 +85,7 @@ function PostCreator({ setVisiblePosts, data: configData }) {
   })
   const [errorMessage, setErrorMessage] = useState('')
   const [infoMessage, setInfoMessage] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
   const { countries, cities, categories, subCategories } = configData
 
   let { quill, quillRef } = useQuill({
@@ -102,6 +104,7 @@ function PostCreator({ setVisiblePosts, data: configData }) {
 
   const handleSubmit = async (ev) => {
     ev.preventDefault()
+    setIsLoading(true)
     const htmlContent = quill.root.innerHTML
     const post = {
       ...formData,
@@ -109,6 +112,7 @@ function PostCreator({ setVisiblePosts, data: configData }) {
     }
     const response = await postContent('/api/content/posts/new', post)
     const { data, message, error } = response
+    setIsLoading(false)
     if (error) return setTimedMessage(error, setErrorMessage)
 
     setVisiblePosts((prev) => [...prev, data])
@@ -117,6 +121,7 @@ function PostCreator({ setVisiblePosts, data: configData }) {
       title: '',
       description: '',
       image: '',
+      active: true,
       countryId: '',
       cityId: '',
       categoryId: '',
@@ -263,8 +268,23 @@ function PostCreator({ setVisiblePosts, data: configData }) {
             )}
           </select>
         </div>
+        <div>
+          <label htmlFor="active">Visible</label>
+          <input
+            style={{ width: '25px' }}
+            type="checkbox"
+            name="active"
+            id="active"
+            value={formData.active}
+            defaultChecked
+            onChange={() =>
+              setFormData((value) => ({ ...value, active: !active }))
+            }
+            className={styles.input}
+          ></input>
+        </div>
         <button className={styles.submitButton} type="submit">
-          Crear
+          {isLoading ? 'Creando...' : 'Crear'}
         </button>
         {errorMessage && <Message type="error" message={errorMessage} />}
         {infoMessage && <Message type="info" message={infoMessage} />}

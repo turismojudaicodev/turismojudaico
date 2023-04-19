@@ -69,6 +69,11 @@
   width: 500px;
 }
 
+textarea.input {
+  min-height: 85px;
+  max-height: 200px;
+}
+
 .input:focus {
   border: 1px solid #333;
 }
