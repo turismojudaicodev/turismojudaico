@@ -1,7 +1,6 @@
 // NPM
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/router'
-import { getCookie, setCookie, hasCookie } from 'cookies-next'
 // Local
 import { useUser } from 'context/user'
 import { postContent } from 'lib/api'
@@ -10,39 +9,12 @@ import styles from '@/styles/Admin.module.css'
 import utils from '@/styles/utils.module.css'
 import ButtonLoader from '@/components/ButtonLoader'
 
-export function getServerSideProps({ req, res }) {
-  let authorized = false
-
-  console.log('tiene cookie', hasCookie('user', { req, res }))
-
-  const user = hasCookie('user', { req, res })
-    ? JSON.stringify(getCookie('user', { req, res }))
-    : null
-  console.log('user', user)
-  console.log('ccks', req.cookies)
-  if (user && user.role === 'admin') authorized = true
-
-  return {
-    props: {
-      authorized,
-      user: authorized ? user : null,
-    },
-  }
-}
-
-export default function Admin({ authorized, user: authorizedUser }) {
-  const { user, setUser } = useUser()
+export default function Admin() {
+  const { setUser } = useUser()
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
   const router = useRouter()
-
-  useEffect(() => {
-    if (authorized) {
-      setUser(authorizedUser)
-      router.push('/admin/dashboard')
-    }
-  }, [])
 
   async function handleLogin(ev) {
     ev.preventDefault()
@@ -53,7 +25,6 @@ export default function Admin({ authorized, user: authorizedUser }) {
     const { data, error } = res
     setIsLoading(false)
     if (error) return setErrorMessage(error)
-    setCookie('user', JSON.stringify(data))
     setUser(data)
     router.push('/admin/dashboard')
   }
