@@ -1,9 +1,7 @@
 // NPM
-import { useRouter } from 'next/router'
 import { useState } from 'react'
 import { useQuill } from 'react-quilljs'
 // Local
-import { useUser } from 'context/user'
 import { postContent, deleteContent } from 'lib/api'
 import { formatDate } from 'helpers'
 import { prisma } from 'lib/prisma'

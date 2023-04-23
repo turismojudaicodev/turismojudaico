@@ -1,27 +1,41 @@
 import { prisma } from 'lib/prisma'
-
-function parseValueInt(value) {
-  return Number.parseInt(value) || null
-}
+import { uploadImage } from 'lib/cloudinary'
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
-    const { title, description, content, active } = req.body
+    const { title, description, content, active, image, posts } = req.body
+
     if (!title || !description || !content)
       return res
         .status(400)
         .json({ error: 'Falta algún dato obligatorio del posts' })
 
     try {
+      if (image) {
+        // console.log('image', image)
+        // const result = uploadImage(image)
+        // console.log('image upload result:', result)
+      }
+
       const result = await prisma.tour.create({
         data: {
           title,
           description,
           content,
           active,
-          // posts: [],
         },
       })
+
+      if (posts.length > 0) {
+        for (const id of posts) {
+          const postRes = await prisma.post.update({
+            where: { id: parseInt(id) },
+            data: { tourId: result.id },
+          })
+          // console.log('post res:', postRes)
+        }
+      }
+
       res.status(201).json({
         message: `Post ${result.title} creado exitosamente`,
         data: result,

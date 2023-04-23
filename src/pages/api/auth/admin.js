@@ -10,7 +10,7 @@ export default async function handler(req, res) {
       where: { username },
     })
     const isPasswordValid = await bcrypt.compare(password, admin.passwordHash)
-    if (!admin || admin.role !== 'admin' || !isPasswordValid)
+    if (!admin || admin.role.toLowerCase() !== 'admin' || !isPasswordValid)
       return res.status(400).json({ error: 'Usuario o contraseña incorrecto' })
 
     setCookie('user', JSON.stringify(admin), { req, res, maxAge: 60 * 60 * 24 })

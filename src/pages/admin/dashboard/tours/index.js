@@ -3,7 +3,6 @@ import { useRouter } from 'next/router'
 import { useState } from 'react'
 import { useQuill } from 'react-quilljs'
 // Local
-import { useUser } from 'context/user'
 import { postContent, deleteContent } from 'lib/api'
 import { formatDate, setTimedMessage } from 'helpers'
 import { prisma } from 'lib/prisma'
@@ -83,6 +82,7 @@ function TourCreator({ setVisibleTours, data: configData }) {
   const [errorMessage, setErrorMessage] = useState('')
   const [infoMessage, setInfoMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [previewSource, setPreviewSource] = useState('')
   const { posts } = configData
 
   let { quill, quillRef } = useQuill({
@@ -99,6 +99,14 @@ function TourCreator({ setVisibleTours, data: configData }) {
     },
   })
 
+  const previewFile = (file) => {
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onloadend = () => {
+      setPreviewSource(reader.result)
+    }
+  }
+
   const handleSubmit = async (ev) => {
     ev.preventDefault()
     setIsLoading(true)
@@ -107,6 +115,9 @@ function TourCreator({ setVisibleTours, data: configData }) {
       ...formData,
       content: htmlContent,
     }
+
+    // console.log(tour)
+
     const response = await postContent('/api/content/tours/new', tour)
     const { data, message, error } = response
     setIsLoading(false)
@@ -121,6 +132,7 @@ function TourCreator({ setVisibleTours, data: configData }) {
       active: true,
       posts: [],
     })
+    setPreviewSource('')
     quill.root.innerHTML = ''
     setTimedMessage(message, setInfoMessage)
   }
@@ -164,21 +176,106 @@ function TourCreator({ setVisibleTours, data: configData }) {
         </div>
         <div>
           <label htmlFor="image">Imagen de portada</label>
-          <input
-            type="file"
-            name="image"
-            id="image"
-            value={formData.image}
-            onChange={(ev) =>
-              setFormData((value) => ({ ...value, image: ev.target.value }))
-            }
-            className={styles.input}
-          ></input>
+          <div
+            style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
+          >
+            <input
+              type="file"
+              name="image"
+              id="image"
+              value={formData.image}
+              onChange={(ev) =>
+                setFormData((value) => {
+                  previewFile(ev.target.files[0])
+                  return { ...value, image: ev.target.value }
+                })
+              }
+              className={styles.input}
+            ></input>
+            {previewSource && (
+              <Image
+                src={previewSource}
+                alt="Imagen de portada"
+                height={200}
+                width={275}
+                style={{ objectFit: 'contain' }}
+              />
+            )}
+          </div>
         </div>
         <div>
           <label className={utils.inputRequired}>Contenido</label>
           <div>
             <div ref={quillRef} />
+          </div>
+        </div>
+        <div>
+          <label htmlFor="posts">Posts relacionados</label>
+          <div>
+            <select
+              id="posts"
+              name="posts"
+              className={styles.input}
+              onChange={(ev) => {
+                setFormData((value) => {
+                  if (
+                    value.posts.includes(ev.target.value) ||
+                    ev.target.value === ''
+                  )
+                    return value
+                  return {
+                    ...value,
+                    posts: [...value.posts, ev.target.value],
+                  }
+                })
+              }}
+            >
+              <option value=""> </option>
+              {posts.map((post) => (
+                <option value={post.id} key={post.id}>
+                  {post.title}
+                </option>
+              ))}
+            </select>
+            <ul style={{ padding: '1rem 0 0 1.75rem' }}>
+              {formData.posts.map((post) => {
+                return posts.map((fetchedPost) => {
+                  if (fetchedPost.id == post) {
+                    return (
+                      <li
+                        key={post}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '.5rem',
+                          marginBottom: '.25em',
+                        }}
+                      >
+                        <button
+                          className={styles.deleteButton}
+                          onClick={(ev) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              posts: prev.posts.filter(
+                                (prevValue) => prevValue !== post
+                              ),
+                            }))
+                          }
+                        >
+                          <Image
+                            src={DeleteIcon}
+                            height={16}
+                            width={16}
+                            alt="delte icon"
+                          />
+                        </button>
+                        <span>{fetchedPost.title}</span>
+                      </li>
+                    )
+                  }
+                })
+              })}
+            </ul>
           </div>
         </div>
         <div>
@@ -206,7 +303,7 @@ function TourCreator({ setVisibleTours, data: configData }) {
   )
 }
 
-export default function Dashboard({ authorized, data }) {
+export default function Dashboard({ data }) {
   const { tours } = data
   const [view, setView] = useState({ read: true, create: false })
   const [visibleTours, setVisibleTours] = useState(tours)
@@ -253,7 +350,6 @@ export async function getStaticProps() {
 
   return {
     props: {
-      authorized: true,
       data: JSON.parse(JSON.stringify(data)),
     },
   }
