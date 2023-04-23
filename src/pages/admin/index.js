@@ -1,6 +1,6 @@
 // NPM
 import { useState } from 'react'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 // Local
 import { useUser } from 'context/user'
 import { postContent } from 'lib/api'
