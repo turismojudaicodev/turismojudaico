@@ -26,39 +26,44 @@ model Blog {
   image       String?
   content     String   @db.LongText
   active      Boolean  @default(true)
+  locale      String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
 
 model Country {
-  id     Int    @id @default(autoincrement())
-  name   String @unique
-  cities City[]
-  Post   Post[]
-  Tour   Tour[]
+  id          Int    @id @default(autoincrement())
+  name        String @unique
+  englishName String
+  cities      City[]
+  Post        Post[]
+  Tour        Tour[]
 }
 
 model City {
-  id        Int     @id @default(autoincrement())
-  name      String
-  country   Country @relation(fields: [countryId], references: [id], onDelete: Cascade)
-  countryId Int
-  Post      Post[]
+  id          Int     @id @default(autoincrement())
+  name        String
+  englishName String
+  country     Country @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  countryId   Int
+  Post        Post[]
 }
 
 model Category {
   id            Int           @id @default(autoincrement())
   name          String        @unique
+  englishName   String
   subCategories SubCategory[]
   Post          Post[]
 }
 
 model SubCategory {
-  id         Int      @id @default(autoincrement())
-  name       String
-  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  categoryId Int
-  Post       Post[]
+  id          Int      @id @default(autoincrement())
+  name        String
+  englishName String
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId  Int
+  Post        Post[]
 }
 
 model Post {
@@ -68,6 +73,7 @@ model Post {
   image         String?
   content       String       @db.LongText
   active        Boolean      @default(true)
+  locale        String
   category      Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   categoryId    Int?
   subCategory   SubCategory? @relation(fields: [subCategoryId], references: [id], onDelete: SetNull)
@@ -87,6 +93,7 @@ model Tour {
   image       String?
   content     String   @db.LongText
   active      Boolean  @default(true)
+  locale      String
   country     Country? @relation(fields: [countryId], references: [id], onDelete: SetNull)
   countryId   Int?
   posts       Post[]
