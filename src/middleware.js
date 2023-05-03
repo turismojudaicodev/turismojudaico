@@ -4,11 +4,11 @@ export function middleware(req) {
   const user = req.cookies.get('user')?.value
 
   if (req.nextUrl.pathname.startsWith('/admin/dashboard')) {
-    if (!user || JSON.parse(user).role !== 'admin') {
+    if (!user || JSON.parse(user).role.toUpperCase() !== 'ADMIN') {
       return NextResponse.redirect(new URL('/admin', req.url))
     }
   } else if (req.nextUrl.pathname.startsWith('/admin')) {
-    if (user && JSON.parse(user).role === 'admin') {
+    if (user && JSON.parse(user).role.toUpperCase() === 'ADMIN') {
       return NextResponse.redirect(new URL('/admin/dashboard', req.url))
     }
   }
