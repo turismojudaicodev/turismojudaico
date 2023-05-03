@@ -12,11 +12,11 @@ import Message from '@/components/Message'
 import utils from '@/styles/utils.module.css'
 import styles from '@/styles/Dashboard.module.css'
 import 'quill/dist/quill.snow.css' // quill snow theme
+import AdminButtonLoader from '@/components/AdminButtonLoader'
 
 export async function getStaticPaths() {
   const blogs = await prisma.blog.findMany()
   const paths = blogs.map((blog) => ({ params: { id: blog.id.toString() } }))
-
   return {
     paths,
     fallback: false,
@@ -52,6 +52,7 @@ export default function Blog({ blog }) {
     description: blog.description,
     image: blog.image,
     active: blog.active,
+    locale: blog.locale,
   })
   const [errorMessage, setErrorMessage] = useState('')
   const [infoMessage, setInfoMessage] = useState('')
@@ -85,6 +86,22 @@ export default function Blog({ blog }) {
     <AdminLayout>
       <h2 className={styles.actionTitle}>Editar Blog</h2>
       <form className={styles.formCreate} onSubmit={handleUpdate}>
+        <div>
+          <label className={utils.inputRequired} htmlFor="locale">
+            Idioma
+          </label>
+          <select
+            className={styles.input}
+            name="locale"
+            id="locale"
+            onChange={(ev) => {
+              setFormData((prev) => ({ ...prev, locale: ev.target.value }))
+            }}
+          >
+            <option value="es">Español</option>
+            <option value="en">Inglés</option>
+          </select>
+        </div>
         <div>
           <label className={utils.inputRequired} htmlFor="title">
             Título
@@ -152,9 +169,7 @@ export default function Blog({ blog }) {
             className={styles.input}
           ></input>
         </div>
-        <button className={styles.submitButton} type="submit">
-          {isLoading ? 'Cargando...' : 'Confirmar'}
-        </button>
+        <AdminButtonLoader isLoading={isLoading}>Confirmar</AdminButtonLoader>
         {errorMessage && <Message type="error" message={errorMessage} />}
         {infoMessage && <Message type="info" message={infoMessage} />}
       </form>

@@ -2,12 +2,12 @@ import { prisma } from 'lib/prisma'
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
-    const { name } = req.body
-    if (!name)
+    const { name, englishName } = req.body
+    if (!name || !englishName)
       return res
         .status(400)
         .json({ error: 'No se puede agregar un pais sin nombre' })
-    const result = await prisma.country.create({ data: { name } })
+    const result = await prisma.country.create({ data: req.body })
     res
       .status(201)
       .json({ message: `${name} agregado correctamente.`, data: result })

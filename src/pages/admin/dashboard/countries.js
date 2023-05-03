@@ -144,6 +144,16 @@ function Form({ visibleCountries, setVisibileCountries, setVisibleCities }) {
               style={{ maxWidth: '350px' }}
             ></input>
           </div>
+          <div>
+            <label htmlFor="countryEnglishName">País en inglés</label>
+            <input
+              type="text"
+              name="englishName"
+              id="countryEnglishName"
+              className={styles.input}
+              style={{ maxWidth: '350px' }}
+            ></input>
+          </div>
           <button type="submit" className={styles.submitButton}>
             Agregar
           </button>
@@ -155,6 +165,16 @@ function Form({ visibleCountries, setVisibileCountries, setVisibleCities }) {
               type="text"
               name="name"
               id="city"
+              className={styles.input}
+              style={{ maxWidth: '350px' }}
+            ></input>
+          </div>
+          <div>
+            <label htmlFor="cityEnglishName">Ciudad en inglés</label>
+            <input
+              type="text"
+              name="englishName"
+              id="cityEnglishName"
               className={styles.input}
               style={{ maxWidth: '350px' }}
             ></input>

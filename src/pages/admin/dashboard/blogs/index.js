@@ -77,6 +77,7 @@ function BlogCreator({ setVisisbleBlogs }) {
     description: '',
     image: '',
     active: true,
+    locale: 'es',
   })
   const [errorMessage, setErrorMessage] = useState('')
   const [infoMessage, setInfoMessage] = useState('')
@@ -116,6 +117,7 @@ function BlogCreator({ setVisisbleBlogs }) {
       description: '',
       image: '',
       active: true,
+      locale: 'es',
     })
     quill.root.innerHTML = ''
     setTimedMessage(message, setInfoMessage)
@@ -125,6 +127,23 @@ function BlogCreator({ setVisisbleBlogs }) {
     <>
       <h2 className={styles.actionTitle}>Crear Blog</h2>
       <form className={styles.formCreate} onSubmit={handleSubmit}>
+        <div>
+          <label className={utils.inputRequired} htmlFor="locale">
+            Idioma
+          </label>
+          <select
+            className={styles.input}
+            name="locale"
+            id="locale"
+            value={formData.locale}
+            onChange={(ev) => {
+              setFormData((prev) => ({ ...prev, locale: ev.target.value }))
+            }}
+          >
+            <option value="es">Español</option>
+            <option value="en">Inglés</option>
+          </select>
+        </div>
         <div>
           <label className={utils.inputRequired} htmlFor="title">
             Título

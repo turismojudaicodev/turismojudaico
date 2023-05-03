@@ -122,6 +122,7 @@ function Form({
   const handleCategorySubmit = async (ev) => {
     ev.preventDefault()
     const category = Object.fromEntries(new FormData(ev.target))
+    console.log(category)
     const response = await postContent('/api/content/categories', category)
     const { message, error, data } = response
     if (error) return setTimedMessage(error, setErrorMessage)
@@ -156,6 +157,16 @@ function Form({
               style={{ maxWidth: '350px' }}
             ></input>
           </div>
+          <div>
+            <label htmlFor="categoryEnglishName">Categoría en inglés</label>
+            <input
+              type="text"
+              name="englishName"
+              id="categoryEnglishName"
+              className={styles.input}
+              style={{ maxWidth: '350px' }}
+            ></input>
+          </div>
           <button type="submit" className={styles.submitButton}>
             Agregar
           </button>
@@ -167,6 +178,18 @@ function Form({
               type="text"
               name="name"
               id="subCategory"
+              className={styles.input}
+              style={{ maxWidth: '350px' }}
+            ></input>
+          </div>
+          <div>
+            <label htmlFor="subCategoryEnglishName">
+              Sub Categoría en inglés
+            </label>
+            <input
+              type="text"
+              name="englishName"
+              id="subCategoryEnglishName"
               className={styles.input}
               style={{ maxWidth: '350px' }}
             ></input>

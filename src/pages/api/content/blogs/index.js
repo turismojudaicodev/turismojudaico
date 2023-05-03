@@ -4,17 +4,12 @@ import { prisma } from 'lib/prisma'
 export default async function handler(req, res) {
   if (req.method === 'GET') {
   } else if (req.method === 'POST') {
-    const { title, description, image, content, active } = req.body
+    const { title, description, content } = req.body
     if (!title || !description || !content) {
       return res.status(400).json({ error: 'Campos obligatorios incompletos' })
     }
     const result = await prisma.blog.create({
-      data: {
-        title,
-        description,
-        content,
-        active,
-      },
+      data: req.body,
     })
     res.status(201).json({ data: result, message: 'Blog creado exitosamente' })
   } else {
