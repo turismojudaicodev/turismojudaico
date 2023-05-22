@@ -10,64 +10,26 @@ import { prisma } from 'lib/prisma'
 // Components
 import AdminLayout from '@/components/AdminLayout'
 import Message from '@/components/Message'
-import Link from 'next/link'
-import Image from 'next/image'
-import DeleteIcon from 'public/icons/delete.svg'
-import EditIcon from 'public/icons/edit.svg'
 // Styles
 import utils from '@/styles/utils.module.css'
 import styles from '@/styles/Dashboard.module.css'
 import 'quill/dist/quill.snow.css' // quill snow theme
+import DashboardTable from '@/components/DashboardTable'
 
 function ExistingPosts({ posts, setVisiblePosts }) {
-  const [errorMessage, setErrorMessage] = useState('')
-  const [infoMessage, setInfoMessage] = useState('')
-
-  const handleDelete = async (postId) => {
-    const result = await deleteContent('/api/content/posts', postId)
-    const { message, error } = result
-    if (error) return setTimedMessage(error, setErrorMessage)
-    setTimedMessage(message, setInfoMessage)
-    setVisiblePosts((prev) => prev.filter((post) => post.id !== postId))
-  }
-
   return (
     <>
       <h2 className={styles.actionTitle}>Atracciones</h2>
-      <div>
-        {posts.map((post) => (
-          <div className={styles.entryCard} key={post.id}>
-            <div className={styles.entryTextContainer}>
-              <h3>{post.title}</h3>
-              <p>{post.description}</p>
-              <p>{formatDate(post.createdAt)}</p>
-            </div>
-            <div className={styles.entryButtonsContainer}>
-              <Link
-                href={`/admin/dashboard/posts/${post.id}`}
-                className={styles.editButton}
-              >
-                <Image src={EditIcon} alt="Edit Icon" height={16} width={16} />
-              </Link>
-              <button
-                className={styles.deleteButton}
-                onClick={() => handleDelete(post.id)}
-              >
-                <Image
-                  src={DeleteIcon}
-                  alt="Delete Icon"
-                  height={16}
-                  width={16}
-                />
-              </button>
-            </div>
-          </div>
-        ))}
-        <div className={utils.messageContainer}>
-          {errorMessage && <Message type="error" message={errorMessage} />}
-          {infoMessage && <Message type="info" message={infoMessage} />}
-        </div>
-      </div>
+      <DashboardTable
+        table={posts}
+        setVisibleTable={setVisiblePosts}
+        extraCols={{
+          countryId: true,
+          cityId: true,
+          categoryId: true,
+          subCategoryId: true,
+        }}
+      />
     </>
   )
 }
@@ -82,6 +44,7 @@ function PostCreator({ setVisiblePosts, data: configData }) {
     cityId: '',
     categoryId: '',
     subCategoryId: '',
+    locale: 'es',
   })
   const [errorMessage, setErrorMessage] = useState('')
   const [infoMessage, setInfoMessage] = useState('')
@@ -110,6 +73,7 @@ function PostCreator({ setVisiblePosts, data: configData }) {
       ...formData,
       content: htmlContent,
     }
+    console.log('post', post)
     const response = await postContent('/api/content/posts/new', post)
     const { data, message, error } = response
     setIsLoading(false)
@@ -135,6 +99,23 @@ function PostCreator({ setVisiblePosts, data: configData }) {
     <>
       <h2 className={styles.actionTitle}>Crear Post</h2>
       <form className={styles.formCreate} onSubmit={handleSubmit}>
+        <div>
+          <label className={utils.inputRequired} htmlFor="locale">
+            Idioma
+          </label>
+          <select
+            className={styles.input}
+            name="locale"
+            id="locale"
+            value={formData.locale}
+            onChange={(ev) => {
+              setFormData((prev) => ({ ...prev, locale: ev.target.value }))
+            }}
+          >
+            <option value="es">Español</option>
+            <option value="en">Inglés</option>
+          </select>
+        </div>
         <div>
           <label className={utils.inputRequired} htmlFor="title">
             Título

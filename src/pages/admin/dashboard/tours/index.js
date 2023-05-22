@@ -1,72 +1,26 @@
 // NPM
-import { useRouter } from 'next/router'
 import { useState } from 'react'
 import { useQuill } from 'react-quilljs'
 // Local
-import { postContent, deleteContent } from 'lib/api'
-import { formatDate, setTimedMessage } from 'helpers'
+import { postContent } from 'lib/api'
+import { setTimedMessage } from 'helpers'
 import { prisma } from 'lib/prisma'
 // Components
 import AdminLayout from '@/components/AdminLayout'
 import Message from '@/components/Message'
-import Link from 'next/link'
 import Image from 'next/image'
 import DeleteIcon from 'public/icons/delete.svg'
-import EditIcon from 'public/icons/edit.svg'
 // Styles
 import utils from '@/styles/utils.module.css'
 import styles from '@/styles/Dashboard.module.css'
 import 'quill/dist/quill.snow.css' // quill snow theme
+import DashboardTable from '@/components/DashboardTable'
 
 function ExistingTours({ tours, setVisibleTours }) {
-  const [errorMessage, setErrorMessage] = useState('')
-  const [infoMessage, setInfoMessage] = useState('')
-
-  const handleDelete = async (tourId) => {
-    const result = await deleteContent('/api/content/tours', tourId)
-    const { message, error } = result
-    if (error) return setTimedMessage(error, setErrorMessage)
-    setTimedMessage(message, setInfoMessage)
-    setVisibleTours((prev) => prev.filter((tour) => tour.id !== tourId))
-  }
-
   return (
     <>
       <h2 className={styles.actionTitle}>Tours</h2>
-      <div>
-        {tours.map((tour) => (
-          <div className={styles.entryCard} key={tour.id}>
-            <div className={styles.entryTextContainer}>
-              <h3>{tour.title}</h3>
-              <p>{tour.description}</p>
-              <p>{formatDate(tour.createdAt)}</p>
-            </div>
-            <div className={styles.entryButtonsContainer}>
-              <Link
-                href={`/admin/dashboard/tours/${tour.id}`}
-                className={styles.editButton}
-              >
-                <Image src={EditIcon} alt="Edit Icon" height={16} width={16} />
-              </Link>
-              <button
-                className={styles.deleteButton}
-                onClick={() => handleDelete(tour.id)}
-              >
-                <Image
-                  src={DeleteIcon}
-                  alt="Delete Icon"
-                  height={16}
-                  width={16}
-                />
-              </button>
-            </div>
-          </div>
-        ))}
-        <div className={utils.messageContainer}>
-          {errorMessage && <Message type="error" message={errorMessage} />}
-          {infoMessage && <Message type="info" message={infoMessage} />}
-        </div>
-      </div>
+      <DashboardTable table={tours} setVisibleTable={setVisibleTours} />
     </>
   )
 }
@@ -77,6 +31,7 @@ function TourCreator({ setVisibleTours, data: configData }) {
     description: '',
     image: '',
     active: true,
+    locale: 'es',
     posts: [],
   })
   const [errorMessage, setErrorMessage] = useState('')
@@ -130,6 +85,7 @@ function TourCreator({ setVisibleTours, data: configData }) {
       description: '',
       image: '',
       active: true,
+      locale: 'es',
       posts: [],
     })
     setPreviewSource('')
@@ -141,6 +97,23 @@ function TourCreator({ setVisibleTours, data: configData }) {
     <>
       <h2 className={styles.actionTitle}>Crear Tour</h2>
       <form className={styles.formCreate} onSubmit={handleSubmit}>
+        <div>
+          <label className={utils.inputRequired} htmlFor="title">
+            Idioma
+          </label>
+          <select
+            className={styles.input}
+            name="locale"
+            id="locale"
+            value={formData.locale}
+            onChange={(ev) => {
+              setFormData((prev) => ({ ...prev, locale: ev.target.value }))
+            }}
+          >
+            <option value="es">Español</option>
+            <option value="en">Inglés</option>
+          </select>
+        </div>
         <div>
           <label className={utils.inputRequired} htmlFor="title">
             Título

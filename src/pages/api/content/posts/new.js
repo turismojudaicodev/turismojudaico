@@ -7,6 +7,7 @@ function parseValueInt(value) {
 export default async function handler(req, res) {
   if (req.method === 'POST') {
     const {
+      locale,
       title,
       description,
       content,
@@ -16,13 +17,14 @@ export default async function handler(req, res) {
       categoryId,
       subCategoryId,
     } = req.body
-    if (!title || !description || !content)
+    if (!locale || !title || !description || !content)
       return res
         .status(400)
         .json({ error: 'Falta algún dato obligatorio del posts' })
     try {
       const result = await prisma.post.create({
         data: {
+          locale,
           title,
           description,
           content,

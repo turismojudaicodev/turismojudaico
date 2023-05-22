@@ -3,9 +3,10 @@ import { uploadImage } from 'lib/cloudinary'
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
-    const { title, description, content, active, image, posts } = req.body
+    const { locale, title, description, content, active, image, posts } =
+      req.body
 
-    if (!title || !description || !content)
+    if (!locale || !title || !description || !content)
       return res
         .status(400)
         .json({ error: 'Falta algún dato obligatorio del posts' })
@@ -19,6 +20,7 @@ export default async function handler(req, res) {
 
       const result = await prisma.tour.create({
         data: {
+          locale,
           title,
           description,
           content,

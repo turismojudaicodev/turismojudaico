@@ -2,71 +2,23 @@
 import { useState } from 'react'
 import { useQuill } from 'react-quilljs'
 // Local
-import { postContent, deleteContent } from 'lib/api'
-import { formatDate } from 'helpers'
+import { postContent } from 'lib/api'
 import { prisma } from 'lib/prisma'
 import { setTimedMessage } from 'helpers'
 // Components
 import AdminLayout from '@/components/AdminLayout'
 import Message from '@/components/Message'
-import Link from 'next/link'
-import Image from 'next/image'
-import DeleteIcon from 'public/icons/delete.svg'
-import EditIcon from 'public/icons/edit.svg'
+import DashboardTable from '@/components/DashboardTable'
 // Styles
 import utils from '@/styles/utils.module.css'
 import styles from '@/styles/Dashboard.module.css'
 import 'quill/dist/quill.snow.css' // quill snow theme
 
 function ExistingBlogs({ blogs, setVisisbleBlogs }) {
-  const [errorMessage, setErrorMessage] = useState('')
-  const [infoMessage, setInfoMessage] = useState('')
-
-  const handleDelete = async (blogId) => {
-    const result = await deleteContent('/api/content/blogs', blogId)
-    const { message, error } = result
-    if (error) return setTimedMessage(error, setErrorMessage)
-    setTimedMessage(message, setInfoMessage)
-    setVisisbleBlogs((prev) => prev.filter((blog) => blog.id !== blogId))
-  }
-
   return (
     <>
       <h2 className={styles.actionTitle}>Blogs</h2>
-      <div>
-        {blogs.map((blog) => (
-          <div className={styles.entryCard} key={blog.id}>
-            <div className={styles.entryTextContainer}>
-              <h3>{blog.title}</h3>
-              <p>{blog.description}</p>
-              <p>{formatDate(blog.createdAt)}</p>
-            </div>
-            <div className={styles.entryButtonsContainer}>
-              <Link
-                href={`/admin/dashboard/blogs/${blog.id}`}
-                className={styles.editButton}
-              >
-                <Image src={EditIcon} alt="Edit Icon" height={16} width={16} />
-              </Link>
-              <button
-                className={styles.deleteButton}
-                onClick={() => handleDelete(blog.id)}
-              >
-                <Image
-                  src={DeleteIcon}
-                  alt="Delete Icon"
-                  height={16}
-                  width={16}
-                />
-              </button>
-            </div>
-          </div>
-        ))}
-        <div className={utils.messageContainer}>
-          {errorMessage && <Message type="error" message={errorMessage} />}
-          {infoMessage && <Message type="info" message={infoMessage} />}
-        </div>
-      </div>
+      <DashboardTable table={blogs} setVisibleTable={setVisisbleBlogs} />
     </>
   )
 }

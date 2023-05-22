@@ -36,10 +36,9 @@
   border-radius: 5px;
   cursor: pointer;
   display: inline-grid;
-  height: 2rem;
-  padding: .5em;
+  height: 1.75rem;
   place-content: center ;
-  width: 2rem;
+  width: 1.75rem;
 }
 
 .iconButton:hover {
