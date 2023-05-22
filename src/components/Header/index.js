@@ -19,9 +19,9 @@ export default function Header() {
   const router = useRouter()
   const { width: windowWidth } = useWidowSize()
 
-  const changeLang = (e) => {
+  const changeLang = (lang) => {
     router.push(router.pathname, router.pathname, {
-      locale: e.target.value,
+      locale: lang,
     })
   }
 
@@ -34,20 +34,23 @@ export default function Header() {
       <div className={styles.headerTop}>
         <div className={styles.logoContainer}>
           <Link href="/">
-            <div className={styles.logoContainer}>
-              <Image src={imgLogoSrc} width={75} height={75} alt="Our logo" />
+            <div className={styles.logoImgContainer}>
+              <Image src={imgLogoSrc} alt="Our logo" fill />
             </div>
           </Link>
+          <p className={styles.logoContainerText}>
+            <span style={{ fontSize: '1.5em', display: 'block'}}>City tours judaicos, </span>Experiencias de Cultura Local + Identidad
+            Judaica Asesoramiento al viajero judío en Latinoamérica y el resto
+            del mundo
+          </p>
         </div>
         <div className={styles.controlers}>
-          <select
-            onChange={changeLang}
-            className={utils.input}
-            defaultValue={router.locale}
-          >
-            <option value="es">Español</option>
-            <option value="en">English</option>
-          </select>
+          <button className={styles.flagButton} onClick={() => changeLang('es')}>
+            <Image src="/icons/spain-flag.svg" alt='Idioma español' fill />
+          </button>
+          <button className={styles.flagButton} onClick={() => changeLang('en')}>
+            <Image src="/icons/uk-flag.svg" alt='Idioma inglés' fill />
+          </button>
           {windowWidth <= WINDOW_WIDTH_BREAKPOINT && (
             <div
               onClick={toggleNav}
