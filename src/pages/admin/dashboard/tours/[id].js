@@ -171,7 +171,7 @@ export default function TourCreator({ data: configData }) {
               }
               className={styles.input}
             ></input>
-            {previewSource && (
+            {/* {previewSource && (
               <Image
                 src={previewSource}
                 alt="Imagen de portada"
@@ -179,7 +179,7 @@ export default function TourCreator({ data: configData }) {
                 width={275}
                 style={{ objectFit: 'contain' }}
               />
-            )}
+            )} */}
           </div>
         </div>
         <div>
