@@ -7,16 +7,56 @@ import { prisma } from 'lib/prisma'
 import Head from 'next/head'
 import Layout from '@/components/Layout'
 import LoadingIndicator from '@/components/LoadingIndicator'
-import CardsContainer from '@/components/CardsContainer'
 import Message from '@/components/Message'
 import ToursContainer from '@/components/ToursContainer'
+import Image from 'next/image'
 // Styles
 import styles from '@/styles/Home.module.css'
 import utils from '@/styles/utils.module.css'
+import { CldImage } from 'next-cloudinary'
+
+import 'react-responsive-carousel/lib/styles/carousel.min.css' // requires a loader
+import { Carousel } from 'react-responsive-carousel'
+
+const SUPPORTERS = [
+  {
+    image: '/images/supporters/logonatan.jpg',
+  },
+  {
+    image: '/images/supporters/logoroi.png',
+  },
+  {
+    image: '/images/supporters/schusterman.png',
+  },
+  {
+    image: '/images/supporters/clam.gif',
+  },
+  {
+    image: '/images/supporters/limmud.png',
+  },
+  {
+    image: '/images/supporters/lazos.png',
+  },
+  {
+    image: '/images/supporters/kahal.png',
+  },
+  {
+    image: '/images/supporters/bbyo.png',
+  },
+  {
+    image: '/images/supporters/entwine.png',
+  },
+  {
+    image: '/images/supporters/jdc.png',
+  },
+  {
+    image: '/images/supporters/cuja.png',
+  },
+]
 
 export async function getStaticProps({ locale }) {
-  const blogs = await prisma.blog.findMany({ where: { active: true } })
-  const tours = await prisma.tour.findMany({ where: { active: true } })
+  const blogs = await prisma.blog.findMany({ where: { active: true, locale } })
+  const tours = await prisma.tour.findMany({ where: { active: true, locale } })
 
   return {
     props: {
@@ -41,8 +81,39 @@ export default function Home({ blogs, tours }) {
       <Layout>
         <main className={`${styles.main} ${utils.container}`}>
           <h1 className={utils.bigTitle}>{t('body.title', { ns: 'index' })}</h1>
+          <div>
+            <Carousel
+              autoPlay
+              infiniteLoop
+              showStatus={false}
+              showThumbs={false}
+              width="60%"
+            >
+              <div>
+                <img src="/images/logo.png" />
+                {/* <p className="legend">Legend 1</p> */}
+              </div>
+              <div>
+                <img src="/images/logo.png" />
+                {/* <p className="legend">Legend 2</p> */}
+              </div>
+              <div>
+                <img src="/images/logo.png" />
+                {/* <p className="legend">Legend 3</p> */}
+              </div>
+            </Carousel>
+          </div>
+          {/* <div style={{ border: '1px solid grey', padding: '1rem' }}>
+            <CldImage
+              width={300}
+              height={300}
+              alt="alt"
+              src="turismojudaico/bsas_eqxepx.jpg"
+            />
+            <p>Acá va el Banner</p>
+          </div> */}
           <div className={styles.postsContainer}>
-            <h2 className={utils.mediumTitle}>Tours destacados</h2>
+            <h2 className={utils.mediumTitle}>{t('body.featuredTours')}</h2>
             {!tours ? (
               <LoadingIndicator />
             ) : tours.length > 0 ? (
@@ -51,19 +122,16 @@ export default function Home({ blogs, tours }) {
               <Message type="info" message="Aún no hay posts publicados" />
             )}
           </div>
-          <div className={styles.blogsContainer}>
-            <h2 className={utils.mediumTitle}>Blogs</h2>
-            {!blogs ? (
-              <LoadingIndicator />
-            ) : blogs.length > 0 ? (
-              <CardsContainer
-                cardsName="blogs"
-                cards={blogs}
-                linkText={t('cardsContainerText', { ns: 'common' })}
+          <h2>NOS ACOMPAÑAN Y CONFÍAN EN NOSOTROS</h2>
+          <div className={styles.supporters}>
+            {SUPPORTERS.map((supporter) => (
+              <Image
+                src={supporter.image}
+                alt={supporter.image}
+                width={100}
+                height={100}
               />
-            ) : (
-              <Message type="info" message="Aún no hay blogs publicados" />
-            )}
+            ))}
           </div>
         </main>
       </Layout>

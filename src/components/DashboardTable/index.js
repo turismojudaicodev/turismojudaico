@@ -7,9 +7,11 @@ import EsFlag from 'public/icons/spain-flag.svg'
 import UkFlag from 'public/icons/uk-flag.svg'
 import DeleteIcon from 'public/icons/delete.svg'
 import EditIcon from 'public/icons/edit.svg'
+import { setTimedMessage } from 'helpers'
 // Components
 import Image from 'next/image'
 import Link from 'next/link'
+import Message from '../Message'
 // Styles
 import styles from './DashboardTable.module.css'
 import utils from '@/styles/utils.module.css'
@@ -35,8 +37,6 @@ export default function DashboardTable({
     setVisibleTable((prev) => prev.filter((item) => item.id !== itemId))
   }
 
-  console.log(table)
-
   return (
     <div>
       <div className={utils.messageContainer}>
@@ -51,10 +51,10 @@ export default function DashboardTable({
             <th>Título</th>
             <th>Descripción</th>
             <th>Imagen</th>
-            {extraCols.countryId && <th>Id País</th>}
-            {extraCols.cityId && <th>Id Ciudad</th>}
-            {extraCols.categoryId && <th>Id Categoría</th>}
-            {extraCols.subCategoryId && <th>Id Sub Categoría</th>}
+            {extraCols.countryId && <th>País</th>}
+            {extraCols.cityId && <th>Ciudad</th>}
+            {extraCols.categoryId && <th>Categoría</th>}
+            {extraCols.subCategoryId && <th>Sub Categoría</th>}
             <th>Activo</th>
             <th>Creado</th>
             <th>Acciones</th>
@@ -62,7 +62,7 @@ export default function DashboardTable({
         </thead>
         <tbody>
           {table.map((row) => (
-            <tr>
+            <tr key={row.id}>
               <td>{row.id}</td>
               <td>
                 <div className={styles.colLocaleImgContainer}>
@@ -107,7 +107,7 @@ export default function DashboardTable({
                 </Link>
                 <button
                   className={dashboardStyles.deleteButton}
-                  onClick={() => handleDelete(table.id)}
+                  onClick={() => handleDelete(row.id)}
                 >
                   <Image
                     src={DeleteIcon}

@@ -38,7 +38,7 @@ export default function Dashboard() {
       <div>
         <h2>Toures destacados</h2>
         <form onSubmit={handleSliderFormSubmit} className={styles.form}>
-          {new Array(5).fill(1).map((el, index) => (
+          {new Array(3).fill(1).map((el, index) => (
             <div className={styles.inputContainer} key={index}>
               <label htmlFor={`tour${index + 1}`}>Tour {index + 1}</label>
               <input

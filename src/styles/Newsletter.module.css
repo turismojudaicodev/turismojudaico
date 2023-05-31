@@ -5,7 +5,11 @@
 }
 
 .main h1 {
-  margin-bottom: 1em;
+  margin-bottom: .5em;
+}
+
+.main p {
+  margin-block: 1em;
 }
 
 .form button {

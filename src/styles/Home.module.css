@@ -12,6 +12,14 @@
   margin-block: var(--margin-block);
 }
 
+.supporters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: space-evenly ;
+  max-width: 700px;
+}
+
 /* Enable hover only on non-touch devices */
 @media (hover: hover) and (pointer: fine) {
 

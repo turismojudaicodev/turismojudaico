@@ -6,6 +6,12 @@ const nextConfig = {
   images: {
     loader: 'default',
     domains: ['localhost'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**.com',
+      },
+    ],
   },
   i18n,
 }

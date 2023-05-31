@@ -8,7 +8,7 @@ module.exports = {
         defaultLocale: 'es',
       },
       {
-        domain: 'turismojudaico.vercel.app.en',
+        domain: 'en.turismojudaico.vercel.app',
         defaultLocale: 'en',
       },
     ],
