@@ -13,7 +13,7 @@ import Image from 'next/image'
 // Styles
 import styles from '@/styles/Home.module.css'
 import utils from '@/styles/utils.module.css'
-import { CldImage } from 'next-cloudinary'
+// import { CldImage } from 'next-cloudinary'
 
 import 'react-responsive-carousel/lib/styles/carousel.min.css' // requires a loader
 import { Carousel } from 'react-responsive-carousel'
@@ -67,7 +67,7 @@ export async function getStaticProps({ locale }) {
   }
 }
 
-export default function Home({ blogs, tours }) {
+export default function Home({ tours }) {
   const { t } = useTranslation(['index', 'common'])
 
   return (
@@ -81,25 +81,55 @@ export default function Home({ blogs, tours }) {
       <Layout>
         <main className={`${styles.main} ${utils.container}`}>
           <h1 className={utils.bigTitle}>{t('body.title', { ns: 'index' })}</h1>
-          <div>
+          <div
+            style={{
+              borderBottom: '4px solid var(--clr-green)',
+              width: '80%',
+            }}
+          >
             <Carousel
               autoPlay
               infiniteLoop
               showStatus={false}
               showThumbs={false}
-              width="60%"
+              dynamicHeight
+              width="100%"
             >
-              <div>
-                <img src="/images/logo.png" />
+              <div style={{ aspectRatio: '5/3' }}>
+                <Image
+                  alt="Slider image"
+                  src="/images/samples/city-1.jfif"
+                  fill
+                />
                 {/* <p className="legend">Legend 1</p> */}
               </div>
-              <div>
-                <img src="/images/logo.png" />
-                {/* <p className="legend">Legend 2</p> */}
+              <div style={{ aspectRatio: '5/3' }}>
+                <Image
+                  alt="Slider image"
+                  src="/images/samples/city-2.jfif"
+                  fill
+                />
               </div>
-              <div>
-                <img src="/images/logo.png" />
-                {/* <p className="legend">Legend 3</p> */}
+              <div style={{ aspectRatio: '5/3' }}>
+                <Image
+                  alt="Slider image"
+                  src="/images/samples/city-3.jfif"
+                  fill
+                />
+              </div>
+              <div style={{ aspectRatio: '5/3' }}>
+                <Image
+                  alt="Slider image"
+                  src="/images/samples/city-4.jfif"
+                  fill
+                />
+              </div>
+              <div style={{ aspectRatio: '5/3' }}>
+                <Image
+                  alt="Slider image"
+                  src="/images/samples/city-5.jfif"
+                  fill
+                />
               </div>
             </Carousel>
           </div>
