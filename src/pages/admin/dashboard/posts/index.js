@@ -1,11 +1,9 @@
 // NPM
-import { useRouter } from 'next/router'
 import { useState } from 'react'
 import { useQuill } from 'react-quilljs'
 // Local
-import { useUser } from 'context/user'
-import { postContent, deleteContent } from 'lib/api'
-import { formatDate, setTimedMessage } from 'helpers'
+import { postContent } from 'lib/api'
+import { setTimedMessage } from 'helpers'
 import { prisma } from 'lib/prisma'
 // Components
 import AdminLayout from '@/components/AdminLayout'
@@ -152,7 +150,8 @@ function PostCreator({ setVisiblePosts, data: configData }) {
         <div>
           <label htmlFor="image">Imagen de portada</label>
           <input
-            type="file"
+            type="text"
+            placeholder="Url de la imagen"
             name="image"
             id="image"
             value={formData.image}

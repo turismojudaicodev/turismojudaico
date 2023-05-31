@@ -132,7 +132,8 @@ function BlogCreator({ setVisisbleBlogs }) {
         <div>
           <label htmlFor="image">Imagen de portada</label>
           <input
-            type="file"
+            type="text"
+            placeholder="Url de la imagen"
             name="image"
             id="image"
             value={formData.image}

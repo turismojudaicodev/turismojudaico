@@ -138,7 +138,8 @@ export default function Blog({ blog }) {
         <div>
           <label htmlFor="image">Imagen de portada</label>
           <input
-            type="file"
+            type="text"
+            placeholder="Url de la imagen"
             name="image"
             id="image"
             value={formData.image || ''}
@@ -162,7 +163,7 @@ export default function Blog({ blog }) {
             name="active"
             id="active"
             value={formData.active}
-            defaultChecked
+            defaultChecked={formData.active}
             onChange={() =>
               setFormData((value) => ({ ...value, active: !active }))
             }

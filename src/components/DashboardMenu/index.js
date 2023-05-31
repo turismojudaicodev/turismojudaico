@@ -28,6 +28,14 @@ const DASHBOARD_SECTIONS = [
     url: '/tours',
   },
   {
+    name: 'Quienes Somos',
+    url: '/about',
+  },
+  {
+    name: 'Logos Comunitarios',
+    url: '/partners',
+  },
+  {
     name: 'Ajustes',
     url: '/settings',
   },

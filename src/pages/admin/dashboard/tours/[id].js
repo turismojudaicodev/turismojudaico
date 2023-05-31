@@ -1,44 +1,56 @@
 // NPM
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useQuill } from 'react-quilljs'
 // Local
-import { postContent } from 'lib/api'
-import { setTimedMessage } from 'helpers'
 import { prisma } from 'lib/prisma'
+import { updateUniqueContent } from 'lib/api'
+import { setTimedMessage } from 'helpers'
 // Components
 import AdminLayout from '@/components/AdminLayout'
 import Message from '@/components/Message'
-import Image from 'next/image'
-import DeleteIcon from 'public/icons/delete.svg'
 // Styles
 import utils from '@/styles/utils.module.css'
 import styles from '@/styles/Dashboard.module.css'
 import 'quill/dist/quill.snow.css' // quill snow theme
-import DashboardTable from '@/components/DashboardTable'
 
-function ExistingTours({ tours, setVisibleTours }) {
-  return (
-    <>
-      <h2 className={styles.actionTitle}>Tours</h2>
-      <DashboardTable table={tours} setVisibleTable={setVisibleTours} />
-    </>
-  )
+export async function getStaticPaths() {
+  const tours = await prisma.tour.findMany()
+  const paths = tours.map((tour) => ({ params: { id: tour.id.toString() } }))
+
+  return {
+    paths,
+    fallback: false,
+  }
 }
 
-function TourCreator({ setVisibleTours, data: configData }) {
+export async function getStaticProps(context) {
+  const tourId = Number(context.params.id)
+  const tour = await prisma.tour.findUnique({ where: { id: tourId } })
+
+  const posts = await prisma.post.findMany()
+  const data = { tour, posts }
+
+  return {
+    props: {
+      data: JSON.parse(JSON.stringify(data)),
+    },
+  }
+}
+
+export default function TourCreator({ data: configData }) {
+  const { tour } = configData
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    image: '',
-    active: true,
-    locale: 'es',
-    posts: [],
+    title: tour.title,
+    description: tour.description,
+    image: tour.image,
+    active: tour.active,
+    locale: tour.locale,
+    posts: tour.posts,
   })
   const [errorMessage, setErrorMessage] = useState('')
   const [infoMessage, setInfoMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [previewSource, setPreviewSource] = useState('')
-  const { posts } = configData
 
   let { quill, quillRef } = useQuill({
     theme: 'snow',
@@ -54,6 +66,12 @@ function TourCreator({ setVisibleTours, data: configData }) {
     },
   })
 
+  useEffect(() => {
+    if (quill) {
+      quill.clipboard.dangerouslyPasteHTML(tour.content)
+    }
+  }, [quill])
+
   // const previewFile = (file) => {
   //   const reader = new FileReader()
   //   reader.readAsDataURL(file)
@@ -62,39 +80,28 @@ function TourCreator({ setVisibleTours, data: configData }) {
   //   }
   // }
 
-  const handleSubmit = async (ev) => {
+  const handleUpdate = async (ev) => {
     ev.preventDefault()
     setIsLoading(true)
-    const htmlContent = quill.root.innerHTML
-    const tour = {
-      ...formData,
-      content: htmlContent,
-    }
 
-    const response = await postContent('/api/content/tours/new', tour)
-    const { data, message, error } = response
+    const res = await updateUniqueContent(
+      '/api/content/tours',
+      tour.id.toString(),
+      {
+        ...formData,
+        content: quill.root.innerHTML,
+      }
+    )
     setIsLoading(false)
+    const { message, error } = res
     if (error) return setTimedMessage(error, setErrorMessage)
-
-    setVisibleTours((prev) => [...prev, data])
-
-    setFormData({
-      title: '',
-      description: '',
-      image: '',
-      active: true,
-      locale: 'es',
-      posts: [],
-    })
-    setPreviewSource('')
-    quill.root.innerHTML = ''
     setTimedMessage(message, setInfoMessage)
   }
 
   return (
-    <>
-      <h2 className={styles.actionTitle}>Crear Tour</h2>
-      <form className={styles.formCreate} onSubmit={handleSubmit}>
+    <AdminLayout>
+      <h2 className={styles.actionTitle}>Editar Tour</h2>
+      <form className={styles.formCreate} onSubmit={handleUpdate}>
         <div>
           <label className={utils.inputRequired} htmlFor="title">
             Idioma
@@ -181,7 +188,7 @@ function TourCreator({ setVisibleTours, data: configData }) {
             <div ref={quillRef} />
           </div>
         </div>
-        <div>
+        {/* <div>
           <label htmlFor="posts">Posts relacionados</label>
           <div>
             <select
@@ -191,7 +198,7 @@ function TourCreator({ setVisibleTours, data: configData }) {
               onChange={(ev) => {
                 setFormData((value) => {
                   if (
-                    value.posts.includes(ev.target.value) ||
+                    value?.posts?.includes(ev.target.value) ||
                     ev.target.value === ''
                   )
                     return value
@@ -210,7 +217,7 @@ function TourCreator({ setVisibleTours, data: configData }) {
               ))}
             </select>
             <ul style={{ padding: '1rem 0 0 1.75rem' }}>
-              {formData.posts.map((post) => {
+              {formData?.posts?.map((post) => {
                 return posts.map((fetchedPost) => {
                   if (fetchedPost.id == post) {
                     return (
@@ -249,7 +256,7 @@ function TourCreator({ setVisibleTours, data: configData }) {
               })}
             </ul>
           </div>
-        </div>
+        </div> */}
         <div>
           <label htmlFor="active">Visible</label>
           <input
@@ -258,7 +265,7 @@ function TourCreator({ setVisibleTours, data: configData }) {
             name="active"
             id="active"
             value={formData.active}
-            defaultChecked
+            defaultChecked={formData.active}
             onChange={(ev) =>
               setFormData((value) => ({ ...value, active: !active }))
             }
@@ -271,58 +278,6 @@ function TourCreator({ setVisibleTours, data: configData }) {
         {errorMessage && <Message type="error" message={errorMessage} />}
         {infoMessage && <Message type="info" message={infoMessage} />}
       </form>
-    </>
-  )
-}
-
-export default function Dashboard({ data }) {
-  const { tours } = data
-  const [view, setView] = useState({ read: true, create: false })
-  const [visibleTours, setVisibleTours] = useState(tours)
-
-  return (
-    <AdminLayout>
-      <h1 className={utils.bigTitle}>Tours</h1>
-      <button
-        className={
-          view.read ? styles.actionButtonSelected : styles.actionButton
-        }
-        onClick={() => setView({ read: true, create: false })}
-      >
-        Mostar Tours
-      </button>
-      <button
-        className={
-          view.create ? styles.actionButtonSelected : styles.actionButton
-        }
-        onClick={() => setView({ read: false, create: true })}
-      >
-        Crear Tour
-      </button>
-
-      {view.read && (
-        <ExistingTours tours={visibleTours} setVisibleTours={setVisibleTours} />
-      )}
-      {view.create && (
-        <TourCreator setVisibleTours={setVisibleTours} data={data} />
-      )}
     </AdminLayout>
   )
-}
-
-export async function getStaticProps() {
-  const tours = await prisma.tour.findMany({
-    include: {
-      posts: true,
-    },
-  })
-  const posts = await prisma.post.findMany()
-
-  const data = { tours, posts }
-
-  return {
-    props: {
-      data: JSON.parse(JSON.stringify(data)),
-    },
-  }
 }
