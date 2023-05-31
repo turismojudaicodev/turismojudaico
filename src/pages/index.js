@@ -154,8 +154,9 @@ export default function Home({ tours }) {
           </div>
           <h2>NOS ACOMPAÑAN Y CONFÍAN EN NOSOTROS</h2>
           <div className={styles.supporters}>
-            {SUPPORTERS.map((supporter) => (
+            {SUPPORTERS.map((supporter, index) => (
               <Image
+                key={supporter.index}
                 src={supporter.image}
                 alt={supporter.image}
                 width={100}
