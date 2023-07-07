@@ -17,19 +17,20 @@ import styles from '@/styles/Citytours.module.css'
 import utils from '@/styles/utils.module.css'
 
 export async function getStaticProps({ locale }) {
-  const tours = await prisma.tour.findMany()
+  const tours = await prisma.tour.findMany({ where: { locale } })
   const countries = await prisma.country.findMany()
-
+  console.log('LOCALE:', locale)
   return {
     props: {
       ...(await serverSideTranslations(locale, ['citytours', 'common'])),
       tours: JSON.parse(JSON.stringify(tours)),
       countries: JSON.parse(JSON.stringify(countries)),
+      locale,
     },
   }
 }
 
-export default function Citytours({ tours, countries }) {
+export default function Citytours({ locale, tours, countries }) {
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
@@ -38,11 +39,9 @@ export default function Citytours({ tours, countries }) {
   const handleSubmit = async (ev) => {
     ev.preventDefault()
 
-    // setIsLoading(true)
+    setIsLoading(true)
 
-    // let queryParams = `?locale=${locale}`
-
-    // const formData = Object.fromEntries(new FormData(ev.target))
+    const formData = Object.fromEntries(new FormData(ev.target))
     // const filters = []
 
     // if (formData.tour)
@@ -73,7 +72,7 @@ export default function Citytours({ tours, countries }) {
       </Head>
       <Layout>
         <main className={`${utils.container} ${styles.main}`}>
-          <div>
+          <div className={styles.toursContainer}>
             <h1 className={utils.bigTitle}>City Tours</h1>
             {errorMessage ? (
               <Message type="error" message={errorMessage} />
@@ -116,7 +115,7 @@ export default function Citytours({ tours, countries }) {
                   <option value="">-</option>
                   {countries.map((country) => (
                     <option value={country.name} key={country.id}>
-                      {country.name}
+                      {locale === 'es' ? country.name : country.englishName}
                     </option>
                   ))}
                 </select>

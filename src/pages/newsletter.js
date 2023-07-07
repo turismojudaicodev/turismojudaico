@@ -50,7 +50,7 @@ export default function Newsletter() {
         <main className={styles.main}>
           <div className={utils.container}>
             <h1>{t('body.title')}</h1>
-            <p>Y enterate de las novedades y toures próximos.</p>
+            <p>{t('body.p1')}</p>
             <form onSubmit={handleSubmit} className={styles.form}>
               <div>
                 <label htmlFor="name" className={utils.inputRequired}>

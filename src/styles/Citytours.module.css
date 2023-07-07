@@ -16,3 +16,7 @@
     flex-direction: row-reverse;
   }
 }
+
+.toursContainer {
+  width: 100%;
+}

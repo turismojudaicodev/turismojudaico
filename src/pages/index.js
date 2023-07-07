@@ -10,13 +10,11 @@ import LoadingIndicator from '@/components/LoadingIndicator'
 import Message from '@/components/Message'
 import ToursContainer from '@/components/ToursContainer'
 import Image from 'next/image'
+import { Carousel } from 'react-responsive-carousel'
 // Styles
 import styles from '@/styles/Home.module.css'
 import utils from '@/styles/utils.module.css'
-// import { CldImage } from 'next-cloudinary'
-
-import 'react-responsive-carousel/lib/styles/carousel.min.css' // requires a loader
-import { Carousel } from 'react-responsive-carousel'
+import 'react-responsive-carousel/lib/styles/carousel.min.css' // Carousel requires a loader
 
 const SUPPORTERS = [
   {
@@ -55,19 +53,18 @@ const SUPPORTERS = [
 ]
 
 export async function getStaticProps({ locale }) {
-  const blogs = await prisma.blog.findMany({ where: { active: true, locale } })
   const tours = await prisma.tour.findMany({ where: { active: true, locale } })
 
   return {
     props: {
       ...(await serverSideTranslations(locale, ['index', 'common'])),
-      blogs: JSON.parse(JSON.stringify(blogs)),
       tours: JSON.parse(JSON.stringify(tours)),
+      locale,
     },
   }
 }
 
-export default function Home({ tours }) {
+export default function Home({ tours, locale }) {
   const { t } = useTranslation(['index', 'common'])
 
   return (
@@ -95,53 +92,49 @@ export default function Home({ tours }) {
               dynamicHeight
               width="100%"
             >
-              <div style={{ aspectRatio: '5/3' }}>
+              <div style={{ aspectRatio: '5/3', position: 'relative' }}>
                 <Image
                   alt="Slider image"
                   src="/images/samples/city-1.jfif"
                   fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
                 {/* <p className="legend">Legend 1</p> */}
               </div>
-              <div style={{ aspectRatio: '5/3' }}>
+              <div style={{ aspectRatio: '5/3', position: 'relative' }}>
                 <Image
                   alt="Slider image"
                   src="/images/samples/city-2.jfif"
                   fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
               </div>
-              <div style={{ aspectRatio: '5/3' }}>
+              <div style={{ aspectRatio: '5/3', position: 'relative' }}>
                 <Image
                   alt="Slider image"
                   src="/images/samples/city-3.jfif"
                   fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
               </div>
-              <div style={{ aspectRatio: '5/3' }}>
+              <div style={{ aspectRatio: '5/3', position: 'relative' }}>
                 <Image
                   alt="Slider image"
                   src="/images/samples/city-4.jfif"
                   fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
               </div>
-              <div style={{ aspectRatio: '5/3' }}>
+              <div style={{ aspectRatio: '5/3', position: 'relative' }}>
                 <Image
                   alt="Slider image"
                   src="/images/samples/city-5.jfif"
                   fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
               </div>
             </Carousel>
           </div>
-          {/* <div style={{ border: '1px solid grey', padding: '1rem' }}>
-            <CldImage
-              width={300}
-              height={300}
-              alt="alt"
-              src="turismojudaico/bsas_eqxepx.jpg"
-            />
-            <p>Acá va el Banner</p>
-          </div> */}
           <div className={styles.postsContainer}>
             <h2 className={utils.mediumTitle}>{t('body.featuredTours')}</h2>
             {!tours ? (
@@ -149,14 +142,21 @@ export default function Home({ tours }) {
             ) : tours.length > 0 ? (
               <ToursContainer tours={tours} />
             ) : (
-              <Message type="info" message="Aún no hay posts publicados" />
+              <Message
+                type="info"
+                message={
+                  locale === 'es'
+                    ? 'Parece que no hay tours disponibles'
+                    : "Looks like there isn't any tour available now"
+                }
+              />
             )}
           </div>
           <h2>NOS ACOMPAÑAN Y CONFÍAN EN NOSOTROS</h2>
           <div className={styles.supporters}>
             {SUPPORTERS.map((supporter, index) => (
               <Image
-                key={supporter.index}
+                key={index}
                 src={supporter.image}
                 alt={supporter.image}
                 width={100}

@@ -92,7 +92,7 @@ export default function Content({ posts, filterOptions }) {
       </Head>
       <Layout>
         <main className={`${utils.container} ${styles.main}`}>
-          <div>
+          <div className={styles.blogsContainer}>
             <h1 className={utils.bigTitle}>
               {t('body.posts.title', { ns: 'posts' })}
             </h1>
