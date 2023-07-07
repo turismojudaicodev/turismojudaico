@@ -3,10 +3,11 @@ import utils from '@/styles/utils.module.css'
 import styles from './ButtonLoader.module.css'
 import loadingIcon from 'public/icons/loading.svg'
 
-export default function ButtonLoader(props) {
-  if (props.isLoading && !props.loadingMessage)
-    throw new Error('Loading message must be provided')
-
+export default function ButtonLoader({
+  children,
+  isLoading = false,
+  attrs = {},
+}) {
   return (
     <button className={`${utils.button} ${styles.button}`} {...attrs}>
       <span style={{ color: isLoading ? 'transparent' : 'inherit' }}>
