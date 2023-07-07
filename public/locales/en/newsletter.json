@@ -4,6 +4,7 @@
   },
   "body": {
     "title": "Suscribe to our newsletter",
+    "p1": "And find out about the news and upcoming tours.",
     "form": {
       "name": "Name",
       "lastName": "Last name",

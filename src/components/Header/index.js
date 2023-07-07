@@ -1,6 +1,6 @@
 // NPM
-import { useRouter } from 'next/router'
-import { useState } from 'react'
+import { useRouter, withRouter } from 'next/router'
+import { useState, useEffect } from 'react'
 // Local
 import useWidowSize from 'hooks/useWindowSize'
 import imgLogoSrc from '../../../public/images/logo.png'
@@ -14,10 +14,22 @@ import utils from '@/styles/utils.module.css'
 
 const WINDOW_WIDTH_BREAKPOINT = 701
 
-export default function Header() {
+function Header() {
+  const [i18n, setI18n] = useState({})
   const [navActive, setNavActive] = useState(false)
+
   const router = useRouter()
   const { width: windowWidth } = useWidowSize()
+
+  useEffect(() => {
+    async function fetchLocale() {
+      const translation = await import(
+        `public/locales/${router.locale}/header.json`
+      )
+      setI18n(translation)
+    }
+    fetchLocale()
+  }, [router.locale])
 
   const changeLang = (lang) => {
     router.push(router.pathname, router.pathname, {
@@ -39,17 +51,24 @@ export default function Header() {
             </div>
           </Link>
           <p className={styles.logoContainerText}>
-            <span style={{ fontSize: '1.5em', display: 'block'}}>City tours judaicos, </span>Experiencias de Cultura Local + Identidad
-            Judaica Asesoramiento al viajero judío en Latinoamérica y el resto
-            del mundo
+            <span style={{ fontSize: '1.5em', display: 'block' }}>
+              {i18n?.title}{' '}
+            </span>
+            {i18n?.subtitle}
           </p>
         </div>
         <div className={styles.controlers}>
-          <button className={styles.flagButton} onClick={() => changeLang('es')}>
-            <Image src="/icons/spain-flag.svg" alt='Idioma español' fill />
+          <button
+            className={styles.flagButton}
+            onClick={() => changeLang('es')}
+          >
+            <Image src="/icons/spain-flag.svg" alt="Idioma español" fill />
           </button>
-          <button className={styles.flagButton} onClick={() => changeLang('en')}>
-            <Image src="/icons/uk-flag.svg" alt='Idioma inglés' fill />
+          <button
+            className={styles.flagButton}
+            onClick={() => changeLang('en')}
+          >
+            <Image src="/icons/uk-flag.svg" alt="Idioma inglés" fill />
           </button>
           {windowWidth <= WINDOW_WIDTH_BREAKPOINT && (
             <div
@@ -69,3 +88,5 @@ export default function Header() {
     </header>
   )
 }
+
+export default withRouter(Header)
