@@ -30,7 +30,7 @@ export default async function handler(req, res) {
   const data = req.body
 
   if (!data.name || !data.email || !data.message)
-    return res.status(400).json({ error: 'Bad request' })
+    return res.status(400).json({ error: 'Campos requeridos incompletos' })
 
   try {
     await transporter.sendMail({

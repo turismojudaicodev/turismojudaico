@@ -20,3 +20,24 @@
     rotate: 360deg;
   }
 }
+
+
+.button {
+  display: inline-flex;
+  gap: .5em;
+  align-items: center;
+}
+
+.loadingButton {
+  composes: button;
+  color: var(--clr-button-1);
+  border: 2px solid var(--clr-button-1);
+  background-color: var(--clr-button-2);
+  cursor: not-allowed;
+}
+
+.loadingButton:hover,
+.loadingButton:active {
+  box-shadow: none;
+  filter: none;
+}
