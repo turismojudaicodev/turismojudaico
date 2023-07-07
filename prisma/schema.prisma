@@ -19,7 +19,7 @@ model User {
   role         String @default("USER")
 }
 
-model Blog {
+model BlogEntry {
   id          Int      @id @default(autoincrement())
   title       String   @unique
   description String
@@ -29,6 +29,13 @@ model Blog {
   locale      String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  blog        Blog     @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  blogId      Int
+}
+
+model Blog {
+  id      Int         @id @default(autoincrement())
+  entries BlogEntry[]
 }
 
 model Country {
@@ -74,6 +81,8 @@ model Post {
   content       String       @db.LongText
   active        Boolean      @default(true)
   locale        String
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
   category      Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   categoryId    Int?
   subCategory   SubCategory? @relation(fields: [subCategoryId], references: [id], onDelete: SetNull)
@@ -87,14 +96,30 @@ model Post {
 }
 
 model Tour {
-  id          Int      @id @default(autoincrement())
-  title       String   @unique
-  description String
-  image       String?
-  content     String   @db.LongText
-  active      Boolean  @default(true)
-  locale      String
-  country     Country? @relation(fields: [countryId], references: [id], onDelete: SetNull)
-  countryId   Int?
-  posts       Post[]
+  id           Int           @id @default(autoincrement())
+  title        String        @unique
+  description  String
+  image        String?
+  content      String        @db.LongText
+  active       Boolean       @default(true)
+  locale       String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  country      Country?      @relation(fields: [countryId], references: [id], onDelete: SetNull)
+  countryId    Int?
+  posts        Post[]
+  FeaturedTour FeaturedTour?
+}
+
+model ImageSlide {
+  id    Int    @id @default(autoincrement())
+  image String
+  index Int
+}
+
+model FeaturedTour {
+  id     Int  @id @default(autoincrement())
+  tour   Tour @relation(fields: [tourId], references: [id])
+  tourId Int  @unique
+  index  Int
 }
