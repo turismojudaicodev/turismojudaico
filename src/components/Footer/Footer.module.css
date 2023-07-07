@@ -30,7 +30,7 @@
 .socialLinks a {
   align-items: center;
   display: flex;
-  gap: .25em;
+  gap: .5em;
 }
 
 .footerBottom {

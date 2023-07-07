@@ -1,11 +1,11 @@
 // NPM
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import { useTranslation } from 'next-i18next'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/router'
 // Local
-import { fetchStrapi } from 'lib/api'
 import { handleError } from 'lib/errors'
+import { prisma } from 'lib/prisma'
 // Components
 import Head from 'next/head'
 import Layout from '@/components/Layout'
@@ -17,69 +17,52 @@ import styles from '@/styles/Citytours.module.css'
 import utils from '@/styles/utils.module.css'
 
 export async function getStaticProps({ locale }) {
+  const tours = await prisma.tour.findMany({ where: { locale } })
+  const countries = await prisma.country.findMany()
+  console.log('LOCALE:', locale)
   return {
     props: {
       ...(await serverSideTranslations(locale, ['citytours', 'common'])),
+      tours: JSON.parse(JSON.stringify(tours)),
+      countries: JSON.parse(JSON.stringify(countries)),
+      locale,
     },
   }
 }
 
-export default function Citytours() {
-  const [tours, setTours] = useState([])
-  const [countries, setCountries] = useState([])
+export default function Citytours({ locale, tours, countries }) {
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
-  const { locale } = useRouter()
   const { t } = useTranslation(['citytours', 'common'])
-
-  useEffect(() => {
-    async function fetchContent() {
-      setIsLoading(true)
-      try {
-        const { data, error } = await fetchStrapi(
-          'tours',
-          `?locale=${locale}&populate[0]=image&populate[1]=country`
-        )
-        if (error) handleError(error)
-        setTours(data)
-        setCountries(data.map((tour) => tour.attributes.country.data))
-      } catch (error) {
-        setErrorMessage(error.message)
-      }
-      setIsLoading(false)
-    }
-    fetchContent()
-  }, [locale])
 
   const handleSubmit = async (ev) => {
     ev.preventDefault()
+
     setIsLoading(true)
 
-    let queryParams = `?locale=${locale}`
-
     const formData = Object.fromEntries(new FormData(ev.target))
-    const filters = []
+    // const filters = []
 
-    if (formData.tour)
-      filters.push(['filters[title][$containsi]', `${formData.tour}`])
-    if (formData.country)
-      filters.push(['filters[country][name][$eq]', `${formData.country}`])
+    // if (formData.tour)
+    //   filters.push(['filters[title][$containsi]', `${formData.tour}`])
+    // if (formData.country)
+    //   filters.push(['filters[country][name][$eq]', `${formData.country}`])
 
-    if (filters.length > 0) {
-      filters.forEach((filter, index) => {
-        queryParams += `&${filter[0]}[${index}]=${filter[1]}`
-      })
-    }
+    // if (filters.length > 0) {
+    //   filters.forEach((filter, index) => {
+    //     queryParams += `&${filter[0]}[${index}]=${filter[1]}`
+    //   })
+    // }
 
-    try {
-      const { data, error } = await fetchStrapi('tours', queryParams)
-      if (error) handleError(error)
-      setTours(data)
-    } catch (error) {
-      setErrorMessage(error.message)
-    }
-    setIsLoading(false)
+    // try {
+    //   const { data, error } = await fetchStrapi('tours', queryParams)
+    //   if (error) handleError(error)
+    //   setTours(data)
+    // } catch (error) {
+    //   setErrorMessage(error.message)
+    // }
+    // setIsLoading(false)
   }
 
   return (
@@ -89,7 +72,7 @@ export default function Citytours() {
       </Head>
       <Layout>
         <main className={`${utils.container} ${styles.main}`}>
-          <div>
+          <div className={styles.toursContainer}>
             <h1 className={utils.bigTitle}>City Tours</h1>
             {errorMessage ? (
               <Message type="error" message={errorMessage} />
@@ -131,8 +114,8 @@ export default function Citytours() {
                 <select id="country" name="country" className={utils.input}>
                   <option value="">-</option>
                   {countries.map((country) => (
-                    <option value={country.attributes.name} key={country.id}>
-                      {country.attributes.name}
+                    <option value={country.name} key={country.id}>
+                      {locale === 'es' ? country.name : country.englishName}
                     </option>
                   ))}
                 </select>

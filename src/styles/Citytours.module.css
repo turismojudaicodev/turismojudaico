@@ -1,6 +1,6 @@
 .main {
   display: flex;
-  flex-direction: column;
+  flex-direction: column-reverse;
   gap: 1rem;
   justify-content: space-evenly;
   margin-block: var(--margin-block);
@@ -15,4 +15,8 @@
   .main {
     flex-direction: row-reverse;
   }
+}
+
+.toursContainer {
+  width: 100%;
 }

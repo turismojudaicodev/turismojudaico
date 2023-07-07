@@ -1,0 +1,4 @@
+.loading {
+  cursor: not-allowed;
+  filter: brightness(25%);
+}

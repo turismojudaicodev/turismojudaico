@@ -1,0 +1,125 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+model User {
+  id           Int    @id @default(autoincrement())
+  username     String @unique
+  email        String @unique
+  passwordHash String
+  role         String @default("USER")
+}
+
+model BlogEntry {
+  id          Int      @id @default(autoincrement())
+  title       String   @unique
+  description String
+  image       String?
+  content     String   @db.LongText
+  active      Boolean  @default(true)
+  locale      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  blog        Blog     @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  blogId      Int
+}
+
+model Blog {
+  id      Int         @id @default(autoincrement())
+  entries BlogEntry[]
+}
+
+model Country {
+  id          Int    @id @default(autoincrement())
+  name        String @unique
+  englishName String
+  cities      City[]
+  Post        Post[]
+  Tour        Tour[]
+}
+
+model City {
+  id          Int     @id @default(autoincrement())
+  name        String
+  englishName String
+  country     Country @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  countryId   Int
+  Post        Post[]
+}
+
+model Category {
+  id            Int           @id @default(autoincrement())
+  name          String        @unique
+  englishName   String
+  subCategories SubCategory[]
+  Post          Post[]
+}
+
+model SubCategory {
+  id          Int      @id @default(autoincrement())
+  name        String
+  englishName String
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId  Int
+  Post        Post[]
+}
+
+model Post {
+  id            Int          @id @default(autoincrement())
+  title         String       @unique
+  description   String
+  image         String?
+  content       String       @db.LongText
+  active        Boolean      @default(true)
+  locale        String
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  category      Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  categoryId    Int?
+  subCategory   SubCategory? @relation(fields: [subCategoryId], references: [id], onDelete: SetNull)
+  subCategoryId Int?
+  country       Country?     @relation(fields: [countryId], references: [id], onDelete: SetNull)
+  countryId     Int?
+  city          City?        @relation(fields: [cityId], references: [id], onDelete: SetNull)
+  cityId        Int?
+  Tour          Tour?        @relation(fields: [tourId], references: [id], onDelete: SetNull)
+  tourId        Int?
+}
+
+model Tour {
+  id           Int           @id @default(autoincrement())
+  title        String        @unique
+  description  String
+  image        String?
+  content      String        @db.LongText
+  active       Boolean       @default(true)
+  locale       String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  country      Country?      @relation(fields: [countryId], references: [id], onDelete: SetNull)
+  countryId    Int?
+  posts        Post[]
+  FeaturedTour FeaturedTour?
+}
+
+model ImageSlide {
+  id    Int    @id @default(autoincrement())
+  image String
+  index Int
+}
+
+model FeaturedTour {
+  id     Int  @id @default(autoincrement())
+  tour   Tour @relation(fields: [tourId], references: [id])
+  tourId Int  @unique
+  index  Int
+}

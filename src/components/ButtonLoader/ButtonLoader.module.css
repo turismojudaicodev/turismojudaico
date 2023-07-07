@@ -1,12 +1,15 @@
-.loadingSpinner {
+.button {
+  position: relative;
+}
+
+.spinner {
   animation: 1s linear infinite running rotate;
-  border: 3px solid transparent;
-  border-radius: 50%;
-  border-top: 3px solid var(--clr-button-1);
-  border-left: 3px solid var(--clr-button-1);
-  height: .9rem;
-  width: .9rem;
-  display: inline-block;
+  height: 1.2rem;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  translate: -50% -50%;
+  width: 1.2rem;
 }
 
 @keyframes rotate {

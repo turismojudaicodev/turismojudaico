@@ -2,8 +2,15 @@
   position: relative;
 }
 
+@media (min-width: 769px) {
+  .headerTop {
+    background: url('../../../public/images/header-bg.svg') center / cover no-repeat;
+  }  
+}
+
 .headerTop {
   background-color: var(--clr-bg-1);
+  border-bottom: 1px solid lightgray;
   display: flex;
   justify-content: space-around;
   padding: 1em;
@@ -11,9 +18,48 @@
   z-index: 10;
 }
 
+.logoContainer {
+  align-items: center;
+  display: flex;
+  gap: 1.5rem;
+}
+
+.logoImgContainer {
+  position: relative;
+  height: 100px;
+  width: 100px;
+}
+
+.logoContainerText {
+  max-width: 40ch;
+  color: var(--clr-bg-2);
+  filter: brightness(80%);
+}
+
+@media (max-width: 768px) {
+  .logoImgContainer {
+    height: 70px;
+    width: 70px;
+  }  
+
+  .logoContainerText {
+    display: none;
+  }
+}
+
 .controlers {
   align-items: center;
   display: flex;
+  gap: .5rem;
+}
+
+.flagButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  height: 2rem;
+  position: relative;
+  width: 2rem;
 }
 
 .navButton {

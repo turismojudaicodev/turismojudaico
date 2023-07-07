@@ -1,0 +1,146 @@
+.actionTitle {
+  margin-block: .75em;
+}
+
+.languageTitle {
+  font-size: 1rem;
+}
+
+/* BUTTONS */
+.actionButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: .5em;
+}
+
+.actionButtonSelected {
+  border-bottom: 3px solid #333;
+  composes: actionButton;
+}
+
+.submitButton {
+  background-color: #333;
+  border: none;
+  border-radius: 8px;
+  color: #eee;
+  cursor: pointer;
+  outline: none;
+  padding: .5em 1em;
+  width: fit-content;
+}
+
+.submitButton:active {
+  box-shadow: 0 0 5px 0 #333;
+}
+
+.submitButtonLoading {
+  composes: submitButton;
+  background-color: #bbb;
+  cursor: not-allowed;
+}
+
+.iconButton {
+  background-color: #333;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  display: inline-grid;
+  height: 1.75rem;
+  place-content: center ;
+  width: 1.75rem;
+}
+
+.iconButton:hover {
+  filter: brightness(85%);
+}
+
+.iconButton:active {
+  filter: brightness(70%);
+}
+
+.editButton {
+  composes: iconButton;
+  /* background-color: rgb(5, 43, 80); */
+}
+
+.deleteButton {
+  composes: iconButton;
+  background-color: rgb(188, 17, 17);
+}
+
+/* FORMS */
+.input {
+  border: 1px solid var(--clr-border-1);
+  border-radius:3px;
+  padding: .5em;
+  outline: none;
+  width: 100%;
+  max-width: 500px;
+}
+
+textarea.input {
+  min-height: 85px;
+  max-height: 200px;
+}
+
+.quillContainer {
+  max-width: 500px;
+  width: 100%;
+}
+
+.input:focus {
+  border: 1px solid #333;
+}
+
+.formCreate {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  margin-block: 1rem;
+}
+
+.formCreate label {
+  display: block;
+}
+
+/* COMPONENTS */
+.entryCard {
+  border-bottom: 1px solid #333;
+  display: flex;
+  justify-content: space-between;
+  padding-block: .5rem;
+  width: 350px;
+}
+
+.entryCard:first-child {
+  border-top: 1px solid #333;
+}
+
+.entryTextContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 290px; 
+}
+
+.entryTextContainer h3 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.entryTextContainer p {
+  display: -webkit-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.entryButtonsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  justify-content: center;
+}

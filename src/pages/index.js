@@ -1,71 +1,71 @@
 // NPM
-import { useEffect, useState } from 'react'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import { useTranslation } from 'next-i18next'
-import { useRouter } from 'next/router'
 // Local
-import { fetchStrapi } from 'lib/api'
-import { handleError } from 'lib/errors'
+import { prisma } from 'lib/prisma'
 // Components
 import Head from 'next/head'
 import Layout from '@/components/Layout'
 import LoadingIndicator from '@/components/LoadingIndicator'
-import CardsContainer from '@/components/CardsContainer'
 import Message from '@/components/Message'
+import ToursContainer from '@/components/ToursContainer'
+import Image from 'next/image'
+import { Carousel } from 'react-responsive-carousel'
 // Styles
 import styles from '@/styles/Home.module.css'
 import utils from '@/styles/utils.module.css'
+import 'react-responsive-carousel/lib/styles/carousel.min.css' // Carousel requires a loader
+
+const SUPPORTERS = [
+  {
+    image: '/images/supporters/logonatan.jpg',
+  },
+  {
+    image: '/images/supporters/logoroi.png',
+  },
+  {
+    image: '/images/supporters/schusterman.png',
+  },
+  {
+    image: '/images/supporters/clam.gif',
+  },
+  {
+    image: '/images/supporters/limmud.png',
+  },
+  {
+    image: '/images/supporters/lazos.png',
+  },
+  {
+    image: '/images/supporters/kahal.png',
+  },
+  {
+    image: '/images/supporters/bbyo.png',
+  },
+  {
+    image: '/images/supporters/entwine.png',
+  },
+  {
+    image: '/images/supporters/jdc.png',
+  },
+  {
+    image: '/images/supporters/cuja.png',
+  },
+]
 
 export async function getStaticProps({ locale }) {
+  const tours = await prisma.tour.findMany({ where: { active: true, locale } })
+
   return {
     props: {
       ...(await serverSideTranslations(locale, ['index', 'common'])),
+      tours: JSON.parse(JSON.stringify(tours)),
+      locale,
     },
   }
 }
 
-export default function Home() {
-  const [blogs, setBlogs] = useState([])
-  const [posts, setPosts] = useState([])
-  const [isBlogsLoading, setIsBlogsLoading] = useState(false)
-  const [isPostsLoading, setIsPostsLoading] = useState(false)
-  const [error, setError] = useState({})
-
-  const { locale } = useRouter()
+export default function Home({ tours, locale }) {
   const { t } = useTranslation(['index', 'common'])
-
-  useEffect(() => {
-    async function fetchBlogs() {
-      setIsBlogsLoading(true)
-      try {
-        const { data: blogsData, error } = await fetchStrapi(
-          'blogs',
-          `?locale=${locale}&pagination[page]=1&pagination[pageSize]=10&populate=image`
-        )
-        if (error) handleError(error)
-        setBlogs(blogsData)
-      } catch (error) {
-        setError((prevValue) => ({ ...prevValue, blogs: error.message }))
-      }
-      setIsBlogsLoading(false)
-    }
-    async function fetchPosts() {
-      setIsPostsLoading(true)
-      try {
-        const { data: postsData, error } = await fetchStrapi(
-          'posts',
-          `?locale=${locale}&pagination[page]=1&pagination[pageSize]=10&populate=image`
-        )
-        if (error) handleError(error)
-        setPosts(postsData)
-      } catch (error) {
-        setError((prevValue) => ({ ...prevValue, posts: error.message }))
-      }
-      setIsPostsLoading(false)
-    }
-    fetchBlogs()
-    fetchPosts()
-  }, [locale])
 
   return (
     <>
@@ -78,37 +78,91 @@ export default function Home() {
       <Layout>
         <main className={`${styles.main} ${utils.container}`}>
           <h1 className={utils.bigTitle}>{t('body.title', { ns: 'index' })}</h1>
-          <div className={styles.blogsContainer}>
-            <h2 className={utils.mediumTitle}>Blogs</h2>
-            {error.blogs ? (
-              <Message type="error" message={error.blogs} />
-            ) : (blogs.length === 0 && isBlogsLoading) || isBlogsLoading ? (
-              <LoadingIndicator />
-            ) : blogs.length > 0 ? (
-              <CardsContainer
-                cardsName="blogs"
-                cards={blogs}
-                linkText={t('cardsContainerText', { ns: 'common' })}
-              />
-            ) : (
-              <Message type="info" message="Aún no hay blogs publicados" />
-            )}
+          <div
+            style={{
+              borderBottom: '4px solid var(--clr-green)',
+              width: '80%',
+            }}
+          >
+            <Carousel
+              autoPlay
+              infiniteLoop
+              showStatus={false}
+              showThumbs={false}
+              dynamicHeight
+              width="100%"
+            >
+              <div style={{ aspectRatio: '5/3', position: 'relative' }}>
+                <Image
+                  alt="Slider image"
+                  src="/images/samples/city-1.jfif"
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                />
+                {/* <p className="legend">Legend 1</p> */}
+              </div>
+              <div style={{ aspectRatio: '5/3', position: 'relative' }}>
+                <Image
+                  alt="Slider image"
+                  src="/images/samples/city-2.jfif"
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                />
+              </div>
+              <div style={{ aspectRatio: '5/3', position: 'relative' }}>
+                <Image
+                  alt="Slider image"
+                  src="/images/samples/city-3.jfif"
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                />
+              </div>
+              <div style={{ aspectRatio: '5/3', position: 'relative' }}>
+                <Image
+                  alt="Slider image"
+                  src="/images/samples/city-4.jfif"
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                />
+              </div>
+              <div style={{ aspectRatio: '5/3', position: 'relative' }}>
+                <Image
+                  alt="Slider image"
+                  src="/images/samples/city-5.jfif"
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                />
+              </div>
+            </Carousel>
           </div>
           <div className={styles.postsContainer}>
-            <h2 className={utils.mediumTitle}>Atracciones Judaicas</h2>
-            {error.posts ? (
-              <Message type="error" message={error.posts} />
-            ) : (posts.length === 0 && isPostsLoading) || isPostsLoading ? (
+            <h2 className={utils.mediumTitle}>{t('body.featuredTours')}</h2>
+            {!tours ? (
               <LoadingIndicator />
-            ) : posts.length > 0 ? (
-              <CardsContainer
-                cardsName="posts"
-                cards={posts}
-                linkText={t('cardsContainerText', { ns: 'common' })}
-              />
+            ) : tours.length > 0 ? (
+              <ToursContainer tours={tours} />
             ) : (
-              <Message type="info" message="Aún no hay posts publicados" />
+              <Message
+                type="info"
+                message={
+                  locale === 'es'
+                    ? 'Parece que no hay tours disponibles'
+                    : "Looks like there isn't any tour available now"
+                }
+              />
             )}
+          </div>
+          <h2>NOS ACOMPAÑAN Y CONFÍAN EN NOSOTROS</h2>
+          <div className={styles.supporters}>
+            {SUPPORTERS.map((supporter, index) => (
+              <Image
+                key={index}
+                src={supporter.image}
+                alt={supporter.image}
+                width={100}
+                height={100}
+              />
+            ))}
           </div>
         </main>
       </Layout>

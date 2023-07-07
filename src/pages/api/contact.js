@@ -38,7 +38,7 @@ export default async function handler(req, res) {
       ...generateEmailContent(data),
       subject: `Mensaje de ${data.name}: ${data.email}`,
     })
-    return res.status(200).json({ success: 'Mail sent succesfully' })
+    return res.status(200).json({ message: 'Mail enviado exitosamente' })
   } catch (error) {
     console.log('Failed to send email', error)
     return res.status(400).json({ error: error.message })

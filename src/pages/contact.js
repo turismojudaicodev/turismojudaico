@@ -3,7 +3,9 @@ import { useState } from 'react'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import { useTranslation } from 'react-i18next'
 // Local
+import { setTimedMessage } from 'helpers'
 import emailIcon from 'public/icons/email.svg'
+import { postContent } from 'lib/api'
 // Components
 import Head from 'next/head'
 import Link from 'next/link'
@@ -43,26 +45,14 @@ export default function Contact() {
   const handleSubmit = async (ev) => {
     ev.preventDefault()
     setIsLoading(true)
+    const formData = Object.fromEntries(new FormData(ev.target))
+    
     try {
-      const res = await fetch('/api/contact', {
-        method: 'POST',
-        body: JSON.stringify(contactMessage),
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-      })
-      const { error, success } = await res.json()
-      if (error) throw new Error(error)
-      setInfoMessage(success)
-      setTimeout(() => {
-        setInfoMessage('')
-      }, 3000)
+      const { message, error } = await postContent('/api/contact', formData)
+      if (error) return setTimedMessage(error, setErrorMessage, 3000)
+      setTimedMessage(message, setInfoMessage, 3000)
     } catch (error) {
-      setErrorMessage(error.message)
-      setTimeout(() => {
-        setErrorMessage('')
-      }, 3000)
+      setTimedMessage(error.message, setErrorMessage, 3000)
     }
     setContactMessage(contactMessageInitState)
     setIsLoading(false)

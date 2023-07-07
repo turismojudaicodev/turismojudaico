@@ -5,13 +5,17 @@
 }
 
 .card {
-  border: 1px solid var(--clr-border-1);
-  border-radius: var(--border-radius);
   display: flex;
   flex-direction: column;
-  gap: .5rem;
+  gap: 1rem;
   max-width: 600px;
-  padding: .5rem;
+  border-bottom: 1px solid lightgray;
+  padding-bottom: 1rem;
+}
+
+.card:first-child {
+  border-top: 1px solid lightgray;
+  padding-top: 1rem;
 }
 
 @media (min-width: 700px) {
@@ -23,6 +27,7 @@
 }
 
 .imgContainer {
+  border-bottom: 3px solid var(--clr-green);
   height: 150px;
   position: relative;
 }
@@ -36,6 +41,7 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  height: 100%;
 }
 
 .info h3, 
@@ -53,4 +59,9 @@
 
 .info a {
   width: fit-content;
+}
+
+.link {
+  color: var(--clr-lightblue);
+  filter: brightness(90%);
 }

@@ -1,6 +1,6 @@
 // NPM
-import { useRouter } from 'next/router'
-import { useState } from 'react'
+import { useRouter, withRouter } from 'next/router'
+import { useState, useEffect } from 'react'
 // Local
 import useWidowSize from 'hooks/useWindowSize'
 import imgLogoSrc from '../../../public/images/logo.png'
@@ -14,14 +14,26 @@ import utils from '@/styles/utils.module.css'
 
 const WINDOW_WIDTH_BREAKPOINT = 701
 
-export default function Header() {
+function Header() {
+  const [i18n, setI18n] = useState({})
   const [navActive, setNavActive] = useState(false)
+
   const router = useRouter()
   const { width: windowWidth } = useWidowSize()
 
-  const changeLang = (e) => {
+  useEffect(() => {
+    async function fetchLocale() {
+      const translation = await import(
+        `public/locales/${router.locale}/header.json`
+      )
+      setI18n(translation)
+    }
+    fetchLocale()
+  }, [router.locale])
+
+  const changeLang = (lang) => {
     router.push(router.pathname, router.pathname, {
-      locale: e.target.value,
+      locale: lang,
     })
   }
 
@@ -34,20 +46,30 @@ export default function Header() {
       <div className={styles.headerTop}>
         <div className={styles.logoContainer}>
           <Link href="/">
-            <div className={styles.logoContainer}>
-              <Image src={imgLogoSrc} width={75} height={75} alt="Our logo" />
+            <div className={styles.logoImgContainer}>
+              <Image src={imgLogoSrc} alt="Our logo" fill />
             </div>
           </Link>
+          <p className={styles.logoContainerText}>
+            <span style={{ fontSize: '1.5em', display: 'block' }}>
+              {i18n?.title}{' '}
+            </span>
+            {i18n?.subtitle}
+          </p>
         </div>
         <div className={styles.controlers}>
-          <select
-            onChange={changeLang}
-            className={utils.input}
-            defaultValue={router.locale}
+          <button
+            className={styles.flagButton}
+            onClick={() => changeLang('es')}
           >
-            <option value="es">Español</option>
-            <option value="en">English</option>
-          </select>
+            <Image src="/icons/spain-flag.svg" alt="Idioma español" fill />
+          </button>
+          <button
+            className={styles.flagButton}
+            onClick={() => changeLang('en')}
+          >
+            <Image src="/icons/uk-flag.svg" alt="Idioma inglés" fill />
+          </button>
           {windowWidth <= WINDOW_WIDTH_BREAKPOINT && (
             <div
               onClick={toggleNav}
@@ -66,3 +88,5 @@ export default function Header() {
     </header>
   )
 }
+
+export default withRouter(Header)

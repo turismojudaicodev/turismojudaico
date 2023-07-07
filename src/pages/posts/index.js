@@ -1,134 +1,88 @@
 // NPM
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import { useTranslation } from 'next-i18next'
-import { useRouter } from 'next/router'
 // Local
-import { fetchStrapi } from 'lib/api'
-import { handleError } from 'lib/errors'
-// import { db } from 'lib/db'
+import { prisma } from 'lib/prisma'
+import { getFilteredContent } from 'lib/api'
 // Components
 import Head from 'next/head'
 import Layout from '@/components/Layout'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import CardsContainer from '@/components/CardsContainer'
 import Message from '@/components/Message'
+import ButtonLoader from '@/components/ButtonLoader'
 // Styles
 import styles from '@/styles/Posts.module.css'
 import utils from '@/styles/utils.module.css'
-import ButtonLoader from '@/components/ButtonLoader'
 
 export async function getStaticProps({ locale }) {
+  const posts = await prisma.post.findMany()
+  const countries = await prisma.country.findMany()
+  const categories = await prisma.category.findMany()
+  const cities = await prisma.city.findMany({ include: { country: true } })
+  const subCategories = await prisma.subCategory.findMany({
+    include: { category: true },
+  })
+
+  const filterOptions = { countries, cities, categories, subCategories }
+
   return {
     props: {
       ...(await serverSideTranslations(locale, ['common', 'posts'])),
+      posts: JSON.parse(JSON.stringify(posts)),
+      filterOptions: JSON.parse(JSON.stringify(filterOptions)),
     },
   }
 }
 
-export default function Content() {
-  const [countries, setCountries] = useState([])
-  const [currentCountry, setCurrentCountry] = useState(null)
-  const [categories, setCategories] = useState([])
-  const [currentCategory, setCurrentCategory] = useState(null)
+export default function Content({ posts, filterOptions }) {
+  const [filters, setFilters] = useState({
+    post: '',
+    country: '',
+    city: '',
+    category: '',
+    subCategory: '',
+  })
+  const [visiblePosts, setVisiblePosts] = useState(posts)
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
-  const [posts, setPosts] = useState([])
 
-  const { locale } = useRouter()
   const { t } = useTranslation(['posts', 'common'])
-
-  useEffect(() => {
-    async function fetchInitalPosts() {
-      setIsLoading(true)
-      try {
-        const { data: postsData, error: postsError } = await fetchStrapi(
-          'posts',
-          `?locale=${locale}&pagination[page]=1&pagination[pageSize]=8`
-        )
-        if (postsError) handleError(postsError)
-        setPosts(postsData)
-      } catch (error) {
-        setErrorMessage(error.message)
-      }
-      setIsLoading(false)
-    }
-    async function fetchFormContentData() {
-      try {
-        const { data: countriesData, error: countriesError } =
-          await fetchStrapi('countries', '?populate[cities][fields][0]=name')
-        if (countriesError) handleError(countriesError)
-        setCountries(countriesData)
-        const { data: categoriesData, error: categoriesError } =
-          await fetchStrapi(
-            'categories',
-            '?populate[subCategories][fields][0]=name'
-          )
-        if (categoriesError) handleError(categoriesError)
-        setCategories(categoriesData)
-      } catch (error) {
-        setErrorMessage(error.message)
-      }
-    }
-    fetchInitalPosts()
-    fetchFormContentData()
-  }, [locale])
 
   const handleSubmit = async (ev) => {
     ev.preventDefault()
     setIsLoading(true)
 
-    const formData = Object.fromEntries(new FormData(ev.target))
-
-    let queryParams = `?locale=${locale}`
-    const filters = []
-
-    if (formData.post)
-      filters.push(['filters[title][$containsi]', `${formData.post}`])
-    if (formData.country)
-      filters.push(['filters[country][name][$eq]', `${formData.country}`])
-    if (formData.city)
-      filters.push(['filters[city][name][$eq]', `${formData.city}`])
-    if (formData.category)
-      filters.push(['filters[category][name][$eq]', `${formData.category}`])
-    if (formData.subCategory)
-      filters.push([
-        'filters[subCategory][name][$eq]',
-        `${formData.subCategory}`,
-      ])
-
-    if (filters.length > 0) {
-      filters.forEach((filter, index) => {
-        queryParams += `&${filter[0]}[${index}]=${filter[1]}`
-      })
-    }
-
     try {
-      const { data, error } = await fetchStrapi('posts', queryParams)
-      if (error) handleError(error)
-      setPosts(data)
+      console.log(filters)
+      const { data, error } = await getFilteredContent(
+        '/api/content/posts',
+        filters
+      )
+      console.log('data', data)
+      if (error) return setErrorMessage(error)
+      setVisiblePosts(data)
+      setFilters({
+        post: '',
+        country: '',
+        city: '',
+        category: '',
+        subCategory: '',
+      })
     } catch (error) {
       setErrorMessage(error.message)
     }
     setIsLoading(false)
   }
 
-  const updateCountry = (ev) => {
-    const countryName = ev.target.value
-    const selectedCountry = countries.find(
-      (country) => country.attributes.name === countryName
-    )
-    // console.log('selectedCountry', selectedCountry)
-    setCurrentCountry(selectedCountry)
-  }
-
-  const updateCategory = (ev) => {
-    const categoryName = ev.target.value
-    const selectedCategory = categories.find(
-      (category) => category.attributes.name === categoryName
-    )
-    // console.log('selectedCategory', selectedCategory)
-    setCurrentCategory(selectedCategory)
+  const updateFilters = (ev) => {
+    const filterName = ev.target.name
+    const filterValue = ev.target.value
+    setFilters((prev) => ({
+      ...prev,
+      [`${filterName}`]: filterValue,
+    }))
   }
 
   return (
@@ -138,19 +92,19 @@ export default function Content() {
       </Head>
       <Layout>
         <main className={`${utils.container} ${styles.main}`}>
-          <div>
+          <div className={styles.blogsContainer}>
             <h1 className={utils.bigTitle}>
               {t('body.posts.title', { ns: 'posts' })}
             </h1>
             <div className={styles.searchedContentContainer}>
               {errorMessage ? (
                 <Message type="error" message={errorMessage} />
-              ) : (posts.length === 0 && isLoading) || isLoading ? (
+              ) : (visiblePosts.length === 0 && isLoading) || isLoading ? (
                 <LoadingIndicator />
-              ) : posts.length > 0 ? (
+              ) : visiblePosts.length > 0 ? (
                 <CardsContainer
                   cardsName="posts"
-                  cards={posts}
+                  cards={visiblePosts}
                   linkText={t('cardsContainerText', { ns: 'common' })}
                 />
               ) : (
@@ -170,8 +124,10 @@ export default function Content() {
                 <input
                   type="text"
                   name="post"
+                  id="post"
                   className={utils.input}
                   placeholder={t('body.form.placeholder')}
+                  onChange={updateFilters}
                 ></input>
               </div>
               <div>
@@ -182,12 +138,12 @@ export default function Content() {
                   id="country"
                   name="country"
                   className={utils.input}
-                  onChange={updateCountry}
+                  onChange={updateFilters}
                 >
                   <option value="">-</option>
-                  {countries.map((country) => (
-                    <option value={country.attributes.name} key={country.id}>
-                      {country.attributes.name}
+                  {filterOptions.countries.map((country) => (
+                    <option value={country.id} key={country.id}>
+                      {country.name}
                     </option>
                   ))}
                 </select>
@@ -196,14 +152,23 @@ export default function Content() {
                 <label htmlFor="city">
                   {t('body.form.city', { ns: 'posts' })}
                 </label>
-                <select id="city" name="city" className={utils.input}>
+                <select
+                  id="city"
+                  name="city"
+                  className={utils.input}
+                  onChange={updateFilters}
+                >
                   <option value="">-</option>
-                  {currentCountry &&
-                    currentCountry.attributes.cities.data.map((city) => (
-                      <option value={city.attributes.name} key={city.id}>
-                        {city.attributes.name}
-                      </option>
-                    ))}
+                  {filters.country &&
+                    filterOptions.cities
+                      .filter(
+                        (city) => city.country.id.toString() === filters.country
+                      )
+                      .map((city) => (
+                        <option value={city.id} key={city.id}>
+                          {city.name}
+                        </option>
+                      ))}
                 </select>
               </div>
               <div>
@@ -214,12 +179,12 @@ export default function Content() {
                   id="category"
                   name="category"
                   className={utils.input}
-                  onChange={updateCategory}
+                  onChange={updateFilters}
                 >
                   <option value="">-</option>
-                  {categories.map((category) => (
-                    <option value={category.attributes.name} key={category.id}>
-                      {category.attributes.name}
+                  {filterOptions.categories.map((category) => (
+                    <option value={category.id} key={category.id}>
+                      {category.name}
                     </option>
                   ))}
                 </select>
@@ -232,19 +197,20 @@ export default function Content() {
                   id="subCategory"
                   name="subCategory"
                   className={utils.input}
+                  onChange={updateFilters}
                 >
                   <option value="">-</option>
-                  {currentCategory &&
-                    currentCategory.attributes.subCategories.data.map(
-                      (subCategory) => (
-                        <option
-                          value={subCategory.attributes.name}
-                          key={subCategory.id}
-                        >
-                          {subCategory.attributes.name}
-                        </option>
+                  {filters.category &&
+                    filterOptions.subCategories
+                      .filter(
+                        (subCat) =>
+                          subCat.category.id.toString() === filters.category
                       )
-                    )}
+                      .map((subCategory) => (
+                        <option value={subCategory.id} key={subCategory.id}>
+                          {subCategory.name}
+                        </option>
+                      ))}
                 </select>
               </div>
               <button className={utils.button} type="submit">
@@ -257,25 +223,3 @@ export default function Content() {
     </>
   )
 }
-
-// export async function getStaticProps() {
-//   const postsQuery =
-//     'SELECT `p`.*, c.name AS `category`, sc.name AS `sub_ategory` FROM posts p, posts_category_links pcl, posts_sub_category_links pscl, categories c, sub_categories sc WHERE pcl.post_id = p.id AND pscl.post_id = p.id AND pcl.category_id = c.id AND pscl.sub_category_id = sc.id;'
-
-//   const [posts, postsFields] = await db.query(postsQuery)
-
-//   const categoriesQuery = `
-//     SELECT c.name AS "category", sc.name AS "sub_category"
-//     FROM categories c, sub_categories sc, sub_categories_category_links sccl
-//     WHERE sccl.category_id = c.id AND sccl.sub_category_id = sc.id;
-//   `
-
-//   const [categories, categoriesFields] = await db.query(categoriesQuery)
-
-//   return {
-//     props: {
-//       posts: JSON.parse(JSON.stringify(posts)),
-//       categories: JSON.parse(JSON.stringify(categories)),
-//     },
-//   }
-// }

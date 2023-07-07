@@ -1,0 +1,13 @@
+.main {
+  background-color: #fdfdfd;
+  display: flex;
+}
+
+.contentSection {
+  margin-inline: 2rem;
+  margin-block: 2rem;
+}
+
+.contentSection h1 {
+  margin-bottom: .5em;
+}
