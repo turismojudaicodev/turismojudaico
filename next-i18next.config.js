@@ -12,6 +12,7 @@ module.exports = {
         defaultLocale: 'en',
       },
     ],
+    localeDetection: false,
   },
   react: { useSuspense: false },
 }
