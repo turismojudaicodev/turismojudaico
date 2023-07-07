@@ -17,17 +17,11 @@
 .table td {
   border: 1px solid rgb(186, 186, 186);
   font-size: .8rem;
-  padding: .5em;
+  padding: .25em .5em;
   position: relative;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-}
-
-.colLocaleImgContainer {
-  height: 30px;
-  margin: auto;
-  position: relative;
 }
 
 .colTitle {
@@ -36,4 +30,8 @@
 
 .colDescription {
   max-width: 35ch;
+}
+
+.colImage {
+  max-width: 30ch;
 }

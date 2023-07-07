@@ -12,15 +12,37 @@ export default async function handler(req, res) {
       .status(200)
       .json({ message: `Blog "${result.title}" borrado exitosamente` })
   } else if (req.method === 'PUT') {
-    const blogId = Number.parseInt(req.query.id)
-    const formData = req.body
-    const result = await prisma.blog.update({
-      where: { id: blogId },
-      data: formData,
+    const { enBlog, spBlog } = req.body
+    const { title, description, content } = spBlog
+    const {
+      title: engTitle,
+      description: engDescription,
+      content: engContent,
+    } = enBlog
+
+    if (
+      !title ||
+      !description ||
+      !content ||
+      !engTitle ||
+      !engDescription ||
+      !engContent
+    ) {
+      return res.status(400).json({
+        error: 'Ambos blogs deben tener los campos obligatorios completos',
+      })
+    }
+    const updatedSpanishBlog = await prisma.blogEntry.update({
+      where: { id: spBlog.id },
+      data: spBlog,
+    })
+    const updatedEnglishBlog = await prisma.blogEntry.update({
+      where: { id: enBlog.id },
+      data: enBlog,
     })
     res.status(200).json({
-      data: result,
-      message: `Blog "${result.title}" actualizado exitosamente`,
+      data: { updatedSpanishBlog, updatedEnglishBlog },
+      message: 'Blog actualizado exitosamente',
     })
   }
 }

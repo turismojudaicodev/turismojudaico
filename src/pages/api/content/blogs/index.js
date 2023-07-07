@@ -2,14 +2,34 @@ import { prisma } from 'lib/prisma'
 
 // return { error or data object dependeing on success}
 export default async function handler(req, res) {
-  if (req.method === 'GET') {
-  } else if (req.method === 'POST') {
-    const { title, description, content } = req.body
-    if (!title || !description || !content) {
-      return res.status(400).json({ error: 'Campos obligatorios incompletos' })
+  if (req.method === 'POST') {
+    const { enBlog, spBlog } = req.body
+    const { title, description, content } = spBlog
+    const {
+      title: engTitle,
+      description: engDescription,
+      content: engContent,
+    } = enBlog
+
+    if (
+      !title ||
+      !description ||
+      !content ||
+      !engTitle ||
+      !engDescription ||
+      !engContent
+    ) {
+      return res.status(400).json({
+        error: 'Ambos blogs deben tener los campos obligatorios completos',
+      })
     }
-    const result = await prisma.blog.create({
-      data: req.body,
+    const result = await prisma.blog.create({ data: {} })
+
+    await prisma.blogEntry.create({
+      data: { ...spBlog, blogId: result.id },
+    })
+    await prisma.blogEntry.create({
+      data: { ...enBlog, blogId: result.id },
     })
     res.status(201).json({ data: result, message: 'Blog creado exitosamente' })
   } else {

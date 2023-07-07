@@ -11,19 +11,23 @@ import utils from '@/styles/utils.module.css'
 import styles from '@/styles/Blogs.module.css'
 
 export async function getStaticPaths() {
-  const blogs = await prisma.blog.findMany()
-  const paths = blogs.map((blog) => ({
+  const esBlogs = await prisma.blogEntry.findMany({ where: { locale: 'es' } })
+  const enBlogs = await prisma.blogEntry.findMany({ where: { locale: 'en' } })
+
+  const esPaths = esBlogs.map((blog) => ({
     params: { id: blog.id.toString() },
   }))
-
+  const enPaths = enBlogs.map((blog) => ({
+    params: { id: blog.id.toString(), locale: 'en' },
+  }))
   return {
-    paths,
-    fallback: false,
+    paths: [...esPaths, ...enPaths],
+    fallback: true,
   }
 }
 
 export async function getStaticProps({ params: { id } }) {
-  const blog = await prisma.blog.findUnique({ where: { id: Number(id) } })
+  const blog = await prisma.blogEntry.findUnique({ where: { id: Number(id) } })
 
   return {
     props: {
@@ -36,7 +40,7 @@ export default function Blog({ blog }) {
   return (
     <>
       <Head>
-        <title>{blog.title || 'Error al cargar el blog'}</title>
+        <title>{blog?.title || 'Error al cargar el blog'}</title>
       </Head>
       <Layout>
         <main className={`${utils.container} ${styles.main}`}>
@@ -47,7 +51,7 @@ export default function Blog({ blog }) {
               <h2 className={utils.bigTitle}>{blog.title}</h2>
               <p>{blog.description}</p>
               <Image
-                src={blog.img || '/images/logo.png'}
+                src={blog.image || '/images/logo.png'}
                 height={250}
                 width={300}
                 alt="Blog main image"

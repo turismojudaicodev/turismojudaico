@@ -21,6 +21,7 @@ export default function DashboardTable({
   table,
   setVisibleTable,
   extraCols = {},
+  idAlias = null,
 }) {
   const [errorMessage, setErrorMessage] = useState('')
   const [infoMessage, setInfoMessage] = useState('')
@@ -63,27 +64,20 @@ export default function DashboardTable({
         <tbody>
           {table.map((row) => (
             <tr key={row.id}>
-              <td>{row.id}</td>
-              <td>
-                <div className={styles.colLocaleImgContainer}>
-                  <Image
-                    src={row.locale === 'es' ? EsFlag : UkFlag}
-                    alt={row.locale}
-                    fill
-                  />
-                </div>
-              </td>
+              <td>{idAlias ? row[idAlias] : row.id}</td>
+              <td>{row.locale}</td>
               <td className={styles.colTitle}>{row.title}</td>
               <td className={styles.colDescription}>{row.description}</td>
-              <td>{row.image ?? 'null'}</td>
-              {extraCols.countryId && <td>{row.countryId ?? 'null'}</td>}
-              {extraCols.cityId && <td>{row.cityId ?? 'null'}</td>}
-              {extraCols.categoryId && <td>{row.categoryId ?? 'null'}</td>}
-              {extraCols.subCategoryId && (
-                <td>{row.subCategoryId ?? 'null'}</td>
-              )}
+              <td className={styles.colImage}>
+                {row.image ? row.image.substr(row.image.lastIndexOf('/')) : '-'}
+              </td>
+              {extraCols.countryId && <td>{row.countryId ?? '-'}</td>}
+              {extraCols.cityId && <td>{row.cityId ?? '-'}</td>}
+              {extraCols.categoryId && <td>{row.categoryId ?? '-'}</td>}
+              {extraCols.subCategoryId && <td>{row.subCategoryId ?? '-'}</td>}
               <td style={{ textAlign: 'center' }}>
-                {row.active ? '✅' : '❌'}
+                {row.active ? 'si' : 'no'}
+                {/* {row.active ? '✅' : '❌'} */}
               </td>
               <td>
                 {new Date(row.createdAt).toLocaleDateString('es-ES', {
@@ -94,26 +88,28 @@ export default function DashboardTable({
               </td>
               <td style={{ display: 'flex', gap: '.25em' }}>
                 <Link
-                  href={`${router.pathname}/${row.id}`}
+                  style={{ height: '1rem', width: '1rem', padding: '.65em' }}
+                  href={`${router.pathname}/${idAlias ? row[idAlias] : row.id}`}
                   className={dashboardStyles.editButton}
                   replace={false}
                 >
                   <Image
                     src={EditIcon}
                     alt="Edit Icon"
-                    height={16}
-                    width={16}
+                    height={12}
+                    width={12}
                   />
                 </Link>
                 <button
+                  style={{ height: '1rem', width: '1rem', padding: '.65em' }}
                   className={dashboardStyles.deleteButton}
                   onClick={() => handleDelete(row.id)}
                 >
                   <Image
                     src={DeleteIcon}
                     alt="Delete Icon"
-                    height={16}
-                    width={16}
+                    height={12}
+                    width={12}
                   />
                 </button>
               </td>

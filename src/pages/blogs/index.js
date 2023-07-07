@@ -13,7 +13,7 @@ import utils from '@/styles/utils.module.css'
 import Message from '@/components/Message'
 
 export async function getStaticProps({ locale }) {
-  const blogs = await prisma.blog.findMany()
+  const blogs = await prisma.blogEntry.findMany({ where: { locale } })
 
   return {
     props: {
