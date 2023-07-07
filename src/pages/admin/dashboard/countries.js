@@ -54,6 +54,7 @@ function ExistingContent({
           >
             <div className={styles.entryTextContainer}>
               <p>{country.name}</p>
+              <p style={{ fontSize: '.8em' }}>{country.englishName}</p>
             </div>
             <div className={styles.entryButtonsContainer}>
               <button

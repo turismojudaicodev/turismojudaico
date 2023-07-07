@@ -207,11 +207,7 @@ export default function Post({ data }) {
           >
             <option value=""> </option>
             {categories.map((category) => (
-              <option
-                value={category.id}
-                key={category.id}
-                selected={category.id === post.categoryId}
-              >
+              <option value={category.id} key={category.id}>
                 {category.name}
               </option>
             ))}
