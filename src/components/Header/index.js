@@ -58,18 +58,14 @@ function Header() {
           </p>
         </div>
         <div className={styles.controlers}>
-          <button
-            className={styles.flagButton}
-            onClick={() => changeLang('es')}
+          <select
+            className={utils.input}
+            defaultValue={router.locale}
+            onChange={(ev) => changeLang(ev.target.value)}
           >
-            <Image src="/icons/spain-flag.svg" alt="Idioma español" fill />
-          </button>
-          <button
-            className={styles.flagButton}
-            onClick={() => changeLang('en')}
-          >
-            <Image src="/icons/uk-flag.svg" alt="Idioma inglés" fill />
-          </button>
+            <option value="es">Español</option>
+            <option value="en">English</option>
+          </select>
           {windowWidth <= WINDOW_WIDTH_BREAKPOINT && (
             <div
               onClick={toggleNav}
