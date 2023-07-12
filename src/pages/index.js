@@ -78,12 +78,7 @@ export default function Home({ tours, locale }) {
       <Layout>
         <main className={`${styles.main} ${utils.container}`}>
           <h1 className={utils.bigTitle}>{t('body.title', { ns: 'index' })}</h1>
-          <div
-            style={{
-              borderBottom: '4px solid var(--clr-green)',
-              width: '80%',
-            }}
-          >
+          <div className={styles.carouselContainer}>
             <Carousel
               autoPlay
               infiniteLoop
@@ -159,8 +154,8 @@ export default function Home({ tours, locale }) {
                 key={index}
                 src={supporter.image}
                 alt={supporter.image}
-                width={100}
-                height={100}
+                width={75}
+                height={75}
               />
             ))}
           </div>

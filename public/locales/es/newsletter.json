@@ -3,8 +3,8 @@
     "title": "Newsletter"
   },
   "body": {
-    "title": "Suscribite a nuestra newsletter",
-    "p1": "Y enterate de las novedades y toures próximos.",
+    "title": "Suscribite a nuestro newsletter",
+    "p1": "Y conoce nuestras novedades y próximos viajes y actividades.",
     "form": {
       "name": "Nombre",
       "lastName": "Apellido",
