@@ -19,6 +19,14 @@ model User {
   role         String @default("USER")
 }
 
+model StaticImage {
+  id          Int     @id @default(autoincrement())
+  name        String
+  url         String
+  description String?
+  section     String
+}
+
 model BlogEntry {
   id          Int      @id @default(autoincrement())
   title       String   @unique
@@ -31,6 +39,8 @@ model BlogEntry {
   updatedAt   DateTime @updatedAt
   blog        Blog     @relation(fields: [blogId], references: [id], onDelete: Cascade)
   blogId      Int
+
+  @@index([blogId])
 }
 
 model Blog {
@@ -54,6 +64,8 @@ model City {
   country     Country @relation(fields: [countryId], references: [id], onDelete: Cascade)
   countryId   Int
   Post        Post[]
+
+  @@index([countryId])
 }
 
 model Category {
@@ -71,18 +83,29 @@ model SubCategory {
   category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   categoryId  Int
   Post        Post[]
+
+  @@index([categoryId])
+}
+
+model PostEntry {
+  id          Int      @id @default(autoincrement())
+  title       String   @unique
+  description String
+  image       String?
+  content     String   @db.LongText
+  active      Boolean  @default(true)
+  locale      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  Post        Post?    @relation(fields: [postId], references: [id])
+  postId      Int?
+
+  @@index([postId])
 }
 
 model Post {
   id            Int          @id @default(autoincrement())
-  title         String       @unique
-  description   String
-  image         String?
-  content       String       @db.LongText
-  active        Boolean      @default(true)
-  locale        String
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  entries       PostEntry[]
   category      Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   categoryId    Int?
   subCategory   SubCategory? @relation(fields: [subCategoryId], references: [id], onDelete: SetNull)
@@ -93,33 +116,32 @@ model Post {
   cityId        Int?
   Tour          Tour?        @relation(fields: [tourId], references: [id], onDelete: SetNull)
   tourId        Int?
+
+  @@index([categoryId])
+  @@index([subCategoryId])
+  @@index([countryId])
+  @@index([cityId])
+  @@index([tourId])
+}
+
+model TourEntry {
+  id          Int      @id @default(autoincrement())
+  title       String   @unique
+  description String
+  image       String?
+  content     String   @db.LongText
+  active      Boolean  @default(true)
+  locale      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Tour {
-  id           Int           @id @default(autoincrement())
-  title        String        @unique
-  description  String
-  image        String?
-  content      String        @db.LongText
-  active       Boolean       @default(true)
-  locale       String
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  country      Country?      @relation(fields: [countryId], references: [id], onDelete: SetNull)
-  countryId    Int?
-  posts        Post[]
-  FeaturedTour FeaturedTour?
-}
+  id        Int      @id @default(autoincrement())
+  featured  Boolean  @default(false)
+  country   Country? @relation(fields: [countryId], references: [id], onDelete: SetNull)
+  countryId Int?
+  posts     Post[]
 
-model ImageSlide {
-  id    Int    @id @default(autoincrement())
-  image String
-  index Int
-}
-
-model FeaturedTour {
-  id     Int  @id @default(autoincrement())
-  tour   Tour @relation(fields: [tourId], references: [id])
-  tourId Int  @unique
-  index  Int
+  @@index([countryId])
 }
