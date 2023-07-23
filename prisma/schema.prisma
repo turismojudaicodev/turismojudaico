@@ -23,6 +23,7 @@ model StaticImage {
   id          Int     @id @default(autoincrement())
   name        String
   url         String
+  publicId    String
   description String?
   section     String
 }
@@ -97,7 +98,7 @@ model PostEntry {
   locale      String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  Post        Post?    @relation(fields: [postId], references: [id])
+  Post        Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
   postId      Int?
 
   @@index([postId])
@@ -134,12 +135,17 @@ model TourEntry {
   locale      String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  Tour        Tour?    @relation(fields: [tourId], references: [id], onDelete: Cascade)
+  tourId      Int?
+
+  @@index([tourId])
 }
 
 model Tour {
-  id        Int      @id @default(autoincrement())
-  featured  Boolean  @default(false)
-  country   Country? @relation(fields: [countryId], references: [id], onDelete: SetNull)
+  id        Int         @id @default(autoincrement())
+  featured  Boolean     @default(false)
+  entries   TourEntry[]
+  country   Country?    @relation(fields: [countryId], references: [id], onDelete: SetNull)
   countryId Int?
   posts     Post[]
 
