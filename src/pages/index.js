@@ -53,18 +53,24 @@ const SUPPORTERS = [
 ]
 
 export async function getStaticProps({ locale }) {
-  const tours = await prisma.tour.findMany({ where: { active: true, locale } })
+  const tours = await prisma.tourEntry.findMany({
+    where: { active: true, locale },
+  })
+  const staticImages = await prisma.staticImage.findMany({
+    where: { section: 'carousel' },
+  })
 
   return {
     props: {
       ...(await serverSideTranslations(locale, ['index', 'common'])),
       tours: JSON.parse(JSON.stringify(tours)),
+      staticImages,
       locale,
     },
   }
 }
 
-export default function Home({ tours, locale }) {
+export default function Home({ tours, staticImages, locale }) {
   const { t } = useTranslation(['index', 'common'])
 
   return (
@@ -87,47 +93,28 @@ export default function Home({ tours, locale }) {
               dynamicHeight
               width="100%"
             >
-              <div style={{ aspectRatio: '5/3', position: 'relative' }}>
-                <Image
-                  alt="Slider image"
-                  src="/images/samples/city-1.jfif"
-                  fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                />
-                {/* <p className="legend">Legend 1</p> */}
-              </div>
-              <div style={{ aspectRatio: '5/3', position: 'relative' }}>
-                <Image
-                  alt="Slider image"
-                  src="/images/samples/city-2.jfif"
-                  fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                />
-              </div>
-              <div style={{ aspectRatio: '5/3', position: 'relative' }}>
-                <Image
-                  alt="Slider image"
-                  src="/images/samples/city-3.jfif"
-                  fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                />
-              </div>
-              <div style={{ aspectRatio: '5/3', position: 'relative' }}>
-                <Image
-                  alt="Slider image"
-                  src="/images/samples/city-4.jfif"
-                  fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                />
-              </div>
-              <div style={{ aspectRatio: '5/3', position: 'relative' }}>
-                <Image
-                  alt="Slider image"
-                  src="/images/samples/city-5.jfif"
-                  fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                />
-              </div>
+              {staticImages.length > 0 ? (
+                staticImages.map((image) => (
+                  <div style={{ aspectRatio: '5/3', position: 'relative' }}>
+                    <Image
+                      alt="Slider image"
+                      src={image.url}
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    />
+                  </div>
+                ))
+              ) : (
+                <div style={{ aspectRatio: '5/3', position: 'relative' }}>
+                  <Image
+                    alt="Slider image"
+                    src="/images/logo.png"
+                    fill
+                    style={{ objectFit: 'contain', padding: '15%' }}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  />
+                </div>
+              )}
             </Carousel>
           </div>
           <div className={styles.postsContainer}>
@@ -141,8 +128,8 @@ export default function Home({ tours, locale }) {
                 type="info"
                 message={
                   locale === 'es'
-                    ? 'Parece que no hay tours disponibles'
-                    : "Looks like there isn't any tour available now"
+                    ? 'No hay tours disponibles'
+                    : "There isn't any tour available now"
                 }
               />
             )}

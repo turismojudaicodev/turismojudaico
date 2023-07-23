@@ -3,8 +3,6 @@ import { useState } from 'react'
 import { useRouter } from 'next/router'
 // Local
 import { deleteContent } from 'lib/api'
-import EsFlag from 'public/icons/spain-flag.svg'
-import UkFlag from 'public/icons/uk-flag.svg'
 import DeleteIcon from 'public/icons/delete.svg'
 import EditIcon from 'public/icons/edit.svg'
 import { setTimedMessage } from 'helpers'
@@ -29,6 +27,8 @@ export default function DashboardTable({
   const router = useRouter()
 
   const handleDelete = async (itemId) => {
+    if (!confirm(`Está seguro de que desea borrar la entrada con id ${itemId}`))
+      return
     const currentPath = router.pathname
     const tablePath = currentPath.substring(currentPath.lastIndexOf('/'))
     const result = await deleteContent(`/api/content${tablePath}`, itemId)
@@ -69,7 +69,17 @@ export default function DashboardTable({
               <td className={styles.colTitle}>{row.title}</td>
               <td className={styles.colDescription}>{row.description}</td>
               <td className={styles.colImage}>
-                {row.image ? row.image.substr(row.image.lastIndexOf('/')) : '-'}
+                {row.image ? (
+                  <Link
+                    href={row.image}
+                    target="_blank"
+                    style={{ color: 'blue' }}
+                  >
+                    Ver
+                  </Link>
+                ) : (
+                  '-'
+                )}
               </td>
               {extraCols.countryId && <td>{row.countryId ?? '-'}</td>}
               {extraCols.cityId && <td>{row.cityId ?? '-'}</td>}
@@ -77,7 +87,6 @@ export default function DashboardTable({
               {extraCols.subCategoryId && <td>{row.subCategoryId ?? '-'}</td>}
               <td style={{ textAlign: 'center' }}>
                 {row.active ? 'si' : 'no'}
-                {/* {row.active ? '✅' : '❌'} */}
               </td>
               <td>
                 {new Date(row.createdAt).toLocaleDateString('es-ES', {
@@ -103,7 +112,7 @@ export default function DashboardTable({
                 <button
                   style={{ height: '1rem', width: '1rem', padding: '.65em' }}
                   className={dashboardStyles.deleteButton}
-                  onClick={() => handleDelete(row.id)}
+                  onClick={() => handleDelete(idAlias ? row[idAlias] : row.id)}
                 >
                   <Image
                     src={DeleteIcon}
