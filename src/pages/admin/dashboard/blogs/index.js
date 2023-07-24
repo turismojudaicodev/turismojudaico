@@ -16,7 +16,6 @@ import styles from '@/styles/Dashboard.module.css'
 import 'quill/dist/quill.snow.css' // quill snow theme
 
 function ExistingBlogs({ blogs, setVisisbleBlogs }) {
-  console.log(blogs)
   return (
     <>
       <h2 className={styles.actionTitle}>Blogs</h2>
@@ -103,7 +102,7 @@ function BlogForm({ title, prefix, formData, setFormData, quillRef }) {
             <Image
               src={previewSource}
               alt="Imagen de portada"
-              width={200}
+              width={300}
               height={200}
               style={{ marginTop: '.5rem' }}
             />
@@ -243,8 +242,7 @@ function BlogCreator({ setVisisbleBlogs }) {
 
     if (error) return setTimedMessage(error, setErrorMessage)
 
-    console.log('data', data)
-    // setVisisbleBlogs((prev) => [...prev, data])
+    setVisisbleBlogs((prev) => [...prev, spBlog, enBlog])
     setFormData(FORMDATA_DEFAULT)
     setEnglishFormData({ ...FORMDATA_DEFAULT, locale: 'en' })
     quill.root.innerHTML = ''
