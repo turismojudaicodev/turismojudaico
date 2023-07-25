@@ -1,6 +1,5 @@
 import { prisma } from 'lib/prisma'
-// import cloudinary from 'cloudinary'
-import { cld } from 'lib/cloudinary'
+import { cld } from 'lib/cloudinaryConfig'
 
 export default async function handler(req, res) {
   if (req.method === 'DELETE') {

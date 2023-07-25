@@ -203,7 +203,8 @@ export default function Dashboard({ currentImages }) {
       <div>
         <h2>Tours destacados</h2>
         <p>
-          Para agregar tours a la sección de destacados en el menú "City Tours"
+          Para agregar tours a la sección de destacados en el menú &quot;City
+          Tours&quot;
         </p>
       </div>
     </AdminLayout>

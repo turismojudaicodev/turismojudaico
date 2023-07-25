@@ -95,7 +95,10 @@ export default function Home({ tours, staticImages, locale }) {
             >
               {staticImages.length > 0 ? (
                 staticImages.map((image) => (
-                  <div style={{ aspectRatio: '5/3', position: 'relative' }}>
+                  <div
+                    key={image.url}
+                    style={{ aspectRatio: '5/3', position: 'relative' }}
+                  >
                     <Image
                       alt="Slider image"
                       src={image.url}

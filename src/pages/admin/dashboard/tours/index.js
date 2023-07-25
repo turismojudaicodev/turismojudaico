@@ -50,7 +50,7 @@ function ExistingTours({ tours, setVisisbleTours }) {
           {tours
             .filter((tour) => tour.locale === 'es')
             .map((tour) => (
-              <tr>
+              <tr key={tour.id}>
                 <td style={{ border: '1px solid #aaa', padding: '.25em' }}>
                   {tour.tourId}
                 </td>
