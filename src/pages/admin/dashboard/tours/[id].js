@@ -14,7 +14,7 @@ import styles from '@/styles/Dashboard.module.css'
 import 'quill/dist/quill.snow.css' // quill snow theme
 
 export async function getStaticPaths() {
-  const tours = await prisma.tour.findMany()
+  const tours = await prisma.tourEntry.findMany()
   const paths = tours.map((tour) => ({ params: { id: tour.id.toString() } }))
 
   return {

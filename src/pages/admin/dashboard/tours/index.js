@@ -5,6 +5,7 @@ import { useQuill } from 'react-quilljs'
 import { postContent } from 'lib/api'
 import { setTimedMessage } from 'helpers'
 import { prisma } from 'lib/prisma'
+import { uploadImage } from 'lib/cloudinary'
 // Components
 import AdminLayout from '@/components/AdminLayout'
 import Message from '@/components/Message'
@@ -16,28 +17,187 @@ import styles from '@/styles/Dashboard.module.css'
 import 'quill/dist/quill.snow.css' // quill snow theme
 import DashboardTable from '@/components/DashboardTable'
 
-function ExistingTours({ tours, setVisibleTours }) {
+function ExistingTours({ tours, setVisisbleTours }) {
   return (
     <>
       <h2 className={styles.actionTitle}>Tours</h2>
-      <DashboardTable table={tours} setVisibleTable={setVisibleTours} />
+      <DashboardTable
+        table={tours}
+        setVisibleTable={setVisisbleTours}
+        idAlias="tourId"
+      />
+      <h2 className={styles.actionTitle}>
+        Tours para destacar en la página principal
+      </h2>
+      <table
+        style={{
+          border: '1px solid #aaa',
+          borderSpacing: '0',
+        }}
+      >
+        <thead>
+          <tr>
+            <th style={{ border: '1px solid #aaa', padding: '.25em' }}>Id</th>
+            <th style={{ border: '1px solid #aaa', padding: '.25em' }}>
+              Título
+            </th>
+            <th style={{ border: '1px solid #aaa', padding: '.25em' }}>
+              Destacado
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {tours
+            .filter((tour) => tour.locale === 'es')
+            .map((tour) => (
+              <tr>
+                <td style={{ border: '1px solid #aaa', padding: '.25em' }}>
+                  {tour.tourId}
+                </td>
+                <td style={{ border: '1px solid #aaa', padding: '.25em' }}>
+                  {tour.title}
+                </td>
+                <td style={{ border: '1px solid #aaa', padding: '.25em' }}>
+                  <input type="checkbox" id={`tour_${tour.id}`} />
+                </td>
+              </tr>
+            ))}
+        </tbody>
+      </table>
     </>
   )
 }
 
+function TourForm({ title, prefix, formData, setFormData, quillRef }) {
+  const [previewSource, setPreviewSource] = useState('')
+  const [fileInput, setFileInput] = useState('')
+
+  const handleImageChange = (ev) => {
+    const file = ev.target.files[0]
+    if (!file) {
+      setPreviewSource('')
+      setFileInput('')
+      return
+    }
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onloadend = () => {
+      setPreviewSource(reader.result)
+      setFormData((prev) => ({ ...prev, image: reader.result }))
+    }
+    setFileInput(ev.target.value)
+  }
+
+  return (
+    <div>
+      <h3 className={styles.languageTitle}>{title}</h3>
+      <div className={styles.formCreate}>
+        <div>
+          <label className={utils.inputRequired} htmlFor={`${prefix}_title`}>
+            Título
+          </label>
+          <input
+            type="text"
+            name={`${prefix}_title`}
+            id={`${prefix}_title`}
+            value={formData.title}
+            onChange={(ev) =>
+              setFormData((value) => ({ ...value, title: ev.target.value }))
+            }
+            className={styles.input}
+          ></input>
+        </div>
+        <div>
+          <label
+            className={utils.inputRequired}
+            htmlFor={`${prefix}_description`}
+          >
+            Descripción
+          </label>
+          <textarea
+            type="text"
+            name={`${prefix}_description`}
+            id={`${prefix}_description`}
+            value={formData.description}
+            onChange={(ev) =>
+              setFormData((value) => ({
+                ...value,
+                description: ev.target.value,
+              }))
+            }
+            className={styles.input}
+          ></textarea>
+        </div>
+        <div>
+          <label>
+            <span style={{ display: 'block', marginBlock: '.5rem' }}>
+              Imagen de portada
+            </span>
+            <input
+              type="file"
+              name={`${prefix}_image`}
+              id={`${prefix}_image`}
+              onChange={handleImageChange}
+              value={fileInput}
+            />
+          </label>
+          {previewSource && (
+            <Image
+              src={previewSource}
+              alt="Imagen de portada"
+              width={200}
+              height={200}
+              style={{ marginTop: '.5rem' }}
+            />
+          )}
+        </div>
+        <div>
+          <label className={utils.inputRequired}>Contenido</label>
+          <div>
+            <div ref={quillRef} />
+          </div>
+        </div>
+        <div>
+          <label htmlFor={`${prefix}_active`}>Visible</label>
+          <input
+            style={{ width: '25px' }}
+            type="checkbox"
+            name={`${prefix}_active`}
+            id={`${prefix}_active`}
+            value={formData.active}
+            defaultChecked
+            onChange={() =>
+              setFormData((value) => ({ ...value, active: !value.active }))
+            }
+            className={styles.input}
+          ></input>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const FORMDATA_DEFAULT = {
+  title: '',
+  description: '',
+  image: '',
+  active: true,
+  locale: 'es',
+}
+
 function TourCreator({ setVisibleTours, data: configData }) {
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    image: '',
-    active: true,
-    locale: 'es',
+  const [formData, setFormData] = useState(FORMDATA_DEFAULT)
+  const [englishFormData, setEnglishFormData] = useState({
+    ...FORMDATA_DEFAULT,
+    locale: 'en',
+  })
+  const [tourData, setTourData] = useState({
+    countryId: null,
     posts: [],
   })
   const [errorMessage, setErrorMessage] = useState('')
   const [infoMessage, setInfoMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [previewSource, setPreviewSource] = useState('')
   const { posts } = configData
 
   let { quill, quillRef } = useQuill({
@@ -54,134 +214,107 @@ function TourCreator({ setVisibleTours, data: configData }) {
     },
   })
 
-  // const previewFile = (file) => {
-  //   const reader = new FileReader()
-  //   reader.readAsDataURL(file)
-  //   reader.onloadend = () => {
-  //     setPreviewSource(reader.result)
-  //   }
-  // }
+  let { quill: englishQuill, quillRef: englishQuillRef } = useQuill({
+    theme: 'snow',
+    modules: {
+      toolbar: [
+        ['bold', 'italic', 'underline', 'strike'],
+
+        [{ list: 'ordered' }, { list: 'bullet' }],
+
+        [{ header: [1, 2, 3, 4, 5, 6, false] }],
+        ['link', 'image', 'video'],
+      ],
+    },
+  })
 
   const handleSubmit = async (ev) => {
     ev.preventDefault()
     setIsLoading(true)
     const htmlContent = quill.root.innerHTML
-    const tour = {
+    const englishHtmlContent = englishQuill.root.innerHTML
+    const spTour = {
       ...formData,
       content: htmlContent,
     }
+    const enTour = {
+      ...englishFormData,
+      content: englishHtmlContent,
+    }
 
-    const response = await postContent('/api/content/tours/new', tour)
+    const currentFormData = new FormData(ev.target)
+    const spImage = currentFormData.get('sp_image')
+    const enImage = currentFormData.get('en_image')
+
+    const spUploadedImage = await uploadImage(spImage)
+    const enUploadedImage = await uploadImage(enImage)
+
+    spTour.image = spUploadedImage
+    enTour.image = enUploadedImage
+
+    console.log(tourData, spTour, enTour)
+
+    const response = await postContent('/api/content/tours/new', {
+      tour: tourData,
+      spTour,
+      enTour,
+    })
     const { data, message, error } = response
     setIsLoading(false)
     if (error) return setTimedMessage(error, setErrorMessage)
 
-    setVisibleTours((prev) => [...prev, data])
+    // setVisibleTours((prev) => [...prev, data])
 
-    setFormData({
-      title: '',
-      description: '',
-      image: '',
-      active: true,
-      locale: 'es',
-      posts: [],
-    })
-    setPreviewSource('')
+    setFormData(FORMDATA_DEFAULT)
+    setEnglishFormData({ ...FORMDATA_DEFAULT, locale: 'en' })
     quill.root.innerHTML = ''
+    englishQuill.root.innerHTML = ''
     setTimedMessage(message, setInfoMessage)
   }
 
   return (
     <>
       <h2 className={styles.actionTitle}>Crear Tour</h2>
-      <form className={styles.formCreate} onSubmit={handleSubmit}>
-        <div>
-          <label className={utils.inputRequired} htmlFor="title">
-            Idioma
-          </label>
+      <form onSubmit={handleSubmit}>
+        {errorMessage && <Message type="error" message={errorMessage} />}
+        {infoMessage && <Message type="info" message={infoMessage} />}
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <TourForm
+            title="Versión en español"
+            prefix="sp"
+            formData={formData}
+            quillRef={quillRef}
+            setFormData={setFormData}
+          />
+          <TourForm
+            title="Versión en inglés"
+            prefix="en"
+            formData={englishFormData}
+            quillRef={englishQuillRef}
+            setFormData={setEnglishFormData}
+          />
+        </div>
+        <div
+          style={{ width: '25%', marginInline: 'auto', marginBottom: '1rem' }}
+        >
+          <label htmlFor="country">País</label>
           <select
+            name="country"
+            id="country"
             className={styles.input}
-            name="locale"
-            id="locale"
-            value={formData.locale}
-            onChange={(ev) => {
-              setFormData((prev) => ({ ...prev, locale: ev.target.value }))
-            }}
+            onChange={(ev) =>
+              setTourData((value) => ({ ...value, countryId: ev.target.value }))
+            }
           >
-            <option value="es">Español</option>
-            <option value="en">Inglés</option>
+            <option value=""> </option>
+            {configData.countries.map((country) => (
+              <option key={country.id} value={country.id}>
+                {country.name}
+              </option>
+            ))}
           </select>
         </div>
-        <div>
-          <label className={utils.inputRequired} htmlFor="title">
-            Título
-          </label>
-          <input
-            type="text"
-            name="title"
-            id="title"
-            value={formData.title}
-            onChange={(ev) =>
-              setFormData((value) => ({ ...value, title: ev.target.value }))
-            }
-            className={styles.input}
-          ></input>
-        </div>
-        <div>
-          <label className={utils.inputRequired} htmlFor="description">
-            Descripción
-          </label>
-          <textarea
-            type="text"
-            name="description"
-            id="description"
-            value={formData.description}
-            onChange={(ev) =>
-              setFormData((value) => ({
-                ...value,
-                description: ev.target.value,
-              }))
-            }
-            className={styles.input}
-          ></textarea>
-        </div>
-        <div>
-          <label htmlFor="image">Imagen de portada</label>
-          <div
-            style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
-          >
-            <input
-              type="text"
-              placeholder="Url de la imagen"
-              name="image"
-              id="image"
-              value={formData.image}
-              onChange={(ev) =>
-                setFormData((value) => {
-                  // previewFile(ev.target.files[0])
-                  return { ...value, image: ev.target.value }
-                })
-              }
-              className={styles.input}
-            ></input>
-            {previewSource && (
-              <Image
-                src={previewSource}
-                alt="Imagen de portada"
-                height={200}
-                width={275}
-                style={{ objectFit: 'contain' }}
-              />
-            )}
-          </div>
-        </div>
-        <div>
-          <label className={utils.inputRequired}>Contenido</label>
-          <div>
-            <div ref={quillRef} />
-          </div>
-        </div>
-        <div>
+        <div style={{ width: '25%', marginInline: 'auto' }}>
           <label htmlFor="posts">Posts relacionados</label>
           <div>
             <select
@@ -189,7 +322,7 @@ function TourCreator({ setVisibleTours, data: configData }) {
               name="posts"
               className={styles.input}
               onChange={(ev) => {
-                setFormData((value) => {
+                setTourData((value) => {
                   if (
                     value.posts.includes(ev.target.value) ||
                     ev.target.value === ''
@@ -210,7 +343,7 @@ function TourCreator({ setVisibleTours, data: configData }) {
               ))}
             </select>
             <ul style={{ padding: '1rem 0 0 1.75rem' }}>
-              {formData.posts.map((post) => {
+              {tourData.posts.map((post) => {
                 return posts.map((fetchedPost) => {
                   if (fetchedPost.id == post) {
                     return (
@@ -226,7 +359,7 @@ function TourCreator({ setVisibleTours, data: configData }) {
                         <button
                           className={styles.deleteButton}
                           onClick={(ev) =>
-                            setFormData((prev) => ({
+                            setTourData((prev) => ({
                               ...prev,
                               posts: prev.posts.filter(
                                 (prevValue) => prevValue !== post
@@ -250,21 +383,6 @@ function TourCreator({ setVisibleTours, data: configData }) {
             </ul>
           </div>
         </div>
-        <div>
-          <label htmlFor="active">Visible</label>
-          <input
-            style={{ width: '25px' }}
-            type="checkbox"
-            name="active"
-            id="active"
-            value={formData.active}
-            defaultChecked
-            onChange={(ev) =>
-              setFormData((value) => ({ ...value, active: !active }))
-            }
-            className={styles.input}
-          ></input>
-        </div>
         <button className={styles.submitButton} type="submit">
           {isLoading ? 'Cargando...' : 'Crear'}
         </button>
@@ -276,9 +394,9 @@ function TourCreator({ setVisibleTours, data: configData }) {
 }
 
 export default function Dashboard({ data }) {
-  const { tours } = data
+  const { tourEntries } = data
   const [view, setView] = useState({ read: true, create: false })
-  const [visibleTours, setVisibleTours] = useState(tours)
+  const [visibleTours, setVisibleTours] = useState(tourEntries)
 
   return (
     <AdminLayout>
@@ -316,9 +434,11 @@ export async function getStaticProps() {
       posts: true,
     },
   })
+  const tourEntries = await prisma.tourEntry.findMany()
   const posts = await prisma.post.findMany()
+  const countries = await prisma.country.findMany()
 
-  const data = { tours, posts }
+  const data = { tours, tourEntries, posts, countries }
 
   return {
     props: {

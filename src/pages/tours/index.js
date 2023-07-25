@@ -17,9 +17,9 @@ import styles from '@/styles/Citytours.module.css'
 import utils from '@/styles/utils.module.css'
 
 export async function getStaticProps({ locale }) {
-  const tours = await prisma.tour.findMany({ where: { locale } })
+  const tours = await prisma.tourEntry.findMany({ where: { locale } })
   const countries = await prisma.country.findMany()
-  console.log('LOCALE:', locale)
+
   return {
     props: {
       ...(await serverSideTranslations(locale, ['citytours', 'common'])),

@@ -16,7 +16,7 @@ import StrapiImage from '@/components/StrapiImage'
 import ButtonLoader from '@/components/ButtonLoader'
 
 export async function getStaticPaths() {
-  const tours = await prisma.tour.findMany()
+  const tours = await prisma.tourEntry.findMany()
   const paths = tours.map((tour) => ({
     params: { id: tour.id.toString() },
   }))
