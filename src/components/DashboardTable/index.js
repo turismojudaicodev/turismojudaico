@@ -52,10 +52,10 @@ export default function DashboardTable({
             <th>Título</th>
             <th>Descripción</th>
             <th>Imagen</th>
-            {extraCols.countryId && <th>País</th>}
+            {/* {extraCols.countryId && <th>País</th>}
             {extraCols.cityId && <th>Ciudad</th>}
             {extraCols.categoryId && <th>Categoría</th>}
-            {extraCols.subCategoryId && <th>Sub Categoría</th>}
+            {extraCols.subCategoryId && <th>Sub Categoría</th>} */}
             <th>Activo</th>
             <th>Creado</th>
             <th>Acciones</th>
@@ -81,10 +81,10 @@ export default function DashboardTable({
                   '-'
                 )}
               </td>
-              {extraCols.countryId && <td>{row.countryId ?? '-'}</td>}
+              {/* {extraCols.countryId && <td>{row.countryId ?? '-'}</td>}
               {extraCols.cityId && <td>{row.cityId ?? '-'}</td>}
               {extraCols.categoryId && <td>{row.categoryId ?? '-'}</td>}
-              {extraCols.subCategoryId && <td>{row.subCategoryId ?? '-'}</td>}
+              {extraCols.subCategoryId && <td>{row.subCategoryId ?? '-'}</td>} */}
               <td style={{ textAlign: 'center' }}>
                 {row.active ? 'si' : 'no'}
               </td>
