@@ -119,6 +119,7 @@ function Form({ visibleCountries, setVisibileCountries, setVisibleCities }) {
     if (error) return setTimedMessage(error, setErrorMessage)
     setVisibileCountries((prev) => prev.concat(data))
     setTimedMessage(message, setInfoMessage)
+    document.getElementById('country-form').reset()
   }
 
   const handleCitySubmit = async (ev) => {
@@ -129,12 +130,17 @@ function Form({ visibleCountries, setVisibileCountries, setVisibleCities }) {
     if (error) return setTimedMessage(error, setErrorMessage)
     setVisibleCities((prev) => prev.concat(data))
     setTimedMessage(message, setInfoMessage)
+    document.getElementById('city-form').reset()
   }
 
   return (
     <div>
       <div style={{ display: 'flex', gap: '1rem' }}>
-        <form className={styles.formCreate} onSubmit={handleCountrySubmit}>
+        <form
+          className={styles.formCreate}
+          onSubmit={handleCountrySubmit}
+          id="country-form"
+        >
           <div>
             <label htmlFor="country">País</label>
             <input
@@ -159,7 +165,11 @@ function Form({ visibleCountries, setVisibileCountries, setVisibleCities }) {
             Agregar
           </button>
         </form>
-        <form className={styles.formCreate} onSubmit={handleCitySubmit}>
+        <form
+          className={styles.formCreate}
+          onSubmit={handleCitySubmit}
+          id="city-form"
+        >
           <div>
             <label htmlFor="city">Ciudad</label>
             <input
