@@ -6,42 +6,51 @@ function parseValueInt(value) {
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
+    const { post, enPost, spPost } = req.body
+    const { title, description, content } = spPost
     const {
-      locale,
-      title,
-      description,
-      content,
-      active,
-      countryId,
-      cityId,
-      categoryId,
-      subCategoryId,
-    } = req.body
-    if (!locale || !title || !description || !content)
-      return res
-        .status(400)
-        .json({ error: 'Falta algún dato obligatorio del posts' })
+      title: engTitle,
+      description: engDescription,
+      content: engContent,
+    } = enPost
+
+    if (
+      !title ||
+      !description ||
+      !content ||
+      !engTitle ||
+      !engDescription ||
+      !engContent
+    ) {
+      return res.status(400).json({
+        error: 'Ambos posts deben tener los campos obligatorios completos',
+      })
+    }
+
     try {
       const result = await prisma.post.create({
         data: {
-          locale,
-          title,
-          description,
-          content,
-          active,
-          countryId: parseValueInt(countryId),
-          cityId: parseValueInt(cityId),
-          categoryId: parseValueInt(categoryId),
-          subCategoryId: parseValueInt(subCategoryId),
+          countryId: post.countryId ? parseInt(post.countryId) : null,
+          cityId: post.cityId ? parseInt(post.cityId) : null,
+          categoryId: post.categoryId ? parseInt(post.categoryId) : null,
+          subCategoryId: post.subCategoryId
+            ? parseInt(post.subCategoryId)
+            : null,
         },
       })
-      res.status(201).json({
-        message: `Post ${result.title} creado exitosamente`,
-        data: result,
+
+      await prisma.postEntry.create({
+        data: { ...spPost, postId: result.id },
       })
+      await prisma.postEntry.create({
+        data: { ...enPost, postId: result.id },
+      })
+      res
+        .status(201)
+        .json({ data: result, message: 'Post creado exitosamente' })
     } catch (error) {
       console.log(error)
-      res.status(500).json({ error: 'Error interno' })
+      res.status(500).json({ error: 'Error del servidor' })
     }
   }
 }

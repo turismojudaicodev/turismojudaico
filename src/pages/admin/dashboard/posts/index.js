@@ -5,9 +5,11 @@ import { useQuill } from 'react-quilljs'
 import { postContent } from 'lib/api'
 import { setTimedMessage } from 'helpers'
 import { prisma } from 'lib/prisma'
+import { uploadImage } from 'lib/cloudinary'
 // Components
 import AdminLayout from '@/components/AdminLayout'
 import Message from '@/components/Message'
+import Image from 'next/image'
 // Styles
 import utils from '@/styles/utils.module.css'
 import styles from '@/styles/Dashboard.module.css'
@@ -27,29 +29,156 @@ function ExistingPosts({ posts, setVisiblePosts }) {
           categoryId: true,
           subCategoryId: true,
         }}
+        idAlias="postId"
       />
     </>
   )
 }
 
+function PostForm({ title, prefix, formData, setFormData, quillRef }) {
+  const [previewSource, setPreviewSource] = useState('')
+  const [fileInput, setFileInput] = useState('')
+
+  const handleImageChange = (ev) => {
+    const file = ev.target.files[0]
+    if (!file) {
+      setPreviewSource('')
+      setFileInput('')
+      return
+    }
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onloadend = () => {
+      setPreviewSource(reader.result)
+      setFormData((prev) => ({ ...prev, image: reader.result }))
+    }
+    setFileInput(ev.target.value)
+  }
+
+  return (
+    <div>
+      <h3 className={styles.languageTitle}>{title}</h3>
+      <div className={styles.formCreate}>
+        <div>
+          <label className={utils.inputRequired} htmlFor={`${prefix}_title`}>
+            Título
+          </label>
+          <input
+            type="text"
+            name={`${prefix}_title`}
+            id={`${prefix}_title`}
+            value={formData.title}
+            onChange={(ev) =>
+              setFormData((value) => ({ ...value, title: ev.target.value }))
+            }
+            className={styles.input}
+          ></input>
+        </div>
+        <div>
+          <label
+            className={utils.inputRequired}
+            htmlFor={`${prefix}_description`}
+          >
+            Descripción
+          </label>
+          <textarea
+            type="text"
+            name={`${prefix}_description`}
+            id={`${prefix}_description`}
+            value={formData.description}
+            onChange={(ev) =>
+              setFormData((value) => ({
+                ...value,
+                description: ev.target.value,
+              }))
+            }
+            className={styles.input}
+          ></textarea>
+        </div>
+        <div>
+          <label htmlFor={`${prefix}_image`}>Imagen de portada</label>
+          <input
+            type="file"
+            name={`${prefix}_image`}
+            id={`${prefix}_image`}
+            onChange={handleImageChange}
+            value={fileInput}
+          />
+          {previewSource && (
+            <Image
+              src={previewSource}
+              alt="Imagen de portada"
+              width={200}
+              height={200}
+              style={{ marginTop: '.5rem' }}
+            />
+          )}
+        </div>
+        <div>
+          <label className={utils.inputRequired}>Contenido</label>
+          <div>
+            <div ref={quillRef} />
+          </div>
+        </div>
+        <div>
+          <label htmlFor={`${prefix}_active`}>Visible</label>
+          <input
+            style={{ width: '25px' }}
+            type="checkbox"
+            name={`${prefix}_active`}
+            id={`${prefix}_active`}
+            value={formData.active}
+            defaultChecked
+            onChange={() =>
+              setFormData((value) => ({ ...value, active: !value.active }))
+            }
+            className={styles.input}
+          ></input>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const FORMDATA_DEFAULT = {
+  title: '',
+  description: '',
+  image: '',
+  active: true,
+  locale: 'es',
+}
+
 function PostCreator({ setVisiblePosts, data: configData }) {
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    image: '',
-    active: true,
-    countryId: '',
-    cityId: '',
-    categoryId: '',
-    subCategoryId: '',
-    locale: 'es',
+  const [formData, setFormData] = useState(FORMDATA_DEFAULT)
+  const [englishFormData, setEnglishFormData] = useState({
+    ...FORMDATA_DEFAULT,
+    locale: 'en',
+  })
+  const [postData, setPostData] = useState({
+    countryId: null,
+    cityId: null,
+    categoryId: null,
+    subCategoryId: null,
   })
   const [errorMessage, setErrorMessage] = useState('')
   const [infoMessage, setInfoMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const { countries, cities, categories, subCategories } = configData
 
   let { quill, quillRef } = useQuill({
+    theme: 'snow',
+    modules: {
+      toolbar: [
+        ['bold', 'italic', 'underline', 'strike'],
+
+        [{ list: 'ordered' }, { list: 'bullet' }],
+
+        [{ header: [1, 2, 3, 4, 5, 6, false] }],
+        ['link', 'image', 'video'],
+      ],
+    },
+  })
+
+  let { quill: englishQuill, quillRef: englishQuillRef } = useQuill({
     theme: 'snow',
     modules: {
       toolbar: [
@@ -66,107 +195,80 @@ function PostCreator({ setVisiblePosts, data: configData }) {
   const handleSubmit = async (ev) => {
     ev.preventDefault()
     setIsLoading(true)
+
     const htmlContent = quill.root.innerHTML
-    const post = {
+    const englsihHtmlContent = englishQuill.root.innerHTML
+    const spPost = {
       ...formData,
       content: htmlContent,
     }
-    console.log('post', post)
-    const response = await postContent('/api/content/posts/new', post)
-    const { data, message, error } = response
+    const enPost = {
+      ...englishFormData,
+      content: englsihHtmlContent,
+    }
+
+    const currentFormData = new FormData(ev.target)
+    const spImage = currentFormData.get('sp_image')
+    const enImage = currentFormData.get('en_image')
+
+    const spUploadedImage = await uploadImage(spImage)
+    const enUploadedImage = await uploadImage(enImage)
+
+    spPost.image = spUploadedImage
+    enPost.image = enUploadedImage
+
+    console.log(postData, spPost, enPost)
+    const response = await postContent('/api/content/posts/new', {
+      post: postData,
+      spPost,
+      enPost,
+    })
+    const { message, error } = response
     setIsLoading(false)
     if (error) return setTimedMessage(error, setErrorMessage)
 
-    setVisiblePosts((prev) => [...prev, data])
-
-    setFormData({
-      title: '',
-      description: '',
-      image: '',
-      active: true,
-      countryId: '',
-      cityId: '',
-      categoryId: '',
-      subCategoryId: '',
-    })
+    setFormData(FORMDATA_DEFAULT)
+    setEnglishFormData({ ...FORMDATA_DEFAULT, locale: 'en' })
     quill.root.innerHTML = ''
+    englishQuill.root.innerHTML = ''
+    setPostData({
+      countryId: null,
+      cityId: null,
+      categoryId: null,
+      subCategoryId: null,
+    })
+    // setVisiblePosts((prev) => [...prev, data])
+
     setTimedMessage(message, setInfoMessage)
   }
 
   return (
-    <>
-      <h2 className={styles.actionTitle}>Crear Post</h2>
-      <form className={styles.formCreate} onSubmit={handleSubmit}>
-        <div>
-          <label className={utils.inputRequired} htmlFor="locale">
-            Idioma
-          </label>
-          <select
-            className={styles.input}
-            name="locale"
-            id="locale"
-            value={formData.locale}
-            onChange={(ev) => {
-              setFormData((prev) => ({ ...prev, locale: ev.target.value }))
-            }}
-          >
-            <option value="es">Español</option>
-            <option value="en">Inglés</option>
-          </select>
-        </div>
-        <div>
-          <label className={utils.inputRequired} htmlFor="title">
-            Título
-          </label>
-          <input
-            type="text"
-            name="title"
-            id="title"
-            value={formData.title}
-            onChange={(ev) =>
-              setFormData((value) => ({ ...value, title: ev.target.value }))
-            }
-            className={styles.input}
-          ></input>
-        </div>
-        <div>
-          <label className={utils.inputRequired} htmlFor="description">
-            Descripción
-          </label>
-          <textarea
-            type="text"
-            name="description"
-            id="description"
-            value={formData.description}
-            onChange={(ev) =>
-              setFormData((value) => ({
-                ...value,
-                description: ev.target.value,
-              }))
-            }
-            className={styles.input}
-          ></textarea>
-        </div>
-        <div>
-          <label htmlFor="image">Imagen de portada</label>
-          <input
-            type="text"
-            placeholder="Url de la imagen"
-            name="image"
-            id="image"
-            value={formData.image}
-            onChange={(ev) =>
-              setFormData((value) => ({ ...value, image: ev.target.value }))
-            }
-            className={styles.input}
-          ></input>
-        </div>
-        <div>
-          <label className={utils.inputRequired}>Contenido</label>
-          <div>
-            <div ref={quillRef} />
-          </div>
-        </div>
+    <form onSubmit={handleSubmit}>
+      {errorMessage && <Message type="error" message={errorMessage} />}
+      {infoMessage && <Message type="info" message={infoMessage} />}
+      <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+        <PostForm
+          title="Post en español"
+          formData={formData}
+          prefix="sp"
+          quillRef={quillRef}
+          setFormData={setFormData}
+        />
+        <PostForm
+          title="Post en inglés"
+          formData={englishFormData}
+          prefix="en"
+          quillRef={englishQuillRef}
+          setFormData={setEnglishFormData}
+        />
+      </div>
+      <div
+        style={{
+          width: '25%',
+          marginInline: 'auto',
+          marginBottom: '1rem',
+        }}
+      >
         <div>
           <label htmlFor="country">País</label>
           <select
@@ -174,11 +276,11 @@ function PostCreator({ setVisiblePosts, data: configData }) {
             name="country"
             className={styles.input}
             onChange={(ev) =>
-              setFormData((prev) => ({ ...prev, countryId: ev.target.value }))
+              setPostData((prev) => ({ ...prev, countryId: ev.target.value }))
             }
           >
             <option value=""> </option>
-            {countries.map((country) => (
+            {configData.countries.map((country) => (
               <option value={country.id} key={country.id}>
                 {country.name}
               </option>
@@ -192,13 +294,13 @@ function PostCreator({ setVisiblePosts, data: configData }) {
             name="city"
             className={styles.input}
             onChange={(ev) =>
-              setFormData((prev) => ({ ...prev, cityId: ev.target.value }))
+              setPostData((prev) => ({ ...prev, cityId: ev.target.value }))
             }
           >
             <option value=""> </option>
-            {cities.map(
+            {configData.cities.map(
               (city) =>
-                formData.countryId === city.country.id.toString() && (
+                postData.countryId === city.country.id.toString() && (
                   <option value={city.id} key={city.id}>
                     {city.name}
                   </option>
@@ -213,11 +315,11 @@ function PostCreator({ setVisiblePosts, data: configData }) {
             name="category"
             className={styles.input}
             onChange={(ev) =>
-              setFormData((prev) => ({ ...prev, categoryId: ev.target.value }))
+              setPostData((prev) => ({ ...prev, categoryId: ev.target.value }))
             }
           >
             <option value=""> </option>
-            {categories.map((category) => (
+            {configData.categories.map((category) => (
               <option value={category.id} key={category.id}>
                 {category.name}
               </option>
@@ -231,16 +333,16 @@ function PostCreator({ setVisiblePosts, data: configData }) {
             name="subCategory"
             className={styles.input}
             onChange={(ev) =>
-              setFormData((prev) => ({
+              setPostData((prev) => ({
                 ...prev,
                 subCategoryId: ev.target.value,
               }))
             }
           >
             <option value=""> </option>
-            {subCategories.map(
+            {configData.subCategories.map(
               (subCategory) =>
-                formData.categoryId === subCategory.category.id.toString() && (
+                postData.categoryId === subCategory.category.id.toString() && (
                   <option value={subCategory.id} key={subCategory.id}>
                     {subCategory.name}
                   </option>
@@ -248,35 +350,19 @@ function PostCreator({ setVisiblePosts, data: configData }) {
             )}
           </select>
         </div>
-        <div>
-          <label htmlFor="active">Visible</label>
-          <input
-            style={{ width: '25px' }}
-            type="checkbox"
-            name="active"
-            id="active"
-            value={formData.active}
-            defaultChecked
-            onChange={() =>
-              setFormData((value) => ({ ...value, active: !active }))
-            }
-            className={styles.input}
-          ></input>
-        </div>
-        <button className={styles.submitButton} type="submit">
-          {isLoading ? 'Creando...' : 'Crear'}
-        </button>
-        {errorMessage && <Message type="error" message={errorMessage} />}
-        {infoMessage && <Message type="info" message={infoMessage} />}
-      </form>
-    </>
+      </div>
+      <button className={styles.submitButton} type="submit">
+        {isLoading ? 'Creando...' : 'Crear'}
+      </button>
+    </form>
   )
 }
 
-export default function Dashboard({ authorized, data }) {
-  const { posts } = data
+export default function Dashboard({ data }) {
+  console.log(data)
+  const { postEntries } = data
   const [view, setView] = useState({ read: true, create: false })
-  const [visiblePosts, setVisiblePosts] = useState(posts)
+  const [visiblePosts, setVisiblePosts] = useState(postEntries)
 
   return (
     <AdminLayout>
@@ -310,6 +396,7 @@ export default function Dashboard({ authorized, data }) {
 
 export async function getStaticProps() {
   const posts = await prisma.post.findMany()
+  const postEntries = await prisma.postEntry.findMany()
   const categories = await prisma.category.findMany()
   const subCategories = await prisma.subCategory.findMany({
     include: {
@@ -323,11 +410,17 @@ export async function getStaticProps() {
     },
   })
 
-  const data = { posts, categories, subCategories, countries, cities }
+  const data = {
+    posts,
+    postEntries,
+    categories,
+    subCategories,
+    countries,
+    cities,
+  }
 
   return {
     props: {
-      authorized: true,
       data: JSON.parse(JSON.stringify(data)),
     },
   }
