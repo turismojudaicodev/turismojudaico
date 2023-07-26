@@ -122,12 +122,12 @@ function Form({
   const handleCategorySubmit = async (ev) => {
     ev.preventDefault()
     const category = Object.fromEntries(new FormData(ev.target))
-    console.log(category)
     const response = await postContent('/api/content/categories', category)
     const { message, error, data } = response
     if (error) return setTimedMessage(error, setErrorMessage)
     setVisibileCategories((prev) => prev.concat(data))
     setTimedMessage(message, setInfoMessage)
+    document.getElementById('category-form').reset()
   }
 
   const handleSubCategorySubmit = async (ev) => {
@@ -141,12 +141,17 @@ function Form({
     if (error) return setTimedMessage(error, setErrorMessage)
     setVisibleSubCategories((prev) => prev.concat(data))
     setTimedMessage(message, setInfoMessage)
+    document.getElementById('subCategory-form').reset()
   }
 
   return (
     <div>
       <div style={{ display: 'flex', gap: '1rem' }}>
-        <form className={styles.formCreate} onSubmit={handleCategorySubmit}>
+        <form
+          className={styles.formCreate}
+          onSubmit={handleCategorySubmit}
+          id="category-form"
+        >
           <div>
             <label htmlFor="category">Categoría</label>
             <input
@@ -171,7 +176,11 @@ function Form({
             Agregar
           </button>
         </form>
-        <form className={styles.formCreate} onSubmit={handleSubCategorySubmit}>
+        <form
+          className={styles.formCreate}
+          onSubmit={handleSubCategorySubmit}
+          id="subCategory-form"
+        >
           <div>
             <label htmlFor="subCategory">Sub Categoría</label>
             <input
