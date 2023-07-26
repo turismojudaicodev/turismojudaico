@@ -27,10 +27,10 @@ const DASHBOARD_SECTIONS = [
     name: 'City Tours',
     url: '/tours',
   },
-  {
-    name: 'Quienes Somos',
-    url: '/about',
-  },
+  // {
+  //   name: 'Quienes Somos',
+  //   url: '/about',
+  // },
   {
     name: 'Logos Comunitarios',
     url: '/partners',
