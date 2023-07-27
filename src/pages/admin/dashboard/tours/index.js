@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { useQuill } from 'react-quilljs'
 // Local
-import { postContent } from 'lib/api'
+import { postContent, updateUniqueContent } from 'lib/api'
 import { setTimedMessage } from 'helpers'
 import { prisma } from 'lib/prisma'
 import { uploadImage } from 'lib/cloudinary'
@@ -17,12 +17,44 @@ import styles from '@/styles/Dashboard.module.css'
 import 'quill/dist/quill.snow.css' // quill snow theme
 import DashboardTable from '@/components/DashboardTable'
 
-function ExistingTours({ tours, setVisisbleTours }) {
+function ExistingTours({ tours, tourEntries, setVisisbleTours }) {
+  const initialFeaturedTours = tours.filter((tour) => tour.featured === true)
+  console.log('initial featured tours', initialFeaturedTours)
+  const [featuredTours, setFeaturedTours] = useState(initialFeaturedTours)
+
+  const handleUpdateFeatured = (ev) => {
+    if (featuredTours.includes(ev.target.value)) {
+      setFeaturedTours((prev) => {
+        return prev.filter((el) => el !== ev.target.value)
+      })
+      return
+    }
+    if (featuredTours.length === 3) {
+      alert('Puede seleccionar máximo 3 tours para destacar')
+      ev.preventDefault()
+      return
+    }
+    setFeaturedTours((prev) => [...prev, ev.target.value])
+  }
+
+  const handleSubmitFeatured = async () => {
+    console.log(featuredTours)
+    const response = await fetch('/api/content/tours/featured', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(featuredTours),
+    })
+    const data = await response.json()
+    console.log(data)
+  }
+
   return (
     <>
       <h2 className={styles.actionTitle}>Tours</h2>
       <DashboardTable
-        table={tours}
+        table={tourEntries}
         setVisibleTable={setVisisbleTours}
         idAlias="tourId"
       />
@@ -47,7 +79,7 @@ function ExistingTours({ tours, setVisisbleTours }) {
           </tr>
         </thead>
         <tbody>
-          {tours
+          {tourEntries
             .filter((tour) => tour.locale === 'es')
             .map((tour) => (
               <tr key={tour.id}>
@@ -58,12 +90,24 @@ function ExistingTours({ tours, setVisisbleTours }) {
                   {tour.title}
                 </td>
                 <td style={{ border: '1px solid #aaa', padding: '.25em' }}>
-                  <input type="checkbox" id={`tour_${tour.id}`} />
+                  <input
+                    type="checkbox"
+                    value={tour.tourId}
+                    id={`tour_${tour.id}`}
+                    onChange={handleUpdateFeatured}
+                    defaultChecked={tour.Tour.featured}
+                  />
                 </td>
               </tr>
             ))}
         </tbody>
       </table>
+      <button
+        onClick={handleSubmitFeatured}
+        style={{ padding: '.25em', marginTop: '.5rem' }}
+      >
+        Actualizar destacados
+      </button>
     </>
   )
 }
@@ -419,7 +463,11 @@ export default function Dashboard({ data }) {
       </button>
 
       {view.read && (
-        <ExistingTours tours={visibleTours} setVisibleTours={setVisibleTours} />
+        <ExistingTours
+          tours={data.tours}
+          tourEntries={visibleTours}
+          setVisibleTours={setVisibleTours}
+        />
       )}
       {view.create && (
         <TourCreator setVisibleTours={setVisibleTours} data={data} />
@@ -434,7 +482,11 @@ export async function getStaticProps() {
       posts: true,
     },
   })
-  const tourEntries = await prisma.tourEntry.findMany()
+  const tourEntries = await prisma.tourEntry.findMany({
+    include: {
+      Tour: true,
+    },
+  })
   const posts = await prisma.post.findMany()
   const countries = await prisma.country.findMany()
 

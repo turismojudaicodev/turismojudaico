@@ -54,7 +54,10 @@ const SUPPORTERS = [
 
 export async function getStaticProps({ locale }) {
   const tours = await prisma.tourEntry.findMany({
-    where: { active: true, locale },
+    include: {
+      Tour: true,
+    },
+    where: { active: true, locale, Tour: { featured: true } },
   })
   const staticImages = await prisma.staticImage.findMany({
     where: { section: 'carousel' },
