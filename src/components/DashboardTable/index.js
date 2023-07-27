@@ -17,7 +17,7 @@ import dashboardStyles from '@/styles/Dashboard.module.css'
 
 export default function DashboardTable({
   table,
-  setVisibleTable,
+  setVisibleTable = null,
   extraCols = {},
   idAlias = null,
 }) {
@@ -35,7 +35,8 @@ export default function DashboardTable({
     const { message, error } = result
     if (error) return setTimedMessage(error, setErrorMessage)
     setTimedMessage(message, setInfoMessage)
-    setVisibleTable((prev) => prev.filter((item) => item.id !== itemId))
+    if (setVisibleTable)
+      setVisibleTable((prev) => prev.filter((item) => item.id !== itemId))
   }
 
   return (
