@@ -1,5 +1,5 @@
 // NPM
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useQuill } from 'react-quilljs'
 // Local
 import { postContent, updateUniqueContent } from 'lib/api'
@@ -10,44 +10,58 @@ import { uploadImage } from 'lib/cloudinary'
 import AdminLayout from '@/components/AdminLayout'
 import Message from '@/components/Message'
 import Image from 'next/image'
+import DashboardTable from '@/components/DashboardTable'
+import Notification from '@/components/Notification'
 import DeleteIcon from 'public/icons/delete.svg'
 // Styles
 import utils from '@/styles/utils.module.css'
 import styles from '@/styles/Dashboard.module.css'
 import 'quill/dist/quill.snow.css' // quill snow theme
-import DashboardTable from '@/components/DashboardTable'
 
 function ExistingTours({ tours, tourEntries, setVisisbleTours }) {
-  const initialFeaturedTours = tours.filter((tour) => tour.featured === true)
-  console.log('initial featured tours', initialFeaturedTours)
-  const [featuredTours, setFeaturedTours] = useState(initialFeaturedTours)
+  const [isLoading, setIsLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
+  const [infoMessage, setInfoMessage] = useState('')
+  const [featuredToursCounter, setFeaturedToursCounter] = useState(0)
 
-  const handleUpdateFeatured = (ev) => {
-    if (featuredTours.includes(ev.target.value)) {
-      setFeaturedTours((prev) => {
-        return prev.filter((el) => el !== ev.target.value)
-      })
-      return
-    }
-    if (featuredTours.length === 3) {
+  useEffect(() => {
+    const initialFeatured = tours.filter(
+      (tour) => tour.featured === true
+    ).length
+    setFeaturedToursCounter(initialFeatured)
+  }, [])
+
+  const handleUpdateFeatured = async (ev) => {
+    setInfoMessage('')
+    setErrorMessage('')
+
+    if (ev.target.checked && featuredToursCounter === 3) {
       alert('Puede seleccionar máximo 3 tours para destacar')
-      ev.preventDefault()
+      ev.target.checked = false
       return
     }
-    setFeaturedTours((prev) => [...prev, ev.target.value])
-  }
 
-  const handleSubmitFeatured = async () => {
-    console.log(featuredTours)
-    const response = await fetch('/api/content/tours/featured', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(featuredTours),
-    })
-    const data = await response.json()
-    console.log(data)
+    setIsLoading(true)
+    if (!ev.target.checked) {
+      setFeaturedToursCounter((value) => value - 1)
+      const { message, error } = await updateUniqueContent(
+        '/api/content/tours/featured',
+        ev.target.value,
+        { featured: false }
+      )
+      if (error) setErrorMessage(error)
+      if (message) setInfoMessage(message)
+    } else {
+      setFeaturedToursCounter((value) => value + 1)
+      const { message, error } = await updateUniqueContent(
+        '/api/content/tours/featured',
+        ev.target.value,
+        { featured: true }
+      )
+      if (error) setErrorMessage(error)
+      if (message) setInfoMessage(message)
+    }
+    setIsLoading(false)
   }
 
   return (
@@ -102,12 +116,19 @@ function ExistingTours({ tours, tourEntries, setVisisbleTours }) {
             ))}
         </tbody>
       </table>
-      <button
-        onClick={handleSubmitFeatured}
-        style={{ padding: '.25em', marginTop: '.5rem' }}
-      >
-        Actualizar destacados
-      </button>
+      {errorMessage && (
+        <Notification
+          type="error"
+          notification={errorMessage}
+          setNotification={setErrorMessage}
+        />
+      )}
+      {infoMessage && (
+        <Notification
+          notification={infoMessage}
+          setNotification={setInfoMessage}
+        />
+      )}
     </>
   )
 }

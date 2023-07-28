@@ -1,0 +1,48 @@
+.notification {
+  position: absolute;
+  top: 2rem;
+  left: 50%;
+  translate: -50% 0;
+  background-color: #d2e6fa;
+  color: #287aff;
+  padding: 1em;
+  border-radius: 5px;
+  border: 1px solid;
+  width: fit-content;
+  box-shadow: 0 2px 15px -2px lightgray;
+  animation: fadeIn .3s;
+}
+
+.notificationError {
+  composes: notification;
+  background-color: rgb(255, 210, 210);
+  color: rgb(209, 35, 35);
+}
+
+.button {
+  padding: .25em;
+  border-radius: 5px;
+  color: #287aff;
+  background-color: #d2e6fa;
+  border: 1px solid;
+  margin-left: 1em;
+  cursor: pointer;
+}
+
+.button:hover {
+  filter: brightness(95%);
+}
+
+.buttonError {
+  composes: button;
+  background-color: rgb(255, 210, 210);
+  color: rgb(209, 35, 35);
+}
+
+@keyframes fadeIn {
+  from {
+    margin-top: -3rem;
+  } to {
+    margin-top: 0;
+  }
+}
