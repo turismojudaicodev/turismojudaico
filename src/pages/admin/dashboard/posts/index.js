@@ -3,18 +3,18 @@ import { useState } from 'react'
 import { useQuill } from 'react-quilljs'
 // Local
 import { postContent } from 'lib/api'
-import { setTimedMessage } from 'helpers'
 import { prisma } from 'lib/prisma'
 import { uploadImage } from 'lib/cloudinary'
 // Components
 import AdminLayout from '@/components/AdminLayout'
-import Message from '@/components/Message'
+import Notification from '@/components/Notification'
 import Image from 'next/image'
 // Styles
 import utils from '@/styles/utils.module.css'
 import styles from '@/styles/Dashboard.module.css'
 import 'quill/dist/quill.snow.css' // quill snow theme
 import DashboardTable from '@/components/DashboardTable'
+import AdminButtonLoader from '@/components/AdminButtonLoader'
 
 function ExistingPosts({ posts, setVisiblePosts }) {
   return (
@@ -225,8 +225,10 @@ function PostCreator({ setVisiblePosts, data: configData }) {
     })
     const { message, error } = response
     setIsLoading(false)
-    if (error) return setTimedMessage(error, setErrorMessage)
-
+    if (error) {
+      setErrorMessage(error)
+      return
+    }
     setFormData(FORMDATA_DEFAULT)
     setEnglishFormData({ ...FORMDATA_DEFAULT, locale: 'en' })
     quill.root.innerHTML = ''
@@ -239,13 +241,24 @@ function PostCreator({ setVisiblePosts, data: configData }) {
     })
     // setVisiblePosts((prev) => [...prev, data])
 
-    setTimedMessage(message, setInfoMessage)
+    setInfoMessage(message)
   }
 
   return (
     <form onSubmit={handleSubmit}>
-      {errorMessage && <Message type="error" message={errorMessage} />}
-      {infoMessage && <Message type="info" message={infoMessage} />}
+      {errorMessage && (
+        <Notification
+          type="error"
+          notification={errorMessage}
+          setNotification={setErrorMessage}
+        />
+      )}
+      {infoMessage && (
+        <Notification
+          notification={infoMessage}
+          setInfoMessage={setInfoMessage}
+        />
+      )}
       <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
         <PostForm
           title="Post en español"
@@ -351,15 +364,14 @@ function PostCreator({ setVisiblePosts, data: configData }) {
           </select>
         </div>
       </div>
-      <button className={styles.submitButton} type="submit">
-        {isLoading ? 'Creando...' : 'Crear'}
-      </button>
+      <AdminButtonLoader attrs={{ type: 'submit' }} isLoading={isLoading}>
+        Crear
+      </AdminButtonLoader>
     </form>
   )
 }
 
 export default function Dashboard({ data }) {
-  console.log(data)
   const { postEntries } = data
   const [view, setView] = useState({ read: true, create: false })
   const [visiblePosts, setVisiblePosts] = useState(postEntries)

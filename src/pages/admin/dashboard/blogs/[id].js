@@ -4,10 +4,9 @@ import { useQuill } from 'react-quilljs'
 // Local
 import { prisma } from 'lib/prisma'
 import { updateUniqueContent } from 'lib/api'
-import { setTimedMessage } from 'helpers'
 // Components
 import AdminLayout from '@/components/AdminLayout'
-import Message from '@/components/Message'
+import Notification from '@/components/Notification'
 import AdminButtonLoader from '@/components/AdminButtonLoader'
 // Styles
 import utils from '@/styles/utils.module.css'
@@ -209,6 +208,8 @@ export default function Blog({ blogId, entries }) {
   const handleUpdate = async (ev) => {
     ev.preventDefault()
     setIsLoading(true)
+    setInfoMessage('')
+    setErrorMessage('')
 
     const spBlog = {
       ...spanishFormData,
@@ -261,15 +262,29 @@ export default function Blog({ blogId, entries }) {
 
     setIsLoading(false)
     const { message, error } = res
-    if (error) return setTimedMessage(error, setErrorMessage)
-    setTimedMessage(message, setInfoMessage)
+    if (error) {
+      setErrorMessage(error)
+      return
+    }
+    setInfoMessage(message)
   }
 
   return (
     <AdminLayout>
       <h2 className={styles.actionTitle}>Editar Blog</h2>
-      {errorMessage && <Message type="error" message={errorMessage} />}
-      {infoMessage && <Message type="info" message={infoMessage} />}
+      {errorMessage && (
+        <Notification
+          notification={errorMessage}
+          setNotification={setErrorMessage}
+          type="error"
+        />
+      )}
+      {infoMessage && (
+        <Notification
+          notification={infoMessage}
+          setNotification={setInfoMessage}
+        />
+      )}
       <form onSubmit={handleUpdate}>
         <div style={{ display: 'flex', gap: '1rem' }}>
           <BlogForm

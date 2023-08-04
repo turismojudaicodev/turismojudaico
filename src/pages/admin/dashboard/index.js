@@ -5,12 +5,12 @@ import { prisma } from 'lib/prisma'
 // Components
 import AdminLayout from '@/components/AdminLayout'
 import Image from 'next/image'
+import Notification from '@/components/Notification'
 // Styles
 import utils from '@/styles/utils.module.css'
 import styles from '@/styles/DashboardIndex.module.css'
 import dashboardStyles from '@/styles/Dashboard.module.css'
 import { deleteContent, postContent } from 'lib/api'
-import Message from '@/components/Message'
 
 export async function getStaticProps() {
   const currentImages = await prisma.staticImage.findMany({
@@ -99,8 +99,19 @@ export default function Dashboard({ currentImages }) {
 
   return (
     <AdminLayout>
-      {errorMessage && <Message type="error" message={errorMessage} />}
-      {infoMessage && <Message type="info" message={infoMessage} />}
+      {errorMessage && (
+        <Notification
+          notification={errorMessage}
+          type="error"
+          setNotification={setErrorMessage}
+        />
+      )}
+      {infoMessage && (
+        <Notification
+          notification={infoMessage}
+          setNotification={setInfoMessage}
+        />
+      )}
       <h1 className={utils.bigTitle}>Inicio</h1>
       <div>
         <h2>Imágenes del slider</h2>

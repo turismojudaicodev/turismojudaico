@@ -4,10 +4,10 @@ import { useQuill } from 'react-quilljs'
 // Local
 import { prisma } from 'lib/prisma'
 import { updateUniqueContent } from 'lib/api'
-import { setTimedMessage } from 'helpers'
 // Components
 import AdminLayout from '@/components/AdminLayout'
-import Message from '@/components/Message'
+import AdminButtonLoader from '@/components/AdminButtonLoader'
+import Notification from '@/components/Notification'
 // Styles
 import utils from '@/styles/utils.module.css'
 import styles from '@/styles/Dashboard.module.css'
@@ -26,6 +26,7 @@ export async function getStaticPaths() {
 export async function getStaticProps(context) {
   const postId = Number(context.params.id)
   const post = await prisma.post.findUnique({ where: { id: postId } })
+  const postEntries = await prisma.postEntry.findMany({ where: { postId } })
   const categories = await prisma.category.findMany()
   const subCategories = await prisma.subCategory.findMany({
     include: {
@@ -38,7 +39,14 @@ export async function getStaticProps(context) {
       country: true,
     },
   })
-  const data = { post, categories, subCategories, countries, cities }
+  const data = {
+    post,
+    postEntries,
+    categories,
+    subCategories,
+    countries,
+    cities,
+  }
   return {
     props: {
       data: JSON.parse(JSON.stringify(data)),
@@ -46,10 +54,139 @@ export async function getStaticProps(context) {
   }
 }
 
-export default function Post({ data }) {
-  const { post, countries, cities, categories, subCategories } = data
+function PostForm({ title, prefix, formData, setFormData, quill, quillRef }) {
+  const [previewSource, setPreviewSource] = useState('')
+  const [fileInput, setFileInput] = useState('')
 
-  let { quill, quillRef } = useQuill({
+  const handleImageChange = (ev) => {
+    const file = ev.target.files[0]
+    if (!file) {
+      setPreviewSource('')
+      setFileInput('')
+      return
+    }
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onloadend = () => {
+      setPreviewSource(reader.result)
+      setFormData((prev) => ({ ...prev, image: reader.result }))
+    }
+    setFileInput(ev.target.value)
+  }
+
+  return (
+    <div>
+      <h3 className={styles.languageTitle}>{title}</h3>
+      <div className={styles.formCreate}>
+        <div>
+          <label className={utils.inputRequired} htmlFor={`${prefix}_title`}>
+            Título
+          </label>
+          <input
+            type="text"
+            name={`${prefix}_title`}
+            id={`${prefix}_title`}
+            value={formData.title}
+            onChange={(ev) =>
+              setFormData((value) => ({ ...value, title: ev.target.value }))
+            }
+            className={styles.input}
+          ></input>
+        </div>
+        <div>
+          <label
+            className={utils.inputRequired}
+            htmlFor={`${prefix}_description`}
+          >
+            Descripción
+          </label>
+          <textarea
+            type="text"
+            name={`${prefix}_description`}
+            id={`${prefix}_description`}
+            value={formData.description}
+            onChange={(ev) =>
+              setFormData((value) => ({
+                ...value,
+                description: ev.target.value,
+              }))
+            }
+            className={styles.input}
+          ></textarea>
+        </div>
+        <div>
+          <label htmlFor={`${prefix}_image`}>Imagen de portada</label>
+          <input
+            type="file"
+            name={`${prefix}_image`}
+            id={`${prefix}_image`}
+            onChange={handleImageChange}
+            value={fileInput}
+          />
+          {previewSource && (
+            <Image
+              src={previewSource}
+              alt="Imagen de portada"
+              width={200}
+              height={200}
+              style={{ marginTop: '.5rem' }}
+            />
+          )}
+        </div>
+        <div>
+          <label className={utils.inputRequired}>Contenido</label>
+          <div>
+            <div ref={quillRef} />
+          </div>
+        </div>
+        <div>
+          <label htmlFor={`${prefix}_active`}>Visible</label>
+          <input
+            style={{ width: '25px' }}
+            type="checkbox"
+            name={`${prefix}_active`}
+            id={`${prefix}_active`}
+            value={formData.active}
+            defaultChecked
+            onChange={() =>
+              setFormData((value) => ({ ...value, active: !value.active }))
+            }
+            className={styles.input}
+          ></input>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default function Post({ data }) {
+  const { postEntries, post } = data
+  const postId = post.id
+  const englishPost = postEntries.find((post) => post.locale === 'en')
+  const spanishPost = postEntries.find((post) => post.locale === 'es')
+
+  const [errorMessage, setErrorMessage] = useState('')
+  const [infoMessage, setInfoMessage] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+
+  const [spanishFormData, setSpanishFormData] = useState({
+    title: spanishPost.title,
+    description: spanishPost.description,
+    image: spanishPost.image,
+    active: spanishPost.active,
+    locale: spanishPost.locale,
+    content: spanishPost.content,
+  })
+  const [englishFormData, setEnglishFormData] = useState({
+    title: englishPost.title,
+    description: englishPost.description,
+    image: englishPost.image,
+    active: englishPost.active,
+    locale: englishPost.locale,
+    content: englishPost.content,
+  })
+
+  let { quill: spanishQuill, quillRef: spanishQuillRef } = useQuill({
     theme: 'snow',
     modules: {
       toolbar: [
@@ -62,187 +199,121 @@ export default function Post({ data }) {
       ],
     },
   })
-  const [formData, setFormData] = useState({
-    title: post.title,
-    description: post.description,
-    image: post.image,
-  })
-  const [errorMessage, setErrorMessage] = useState('')
-  const [infoMessage, setInfoMessage] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
 
-  useEffect(() => {
-    if (quill) {
-      quill.clipboard.dangerouslyPasteHTML(post.content)
-    }
-  }, [quill])
+  let { quill: englishQuill, quillRef: englishQuillRef } = useQuill({
+    theme: 'snow',
+    modules: {
+      toolbar: [
+        ['bold', 'italic', 'underline', 'strike'],
+
+        [{ list: 'ordered' }, { list: 'bullet' }],
+
+        [{ header: [1, 2, 3, 4, 5, 6, false] }],
+        ['link', 'image', 'video'],
+      ],
+    },
+  })
 
   const handleUpdate = async (ev) => {
     ev.preventDefault()
     setIsLoading(true)
+    setInfoMessage('')
+    setErrorMessage('')
+
+    const spPost = {
+      ...spanishFormData,
+      content: spanishQuill.root.innerHTML,
+      id: spanishPost.id,
+    }
+
+    const enPost = {
+      ...englishFormData,
+      content: englishQuill.root.innerHTML,
+      id: englishPost.id,
+    }
+
+    const currentFormData = new FormData(ev.target)
+    const spImage = currentFormData.get('sp_image')
+    const enImage = currentFormData.get('en_image')
+
+    if (spImage.size > 0) {
+      const fd = new FormData()
+      fd.append('file', spImage)
+      fd.append('upload_preset', 'tj_local')
+      const data = await fetch(
+        'https://api.cloudinary.com/v1_1/paiput/image/upload',
+        {
+          method: 'POST',
+          body: fd,
+        }
+      ).then((r) => r.json())
+      spPost.image = data.secure_url
+    }
+    if (enImage.size > 0) {
+      const fd = new FormData()
+      fd.append('file', enImage)
+      fd.append('upload_preset', 'tj_local')
+      const data = await fetch(
+        'https://api.cloudinary.com/v1_1/paiput/image/upload',
+        {
+          method: 'POST',
+          body: fd,
+        }
+      ).then((r) => r.json())
+      enPost.image = data.secure_url
+    }
 
     const res = await updateUniqueContent(
       '/api/content/posts',
-      post.id.toString(),
-      {
-        ...formData,
-        content: quill.root.innerHTML,
-      }
+      postId.toString(),
+      { spPost, enPost }
     )
-    const { data, message, error } = res
+
     setIsLoading(false)
-    if (error) return setTimedMessage(error, setErrorMessage)
-    setTimedMessage(message, setInfoMessage)
-    console.log(data)
+    const { message, error } = res
+    if (error) {
+      setErrorMessage(error)
+      return
+    }
+    setInfoMessage(message)
   }
 
   return (
     <AdminLayout>
-      <h2 className={styles.actionTitle}>Editar Post</h2>
-      <form className={styles.formCreate} onSubmit={handleUpdate}>
-        <div>
-          <label className={utils.inputRequired} htmlFor="title">
-            Título
-          </label>
-          <input
-            type="text"
-            name="title"
-            id="title"
-            value={formData.title}
-            onChange={(ev) =>
-              setFormData((value) => ({ ...value, title: ev.target.value }))
-            }
-            className={styles.input}
-          ></input>
+      <h2 className={styles.actionTitle}>Editar Post {postId}</h2>
+      {errorMessage && (
+        <Notification
+          notification={errorMessage}
+          setNotification={setErrorMessage}
+          type="error"
+        />
+      )}
+      {infoMessage && (
+        <Notification
+          notification={infoMessage}
+          setNotification={setInfoMessage}
+        />
+      )}
+      <form onSubmit={handleUpdate}>
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <PostForm
+            title="Versión en español"
+            prefix="sp"
+            formData={spanishFormData}
+            setFormData={setSpanishFormData}
+            quill={spanishQuill}
+            quillRef={spanishQuillRef}
+          />
+          <PostForm
+            title="Versión en inglés"
+            prefix="en"
+            formData={englishFormData}
+            setFormData={setEnglishFormData}
+            quill={englishQuill}
+            quillRef={englishQuillRef}
+          />
         </div>
-        <div>
-          <label className={utils.inputRequired} htmlFor="description">
-            Descripción
-          </label>
-          <textarea
-            type="text"
-            name="description"
-            id="description"
-            value={formData.description}
-            onChange={(ev) =>
-              setFormData((value) => ({
-                ...value,
-                description: ev.target.value,
-              }))
-            }
-            className={styles.input}
-          ></textarea>
-        </div>
-        <div>
-          <label htmlFor="image">Imagen de portada</label>
-          <input
-            type="text"
-            placeholder="Url de la imagen"
-            name="image"
-            id="image"
-            value={formData.image || ''}
-            onChange={(ev) =>
-              setFormData((value) => ({ ...value, image: ev.target.value }))
-            }
-            className={styles.input}
-          ></input>
-        </div>
-        <div>
-          <label className={utils.inputRequired}>Contenido</label>
-          <div>
-            <div ref={quillRef} />
-          </div>
-        </div>
-        <div>
-          <label htmlFor="country">País</label>
-          <select
-            id="country"
-            name="country"
-            className={styles.input}
-            onChange={(ev) =>
-              setFormData((prev) => ({ ...prev, countryId: ev.target.value }))
-            }
-            defaultValue={post.countryId}
-          >
-            <option value=""> </option>
-            {countries.map((country) => (
-              <option value={country.id} key={country.id}>
-                {country.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="city">Ciudad</label>
-          <select
-            id="city"
-            name="city"
-            className={styles.input}
-            onChange={(ev) =>
-              setFormData((prev) => ({ ...prev, cityId: ev.target.value }))
-            }
-            defaultValue={post.cityId}
-          >
-            <option value=""> </option>
-            {cities.map(
-              (city) =>
-                formData.countryId === city.country.id.toString() && (
-                  <option value={city.id} key={city.id}>
-                    {city.name}
-                  </option>
-                )
-            )}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="category">Categoría</label>
-          <select
-            id="category"
-            name="category"
-            className={styles.input}
-            onChange={(ev) =>
-              setFormData((prev) => ({ ...prev, categoryId: ev.target.value }))
-            }
-            defaultValue={post.categoryId}
-          >
-            <option value=""> </option>
-            {categories.map((category) => (
-              <option value={category.id} key={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="subCategory">Sub Categoría</label>
-          <select
-            id="subCategory"
-            name="subCategory"
-            className={styles.input}
-            onChange={(ev) =>
-              setFormData((prev) => ({
-                ...prev,
-                subCategoryId: ev.target.value,
-              }))
-            }
-            defaultValue={post.subCategoryId}
-          >
-            <option value=""> </option>
-            {subCategories.map(
-              (subCategory) =>
-                formData.categoryId === subCategory.category.id.toString() && (
-                  <option value={subCategory.id} key={subCategory.id}>
-                    {subCategory.name}
-                  </option>
-                )
-            )}
-          </select>
-        </div>
-        <button className={styles.submitButton} type="submit">
-          {isLoading ? 'Cargando...' : 'Confirmar'}
-        </button>
-        {errorMessage && <Message type="error" message={errorMessage} />}
-        {infoMessage && <Message type="info" message={infoMessage} />}
+        <AdminButtonLoader isLoading={isLoading}>Confirmar</AdminButtonLoader>
       </form>
     </AdminLayout>
   )

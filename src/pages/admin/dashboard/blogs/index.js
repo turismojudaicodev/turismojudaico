@@ -4,12 +4,11 @@ import { useQuill } from 'react-quilljs'
 // Local
 import { postContent } from 'lib/api'
 import { prisma } from 'lib/prisma'
-import { setTimedMessage } from 'helpers'
 // Components
 import Image from 'next/image'
 import AdminLayout from '@/components/AdminLayout'
-import Message from '@/components/Message'
 import DashboardTable from '@/components/DashboardTable'
+import Notification from '@/components/Notification'
 // Styles
 import utils from '@/styles/utils.module.css'
 import styles from '@/styles/Dashboard.module.css'
@@ -188,6 +187,8 @@ function BlogCreator({ setVisisbleBlogs }) {
   const handleSubmit = async (ev) => {
     ev.preventDefault()
     setIsLoading(true)
+    setInfoMessage('')
+    setErrorMessage('')
     const spanishHtmlContent = quill.root.innerHTML
     const englishHtmlContent = englishQuill.root.innerHTML
     const spBlog = {
@@ -236,24 +237,38 @@ function BlogCreator({ setVisisbleBlogs }) {
       enBlog,
     })
 
-    const { data, message, error } = response
+    const { message, error } = response
 
     setIsLoading(false)
 
-    if (error) return setTimedMessage(error, setErrorMessage)
+    if (error) {
+      setErrorMessage(error)
+      return
+    }
 
     setVisisbleBlogs((prev) => [...prev, spBlog, enBlog])
     setFormData(FORMDATA_DEFAULT)
     setEnglishFormData({ ...FORMDATA_DEFAULT, locale: 'en' })
     quill.root.innerHTML = ''
     englishQuill.root.innerHTML = ''
-    setTimedMessage(message, setInfoMessage)
+    setInfoMessage(message)
   }
 
   return (
     <form onSubmit={handleSubmit}>
-      {infoMessage && <Message message={infoMessage} type="info" />}
-      {errorMessage && <Message message={errorMessage} type="error" />}
+      {infoMessage && (
+        <Notification
+          notification={infoMessage}
+          setNotification={setInfoMessage}
+        />
+      )}
+      {errorMessage && (
+        <Notification
+          notification={errorMessage}
+          setNotification={setErrorMessage}
+          type="error"
+        />
+      )}
       <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
         <BlogForm
           title="Versión en español"

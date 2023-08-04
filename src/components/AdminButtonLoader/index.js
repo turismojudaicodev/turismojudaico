@@ -1,5 +1,6 @@
-import styles from '@/styles/Dashboard.module.css'
-import comp from './AdminButtonLoader.module.css'
+import Image from 'next/image'
+import styles from './AdminButtonLoader.module.css'
+import loadingIcon from 'public/icons/loading.svg'
 
 export default function AdminButtonLoader({
   children,
@@ -9,10 +10,19 @@ export default function AdminButtonLoader({
 }) {
   return (
     <button
-      className={`${isLoading ? comp.loading : styles.submitButton}`}
+      className={`${isLoading ? styles.loading : styles.button}`}
       {...attrs}
     >
-      {isLoading ? loadingMessage : children}
+      {isLoading ? (
+        <div className={styles.loadingText}>
+          <span className={styles.spinner}>
+            <Image src={loadingIcon} fill alt="Loading Icon" />
+          </span>
+          <span>{loadingMessage}</span>
+        </div>
+      ) : (
+        children
+      )}
     </button>
   )
 }
