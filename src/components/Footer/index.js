@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, withRouter } from 'next/router'
 // Local
-import pinterestIcon from '../../../public/icons/pinterest-logo.svg'
+import instagramIcon from '../../../public/icons/instagram-icon.png'
 import facebookIcon from '../../../public/icons/facebook-logo.svg'
 import youtubeIcon from '../../../public/icons/youtube-logo.svg'
 // Components
@@ -24,9 +24,9 @@ const SOCIAL_LINKS = [
     icon: youtubeIcon,
   },
   {
-    name: 'Pinterest',
-    url: 'https://www.pinterest.com/TurismoJudaico/',
-    icon: pinterestIcon,
+    name: 'Instagram',
+    url: 'https://www.instagram.com/turismojudaico',
+    icon: instagramIcon,
   },
 ]
 
@@ -89,7 +89,12 @@ function Footer(props) {
                   target="_blank"
                   className={utils.linkButton}
                 >
-                  <Image src={link.icon} alt={`${link.name} logo`} width={15} height={15}  /> 
+                  <Image
+                    src={link.icon}
+                    alt={`${link.name} logo`}
+                    width={15}
+                    height={15}
+                  />
                   {link.name}
                 </Link>
               ))}

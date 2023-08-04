@@ -5,12 +5,14 @@
 @media (min-width: 769px) {
   .headerTop {
     background: url('../../../public/images/header-bg.svg') center / cover no-repeat;
+    border-bottom: 1px solid lightgray;
+    box-shadow: none;
   }  
 }
 
 .headerTop {
   background-color: var(--clr-bg-1);
-  border-bottom: 1px solid lightgray;
+  box-shadow: 0 0 0 3px var(--clr-button-1), 0 0 0 6px var(--clr-green);
   display: flex;
   justify-content: space-around;
   padding: 1em;
