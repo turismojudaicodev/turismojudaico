@@ -5,7 +5,7 @@ export default async function handler(req, res) {
     const postId = Number.parseInt(req.query.id)
     await prisma.postEntry.deleteMany({
       where: {
-        blogId: postId,
+        postId,
       },
     })
     const result = await prisma.post.delete({
@@ -26,13 +26,17 @@ export default async function handler(req, res) {
       categoryId: parseInt(formData.categoryId) || undefined,
       subCategoryId: parseInt(formData.subCategoryId) || undefined,
     }
-    const result = await prisma.post.update({
-      where: { id: postId },
-      data: parsedFormData,
-    })
-    res.status(200).json({
-      data: result,
-      message: `Post "${result.title}" actualizado exitosamente`,
-    })
+    try {
+      const result = await prisma.post.update({
+        where: { id: postId },
+        data: parsedFormData,
+      })
+      res.status(200).json({
+        data: result,
+        message: `Post "${result.title}" actualizado exitosamente`,
+      })
+    } catch (error) {
+      res.status(500).json({ error: 'Error interno del servidor' })
+    }
   }
 }
