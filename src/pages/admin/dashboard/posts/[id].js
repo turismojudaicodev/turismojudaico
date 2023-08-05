@@ -1,5 +1,5 @@
 // NPM
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useQuill } from 'react-quilljs'
 // Local
 import { prisma } from 'lib/prisma'
@@ -8,6 +8,7 @@ import { updateUniqueContent } from 'lib/api'
 import AdminLayout from '@/components/AdminLayout'
 import AdminButtonLoader from '@/components/AdminButtonLoader'
 import Notification from '@/components/Notification'
+import Image from 'next/image'
 // Styles
 import utils from '@/styles/utils.module.css'
 import styles from '@/styles/Dashboard.module.css'
