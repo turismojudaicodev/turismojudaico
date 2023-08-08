@@ -161,7 +161,6 @@ function TourForm({ title, prefix, formData, setFormData, quillRef }) {
 export default function Tour({ setVisibleTours, data: configData }) {
   console.log({ configData })
   const [formData, setFormData] = useState({
-    id: configData.spTour.id,
     title: configData.spTour.title,
     description: configData.spTour.description,
     image: configData.spTour.image,
@@ -169,7 +168,6 @@ export default function Tour({ setVisibleTours, data: configData }) {
     locale: 'es',
   })
   const [englishFormData, setEnglishFormData] = useState({
-    id: configData.enTour.id,
     title: configData.enTour.title,
     description: configData.enTour.description,
     image: configData.enTour.image,
