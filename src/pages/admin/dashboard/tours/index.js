@@ -3,12 +3,10 @@ import { useEffect, useState } from 'react'
 import { useQuill } from 'react-quilljs'
 // Local
 import { postContent, updateUniqueContent } from 'lib/api'
-import { setTimedMessage } from 'helpers'
 import { prisma } from 'lib/prisma'
 import { uploadImage } from 'lib/cloudinary'
 // Components
 import AdminLayout from '@/components/AdminLayout'
-import Message from '@/components/Message'
 import Image from 'next/image'
 import DashboardTable from '@/components/DashboardTable'
 import Notification from '@/components/Notification'
@@ -17,9 +15,9 @@ import DeleteIcon from 'public/icons/delete.svg'
 import utils from '@/styles/utils.module.css'
 import styles from '@/styles/Dashboard.module.css'
 import 'quill/dist/quill.snow.css' // quill snow theme
+import AdminButtonLoader from '@/components/AdminButtonLoader'
 
 function ExistingTours({ tours, tourEntries, setVisisbleTours }) {
-  const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [infoMessage, setInfoMessage] = useState('')
   const [featuredToursCounter, setFeaturedToursCounter] = useState(0)
@@ -41,7 +39,6 @@ function ExistingTours({ tours, tourEntries, setVisisbleTours }) {
       return
     }
 
-    setIsLoading(true)
     if (!ev.target.checked) {
       setFeaturedToursCounter((value) => value - 1)
       const { message, error } = await updateUniqueContent(
@@ -61,7 +58,6 @@ function ExistingTours({ tours, tourEntries, setVisisbleTours }) {
       if (error) setErrorMessage(error)
       if (message) setInfoMessage(message)
     }
-    setIsLoading(false)
   }
 
   return (
@@ -326,23 +322,39 @@ function TourCreator({ setVisibleTours, data: configData }) {
     })
     const { data, message, error } = response
     setIsLoading(false)
-    if (error) return setTimedMessage(error, setErrorMessage)
-
+    if (error) {
+      setErrorMessage(error)
+      return
+    }
     // setVisibleTours((prev) => [...prev, data])
 
     setFormData(FORMDATA_DEFAULT)
     setEnglishFormData({ ...FORMDATA_DEFAULT, locale: 'en' })
     quill.root.innerHTML = ''
     englishQuill.root.innerHTML = ''
-    setTimedMessage(message, setInfoMessage)
+
+    if (message) {
+      setInfoMessage(message)
+    }
   }
 
   return (
     <>
       <h2 className={styles.actionTitle}>Crear Tour</h2>
       <form onSubmit={handleSubmit}>
-        {errorMessage && <Message type="error" message={errorMessage} />}
-        {infoMessage && <Message type="info" message={infoMessage} />}
+        {errorMessage && (
+          <Notification
+            type="error"
+            notification={errorMessage}
+            setNotification={setErrorMessage}
+          />
+        )}
+        {infoMessage && (
+          <Notification
+            notification={infoMessage}
+            setNotification={setInfoMessage}
+          />
+        )}
         <div style={{ display: 'flex', gap: '1rem' }}>
           <TourForm
             title="Versión en español"
@@ -448,11 +460,7 @@ function TourCreator({ setVisibleTours, data: configData }) {
             </ul>
           </div>
         </div>
-        <button className={styles.submitButton} type="submit">
-          {isLoading ? 'Cargando...' : 'Crear'}
-        </button>
-        {errorMessage && <Message type="error" message={errorMessage} />}
-        {infoMessage && <Message type="info" message={infoMessage} />}
+        <AdminButtonLoader isLoading={isLoading}>Crear</AdminButtonLoader>
       </form>
     </>
   )
