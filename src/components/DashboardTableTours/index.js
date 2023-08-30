@@ -7,20 +7,22 @@ import EditIcon from 'public/icons/edit.svg'
 // Components
 import Image from 'next/image'
 import Link from 'next/link'
-import Notification from '../Notification'
+import Notification, { NotificationLoading } from '../Notification'
 // Styles
 import styles from './DashboardTableTours.module.css'
-import utils from '@/styles/utils.module.css'
 import dashboardStyles from '@/styles/Dashboard.module.css'
 
 export default function DashboardTableTours({ table, setVisibleTable = null }) {
   const [errorMessage, setErrorMessage] = useState('')
   const [infoMessage, setInfoMessage] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleDelete = async (itemId) => {
-    if (!confirm(`Está seguro de que desea borrar la entrada con id ${itemId}`))
+    if (!confirm(`Está seguro de que desea borrar el tour con id ${itemId}`))
       return
+    setIsLoading(true)
     const result = await deleteContent('/api/content/tours', itemId)
+    setIsLoading(false)
     const { message, error } = result
     if (error) return setErrorMessage(error)
     setInfoMessage(message)
@@ -43,6 +45,7 @@ export default function DashboardTableTours({ table, setVisibleTable = null }) {
           setNotification={setInfoMessage}
         />
       )}
+      {isLoading && <NotificationLoading message="Borrando tour" />}
       <table className={styles.table}>
         <thead>
           <tr>

@@ -1,9 +1,8 @@
 // NPM
 import { useEffect, useState } from 'react'
-import { useQuill } from 'react-quilljs'
 // Local
 import { getContent, postContent } from 'lib/api'
-import { uploadImage } from 'lib/cloudinary'
+import { handleCloudinaryUpload } from 'helpers'
 // Components
 import AdminLayout from '@/components/AdminLayout'
 import Notification, { NotificationLoading } from '@/components/Notification'
@@ -29,9 +28,15 @@ function TourForm({ data }) {
     setIsLoading(true)
 
     const formData = Object.fromEntries(new FormData(ev.target))
+    formData.imagen1 = await handleCloudinaryUpload(formData.imagen1)
+    formData.imagen2 = await handleCloudinaryUpload(formData.imagen2)
+    formData.imagen3 = await handleCloudinaryUpload(formData.imagen3)
+    formData.imagen4 = await handleCloudinaryUpload(formData.imagen4)
+    formData.destacadohomegrande = '0'
+    formData.destacadohomechico = '0'
 
     const response = await postContent('/api/content/tours', formData)
-    const { data, message, error } = response
+    const { message, error } = response
     setIsLoading(false)
 
     if (error) {
@@ -39,10 +44,11 @@ function TourForm({ data }) {
       return
     }
     setInfoMessage(message)
+    document.getElementById('tour-form').reset()
   }
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} id="tour-form">
       {infoMessage && (
         <Notification
           notification={infoMessage}
@@ -59,14 +65,14 @@ function TourForm({ data }) {
       <div className={styles.formCreate}>
         <div style={{ display: 'flex', gap: '1rem' }}>
           <div className={styles.formCreate}>
-            <InputText label="Nombre" name="nombre" />
+            <InputText label="Nombre" name="nombre" required />
             <Textarea label="Descripción" name="descripcion" />
             <Textarea label="Descripción corta" name="descripcioncorta" />
             <InputText label="Headkeyword" name="headkeyword" />
             <InputText label="Head descripción" name="headdescripcion" />
           </div>
           <div className={styles.formCreate}>
-            <InputText label="Nombre en inglés" name="nombre_en" />
+            <InputText label="Nombre en inglés" name="nombre_en" required />
             <Textarea label="Descripción en inglés" name="descripcion_en" />
             <Textarea
               label="Descripción corta en inglés"
@@ -85,7 +91,12 @@ function TourForm({ data }) {
         <InputImage label="Imagen3" name="imagen3" />
         <InputImage label="Imagen4" name="imagen4" />
 
-        <InputText label="Video" name="video" />
+        <Select
+          label="Proveedor"
+          name="proveedor"
+          options={data.providers}
+          required
+        />
 
         <div style={{ display: 'flex', gap: '1rem' }}>
           <div className={styles.formCreate}>
@@ -108,6 +119,9 @@ function TourForm({ data }) {
           </div>
         </div>
 
+        <InputText label="Video" name="video" />
+
+        <InputNumber label="Orden" name="orden" min={0} required />
         <InputNumber label="Estado" name="estado" min={0} max={2} required />
       </div>
       <AdminButtonLoader isLoading={isLoading}>Crear</AdminButtonLoader>
