@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 // Local
 import { getContent, postContent } from 'lib/api'
+import { handleCloudinaryUpload } from 'helpers'
 // Components
 import AdminLayout from '@/components/AdminLayout'
 import DashboardTableCountries from '@/components/DashboardTableCountries'
@@ -38,13 +39,14 @@ function Form({ setVisibileCountries }) {
   const handleCountrySubmit = async (ev) => {
     ev.preventDefault()
     setIsLoading(true)
-    const country = Object.fromEntries(new FormData(ev.target))
-    const response = await postContent('/api/content/countries', country)
+    const formData = Object.fromEntries(new FormData(ev.target))
+    formData.mapa = await handleCloudinaryUpload(formData.mapa)
+    const response = await postContent('/api/content/countries', formData)
     setIsLoading(false)
     const { message, error, data } = response
     if (error) return setErrorMessage(error)
     setVisibileCountries((prev) =>
-      prev.concat({ ...country, codigo: data.insertId })
+      prev.concat({ ...formData, codigo: data.insertId })
     )
     setInfoMessage(message)
     document.getElementById('country-form').reset()
@@ -55,12 +57,12 @@ function Form({ setVisibileCountries }) {
       <form onSubmit={handleCountrySubmit} id="country-form">
         <div style={{ display: 'flex', gap: '1rem' }}>
           <div className={styles.formCreate}>
-            <InputText label="País en español" name="nombre" />
+            <InputText label="País en español" name="nombre" required />
             <Textarea label="Descripción A en español" name="descripcionA" />
             <Textarea label="Descripción B en español" name="descripcionB" />
           </div>
           <div className={styles.formCreate}>
-            <InputText label="País en inglés" name="nombre_en" />
+            <InputText label="País en inglés" name="nombre_en" required />
             <Textarea label="Descripción A en inglés" name="descripcionA_en" />
             <Textarea label="Descripción B en inglés" name="descripcionB_en" />
           </div>
@@ -74,8 +76,8 @@ function Form({ setVisibileCountries }) {
         <div style={{ display: 'flex', gap: '1rem', marginBlock: '1rem' }}>
           <InputNumber label="Dolar" name="dolar" />
           <InputNumber label="Euro" name="euro" />
-          <InputNumber label="GMT" name="gmt" min={-12} max={12} />
-          <InputNumber label="Estado" name="estado" min={0} max={2} />
+          <InputNumber label="GMT" name="gmt" min={-12} max={12} required />
+          <InputNumber label="Estado" name="estado" min={0} max={2} required />
         </div>
         <AdminButtonLoader
           attrs={{ type: 'submit', style: { marginBottom: '1rem' } }}

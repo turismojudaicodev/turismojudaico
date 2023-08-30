@@ -6,8 +6,6 @@ import { getContent, postContent } from 'lib/api'
 import AdminLayout from '@/components/AdminLayout'
 import DashboardTableCities from '@/components/DashboardTableCities'
 import {
-  InputColor,
-  InputImage,
   InputNumber,
   InputText,
   Select,
@@ -39,12 +37,12 @@ function Form({ setVisibileCities, countries }) {
   const handleCitySubmit = async (ev) => {
     ev.preventDefault()
     setIsLoading(true)
-    const city = Object.fromEntries(new FormData(ev.target))
-    const response = await postContent('/api/content/cities', city)
+    const formData = Object.fromEntries(new FormData(ev.target))
+    const response = await postContent('/api/content/cities', formData)
     setIsLoading(false)
     const { message, error, data } = response
     if (error) return setErrorMessage(error)
-    setVisibileCities((prev) => prev.concat({ ...city, codigo: data.insertId }))
+    // setVisibileCities((prev) => prev.concat({ ...formData, codigo: data.insertId }))
     setInfoMessage(message)
     document.getElementById('city-form').reset()
   }
