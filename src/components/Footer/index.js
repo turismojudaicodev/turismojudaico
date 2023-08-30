@@ -45,7 +45,6 @@ function Footer(props) {
   const handleEmailSubmit = async (ev) => {
     ev.preventDefault()
     const formData = Object.fromEntries(new FormData(ev.target))
-    console.log('formData', formData)
     props.router.push({
       pathname: `/newsletter`,
       query: { email: formData.email },

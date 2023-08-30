@@ -22,3 +22,14 @@ export default function Notification({ notification, setNotification, type }) {
     </div>
   )
 }
+
+export function NotificationLoading({ message = 'Cargando...' }) {
+  return (
+    <div className={styles.notificationLoading}>
+      <p style={{ display: 'flex', gap: '.25rem', alignItems: 'center' }}>
+        <span className={styles.spinner} />
+        <span>{message}</span>
+      </p>
+    </div>
+  )
+}

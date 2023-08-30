@@ -1,55 +1,60 @@
 // NPM
 import { useState } from 'react'
-import { useRouter } from 'next/router'
 // Local
 import { deleteContent } from 'lib/api'
 import DeleteIcon from 'public/icons/delete.svg'
 import EditIcon from 'public/icons/edit.svg'
-import { setTimedMessage } from 'helpers'
 // Components
 import Image from 'next/image'
 import Link from 'next/link'
-import Message from '../Message'
+import Notification from '../Notification'
 // Styles
-import styles from './DashboardTable.module.css'
+import styles from './DashboardTableTours.module.css'
 import utils from '@/styles/utils.module.css'
 import dashboardStyles from '@/styles/Dashboard.module.css'
 
-export default function DashboardTable({ table, setVisibleTable = null }) {
+export default function DashboardTableTours({ table, setVisibleTable = null }) {
   const [errorMessage, setErrorMessage] = useState('')
   const [infoMessage, setInfoMessage] = useState('')
-
-  const router = useRouter()
 
   const handleDelete = async (itemId) => {
     if (!confirm(`Está seguro de que desea borrar la entrada con id ${itemId}`))
       return
-    const currentPath = router.pathname
-    const tablePath = currentPath.substring(currentPath.lastIndexOf('/'))
-    const result = await deleteContent(`/api/content${tablePath}`, itemId)
+    const result = await deleteContent('/api/content/tours', itemId)
     const { message, error } = result
-    if (error) return setTimedMessage(error, setErrorMessage)
-    setTimedMessage(message, setInfoMessage)
+    if (error) return setErrorMessage(error)
+    setInfoMessage(message)
     if (setVisibleTable)
-      setVisibleTable((prev) => prev.filter((item) => item.id !== itemId))
+      setVisibleTable((prev) => prev.filter((item) => item.codigo !== itemId))
   }
 
   return (
     <div>
-      <div className={utils.messageContainer}>
-        {errorMessage && <Message type="error" message={errorMessage} />}
-        {infoMessage && <Message type="info" message={infoMessage} />}
-      </div>
+      {errorMessage && (
+        <Notification
+          type="error"
+          notification={errorMessage}
+          setNotification={setErrorMessage}
+        />
+      )}
+      {infoMessage && (
+        <Notification
+          notification={infoMessage}
+          setNotification={setInfoMessage}
+        />
+      )}
       <table className={styles.table}>
         <thead>
-          <tr style={{ overflowX: 'scroll' }}>
+          <tr>
             <th>id</th>
             <th>nombre</th>
             <th>nombre_en</th>
-            <th>imagen</th>
-            <th>imagen_en</th>
+            <th>proveedor</th>
+            <th>dest.homegrande</th>
+            <th>dest.homechico</th>
+            <th>orden</th>
             <th>estado</th>
-            <th>fechacreacion</th>
+            <th>fecha</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -57,10 +62,12 @@ export default function DashboardTable({ table, setVisibleTable = null }) {
           {table.map((row) => (
             <tr key={row.codigo}>
               <td>{row.codigo}</td>
-              <td>{row.nombre}</td>
+              <td className={styles.colTitle}>{row.nombre}</td>
               <td className={styles.colTitle}>{row.nombre_en}</td>
-              <td className={styles.colDescription}>{row.imagen}</td>
-              <td className={styles.colImage}>{row.imagen_en}</td>
+              <td style={{ textAlign: 'center' }}>{row.proveedor}</td>
+              <td style={{ textAlign: 'center' }}>{row.destacadohomegrande}</td>
+              <td style={{ textAlign: 'center' }}>{row.destacadohomechico}</td>
+              <td style={{ textAlign: 'center' }}>{row.orden}</td>
               <td style={{ textAlign: 'center' }}>{row.estado}</td>
               <td style={{ textAlign: 'center' }}>
                 {new Date(row.fechacreacion).toLocaleDateString('es-ES', {
@@ -72,7 +79,7 @@ export default function DashboardTable({ table, setVisibleTable = null }) {
               <td style={{ display: 'flex', gap: '.25em' }}>
                 <Link
                   style={{ height: '1rem', width: '1rem', padding: '.65em' }}
-                  href={`${router.pathname}/${row.codigo}`}
+                  href={`/admin/dashboard/tours/${row.codigo}`}
                   className={dashboardStyles.editButton}
                   replace={false}
                 >

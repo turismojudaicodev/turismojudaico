@@ -1,0 +1,38 @@
+.table {
+  border: 1px solid rgb(186, 186, 186);
+  border-spacing: 0;
+  width: 75vw;
+  display: block;
+}
+
+.table thead,
+.table tbody {
+  width: 100%;
+}
+
+.table tr {
+  width: 100%;
+}
+
+.table th,
+.table td {
+  border: 1px solid rgb(186, 186, 186);
+  font-size: .8rem;
+  padding: .25em .5em;
+  position: relative;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.colTitle {
+  max-width: 25ch;
+}
+
+.colDescription {
+  max-width: 35ch;
+}
+
+.colImage {
+  max-width: 30ch;
+}

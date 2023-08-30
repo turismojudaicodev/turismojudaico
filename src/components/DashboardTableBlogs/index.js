@@ -5,41 +5,50 @@ import { useRouter } from 'next/router'
 import { deleteContent } from 'lib/api'
 import DeleteIcon from 'public/icons/delete.svg'
 import EditIcon from 'public/icons/edit.svg'
-import { setTimedMessage } from 'helpers'
 // Components
 import Image from 'next/image'
 import Link from 'next/link'
-import Message from '../Message'
+import Notification, { NotificationLoading } from '@/components/Notification'
 // Styles
-import styles from './DashboardTable.module.css'
-import utils from '@/styles/utils.module.css'
+import styles from './DashboardTableBlogs.module.css'
 import dashboardStyles from '@/styles/Dashboard.module.css'
 
 export default function DashboardTable({ table, setVisibleTable = null }) {
   const [errorMessage, setErrorMessage] = useState('')
   const [infoMessage, setInfoMessage] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
   const router = useRouter()
 
   const handleDelete = async (itemId) => {
     if (!confirm(`Está seguro de que desea borrar la entrada con id ${itemId}`))
       return
-    const currentPath = router.pathname
-    const tablePath = currentPath.substring(currentPath.lastIndexOf('/'))
-    const result = await deleteContent(`/api/content${tablePath}`, itemId)
+    setIsLoading(true)
+    const result = await deleteContent(`/api/content/blogs`, itemId)
+    setIsLoading(false)
     const { message, error } = result
-    if (error) return setTimedMessage(error, setErrorMessage)
-    setTimedMessage(message, setInfoMessage)
+    if (error) return setErrorMessage(error)
+    setInfoMessage(message)
     if (setVisibleTable)
-      setVisibleTable((prev) => prev.filter((item) => item.id !== itemId))
+      setVisibleTable((prev) => prev.filter((item) => item.codigo !== itemId))
   }
 
   return (
     <div>
-      <div className={utils.messageContainer}>
-        {errorMessage && <Message type="error" message={errorMessage} />}
-        {infoMessage && <Message type="info" message={infoMessage} />}
-      </div>
+      {errorMessage && (
+        <Notification
+          type="error"
+          notification={errorMessage}
+          setNotification={setErrorMessage}
+        />
+      )}
+      {infoMessage && (
+        <Notification
+          notification={infoMessage}
+          setNotification={setInfoMessage}
+        />
+      )}
+      {isLoading && <NotificationLoading />}
       <table className={styles.table}>
         <thead>
           <tr style={{ overflowX: 'scroll' }}>
@@ -57,7 +66,7 @@ export default function DashboardTable({ table, setVisibleTable = null }) {
           {table.map((row) => (
             <tr key={row.codigo}>
               <td>{row.codigo}</td>
-              <td>{row.nombre}</td>
+              <td className={styles.colTitle}>{row.nombre}</td>
               <td className={styles.colTitle}>{row.nombre_en}</td>
               <td className={styles.colDescription}>{row.imagen}</td>
               <td className={styles.colImage}>{row.imagen_en}</td>

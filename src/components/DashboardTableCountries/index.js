@@ -11,11 +11,14 @@ import Image from 'next/image'
 import Link from 'next/link'
 import Message from '../Message'
 // Styles
-import styles from './DashboardTable.module.css'
+import styles from './DashboardTableCountries.module.css'
 import utils from '@/styles/utils.module.css'
 import dashboardStyles from '@/styles/Dashboard.module.css'
 
-export default function DashboardTable({ table, setVisibleTable = null }) {
+export default function DashboardTableCountries({
+  table,
+  setVisibleTable = null,
+}) {
   const [errorMessage, setErrorMessage] = useState('')
   const [infoMessage, setInfoMessage] = useState('')
 
@@ -31,7 +34,7 @@ export default function DashboardTable({ table, setVisibleTable = null }) {
     if (error) return setTimedMessage(error, setErrorMessage)
     setTimedMessage(message, setInfoMessage)
     if (setVisibleTable)
-      setVisibleTable((prev) => prev.filter((item) => item.id !== itemId))
+      setVisibleTable((prev) => prev.filter((item) => item.codigo !== itemId))
   }
 
   return (
@@ -42,14 +45,14 @@ export default function DashboardTable({ table, setVisibleTable = null }) {
       </div>
       <table className={styles.table}>
         <thead>
-          <tr style={{ overflowX: 'scroll' }}>
+          <tr>
             <th>id</th>
             <th>nombre</th>
             <th>nombre_en</th>
-            <th>imagen</th>
-            <th>imagen_en</th>
+            <th>dolar</th>
+            <th>euro</th>
+            <th>gmt</th>
             <th>estado</th>
-            <th>fechacreacion</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -57,18 +60,12 @@ export default function DashboardTable({ table, setVisibleTable = null }) {
           {table.map((row) => (
             <tr key={row.codigo}>
               <td>{row.codigo}</td>
-              <td>{row.nombre}</td>
+              <td className={styles.colTitle}>{row.nombre}</td>
               <td className={styles.colTitle}>{row.nombre_en}</td>
-              <td className={styles.colDescription}>{row.imagen}</td>
-              <td className={styles.colImage}>{row.imagen_en}</td>
+              <td style={{ textAlign: 'center' }}>{row.dolar}</td>
+              <td style={{ textAlign: 'center' }}>{row.euro}</td>
+              <td style={{ textAlign: 'center' }}>{row.gmt}</td>
               <td style={{ textAlign: 'center' }}>{row.estado}</td>
-              <td style={{ textAlign: 'center' }}>
-                {new Date(row.fechacreacion).toLocaleDateString('es-ES', {
-                  day: '2-digit',
-                  month: '2-digit',
-                  year: '2-digit',
-                })}
-              </td>
               <td style={{ display: 'flex', gap: '.25em' }}>
                 <Link
                   style={{ height: '1rem', width: '1rem', padding: '.65em' }}

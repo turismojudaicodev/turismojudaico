@@ -20,6 +20,10 @@ const DASHBOARD_SECTIONS = [
     url: '/countries',
   },
   {
+    name: 'Ciudades',
+    url: '/cities',
+  },
+  {
     name: 'Categorías',
     url: '/categories',
   },
@@ -32,7 +36,7 @@ const DASHBOARD_SECTIONS = [
   //   url: '/about',
   // },
   {
-    name: 'Logos Comunitarios',
+    name: 'Proveedores',
     url: '/partners',
   },
   {

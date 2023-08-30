@@ -1,6 +1,5 @@
 // NPM
 import { useState } from 'react'
-import { useRouter } from 'next/router'
 // Local
 import { deleteContent } from 'lib/api'
 import DeleteIcon from 'public/icons/delete.svg'
@@ -11,45 +10,51 @@ import Image from 'next/image'
 import Link from 'next/link'
 import Message from '../Message'
 // Styles
-import styles from './DashboardTable.module.css'
+import styles from './DashboardTablePosts.module.css'
 import utils from '@/styles/utils.module.css'
 import dashboardStyles from '@/styles/Dashboard.module.css'
 
-export default function DashboardTable({ table, setVisibleTable = null }) {
+export default function DashboardTablePosts({ table, setVisibleTable = null }) {
   const [errorMessage, setErrorMessage] = useState('')
   const [infoMessage, setInfoMessage] = useState('')
-
-  const router = useRouter()
 
   const handleDelete = async (itemId) => {
     if (!confirm(`Está seguro de que desea borrar la entrada con id ${itemId}`))
       return
-    const currentPath = router.pathname
-    const tablePath = currentPath.substring(currentPath.lastIndexOf('/'))
-    const result = await deleteContent(`/api/content${tablePath}`, itemId)
+    const result = await deleteContent('/api/content/posts', itemId)
     const { message, error } = result
     if (error) return setTimedMessage(error, setErrorMessage)
     setTimedMessage(message, setInfoMessage)
     if (setVisibleTable)
-      setVisibleTable((prev) => prev.filter((item) => item.id !== itemId))
+      setVisibleTable((prev) => prev.filter((item) => item.codigo !== itemId))
   }
 
   return (
-    <div>
+    <div style={{ overflow: 'scroll' }}>
       <div className={utils.messageContainer}>
         {errorMessage && <Message type="error" message={errorMessage} />}
         {infoMessage && <Message type="info" message={infoMessage} />}
       </div>
       <table className={styles.table}>
         <thead>
-          <tr style={{ overflowX: 'scroll' }}>
+          <tr>
             <th>id</th>
             <th>nombre</th>
             <th>nombre_en</th>
-            <th>imagen</th>
-            <th>imagen_en</th>
+            <th>ciudad</th>
+            <th>pais</th>
+            <th>telefono</th>
+            <th>direccion</th>
+            <th>localidad</th>
+            <th>link</th>
+            <th>mail</th>
+            <th>imagen1</th>
+            <th>imagen2</th>
+            <th>imagen3</th>
+            <th>imagen4</th>
+            <th>imagen5</th>
+            <th>orden</th>
             <th>estado</th>
-            <th>fechacreacion</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -57,22 +62,26 @@ export default function DashboardTable({ table, setVisibleTable = null }) {
           {table.map((row) => (
             <tr key={row.codigo}>
               <td>{row.codigo}</td>
-              <td>{row.nombre}</td>
+              <td className={styles.colTitle}>{row.nombre}</td>
               <td className={styles.colTitle}>{row.nombre_en}</td>
-              <td className={styles.colDescription}>{row.imagen}</td>
-              <td className={styles.colImage}>{row.imagen_en}</td>
+              <td style={{ textAlign: 'center' }}>{row.ciudad}</td>
+              <td style={{ textAlign: 'center' }}>{row.pais}</td>
+              <td className={styles.colTitle}>{row.telefono}</td>
+              <td className={styles.colTitle}>{row.direccion}</td>
+              <td className={styles.colTitle}>{row.localidad}</td>
+              <td className={styles.colTitle}>{row.link}</td>
+              <td className={styles.colTitle}>{row.mail}</td>
+              <td className={styles.colTitle}>{row.imagen1}</td>
+              <td className={styles.colTitle}>{row.imagen2}</td>
+              <td className={styles.colTitle}>{row.imagen3}</td>
+              <td className={styles.colTitle}>{row.imagen4}</td>
+              <td className={styles.colTitle}>{row.imagen5}</td>
+              <td style={{ textAlign: 'center' }}>{row.orden}</td>
               <td style={{ textAlign: 'center' }}>{row.estado}</td>
-              <td style={{ textAlign: 'center' }}>
-                {new Date(row.fechacreacion).toLocaleDateString('es-ES', {
-                  day: '2-digit',
-                  month: '2-digit',
-                  year: '2-digit',
-                })}
-              </td>
               <td style={{ display: 'flex', gap: '.25em' }}>
                 <Link
                   style={{ height: '1rem', width: '1rem', padding: '.65em' }}
-                  href={`${router.pathname}/${row.codigo}`}
+                  href={`/admin/dashboard/posts/${row.codigo}`}
                   className={dashboardStyles.editButton}
                   replace={false}
                 >
