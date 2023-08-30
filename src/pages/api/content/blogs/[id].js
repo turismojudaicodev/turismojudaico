@@ -1,53 +1,69 @@
-import { prisma } from 'lib/prisma'
+import { isNumeric } from 'helpers'
+import { db } from 'lib/mysql'
 
 export default async function handler(req, res) {
-  if (req.method === 'DELETE') {
-    const blogId = Number.parseInt(req.query.id)
-    await prisma.blogEntry.deleteMany({
-      where: {
-        blogId,
-      },
-    })
-    const result = await prisma.blog.delete({
-      where: {
-        id: blogId,
-      },
-    })
-    res
-      .status(200)
-      .json({ message: `Blog con id "${result.id}" borrado exitosamente` })
-  } else if (req.method === 'PUT') {
-    const { enBlog, spBlog } = req.body
-    const { title, description, content } = spBlog
-    const {
-      title: engTitle,
-      description: engDescription,
-      content: engContent,
-    } = enBlog
-
-    if (
-      !title ||
-      !description ||
-      !content ||
-      !engTitle ||
-      !engDescription ||
-      !engContent
-    ) {
-      return res.status(400).json({
-        error: 'Ambos blogs deben tener los campos obligatorios completos',
+  if (req.method === 'GET') {
+    const blogId = parseInt(req.query.id)
+    return new Promise((resolve, reject) => {
+      db.query(`SELECT * FROM noticias WHERE codigo=${blogId}`, (err, data) => {
+        if (err) {
+          res
+            .status(500)
+            .json({ error: err.sqlMessage ?? 'Error al cargar blog' })
+          return resolve()
+        }
+        res.status(200).json({ data: data[0] })
+        return resolve()
       })
-    }
-    const updatedSpanishBlog = await prisma.blogEntry.update({
-      where: { id: spBlog.id },
-      data: spBlog,
     })
-    const updatedEnglishBlog = await prisma.blogEntry.update({
-      where: { id: enBlog.id },
-      data: enBlog,
+  } else if (req.method === 'DELETE') {
+    const blogId = parseInt(req.query.id)
+    return new Promise((resolve, reject) => {
+      db.query(`DELETE FROM noticias WHERE codigo=${blogId}`, (err, data) => {
+        if (err) {
+          res
+            .status(500)
+            .json({ error: err.sqlMessage ?? 'Error al borrar blog' })
+          return resolve()
+        }
+        res
+          .status(200)
+          .json({ messate: `Blog ${blogId} borrado exitosamente`, data })
+        return resolve()
+      })
     })
-    res.status(200).json({
-      data: { updatedSpanishBlog, updatedEnglishBlog },
-      message: 'Blog actualizado exitosamente',
+  } else if (req.method === 'PUT') {
+    const blogId = parseInt(req.query.id)
+    const { body } = req
+    const entries = Object.entries(body).map(([key, value]) => {
+      if (!isNumeric(value)) return [key, `"${value}"`]
+      return [key, value]
     })
+
+    let colUpdates = ''
+    entries.forEach((entry, i) => {
+      colUpdates += `${entry.join('=')}`
+      if (i !== entries.length - 1) colUpdates += ', '
+    })
+
+    return new Promise((resolve, reject) => {
+      db.query(
+        `UPDATE noticias SET ${colUpdates} WHERE codigo=${blogId}`,
+        (err, data) => {
+          if (err) {
+            res
+              .status(500)
+              .json({ error: err.sqlMessage ?? 'Error al actualizar blog' })
+            return resolve()
+          }
+          res
+            .status(200)
+            .json({ message: `Blog ${blogId} actualizado exitosamente`, data })
+          return resolve()
+        }
+      )
+    })
+  } else {
+    return res.status(405).json({ error: 'Method not allowed' })
   }
 }

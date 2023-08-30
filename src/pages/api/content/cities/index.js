@@ -1,21 +1,39 @@
-// import { PrismaClient } from '@prisma/client'
-import { prisma } from 'lib/prisma'
-// const a = new PrismaClient()
-// a.city.create({ data: {}})
+import { db } from 'lib/mysql'
+
 export default async function handler(req, res) {
-  if (req.method === 'POST') {
-    const { name, englishName, countryId } = req.body
-    if (!name || !englishName || !countryId)
-      return res.status(400).json({
-        error: 'Falta el nombre de la ciudad o el país al que pertenece',
+  if (req.method === 'GET') {
+    let sqlQuery = 'SELECT * FROM ciudades'
+    const { query } = req
+
+    if (query.reduced == 1 && query.active == 1) {
+      sqlQuery = 'SELECT codigo, nombre, pais FROM ciudades WHERE estado=1'
+    }
+    // if (query.populate === 'pais') {
+    //   sqlQuery = `
+    //   SELECT c.codigo, c.nombre, c.estado, p.codigo as pais, p.nombre as nombre_pais
+    //   FROM ciudades c INNER JOIN paises p ON c.pais = p.codigo
+    //   `
+    // }
+    return new Promise((resolve, reject) => {
+      db.query(sqlQuery, (err, data) => {
+        if (err) {
+          res
+            .status(500)
+            .json({ error: err.sqlMessage ?? 'Error al cargar ciudades' })
+          return resolve()
+        }
+        res.status(200).json({ data })
+        return resolve()
       })
-    const response = await prisma.city.create({
-      data: { name, englishName, countryId: Number.parseInt(countryId) },
-      include: { country: true },
     })
+  } else if (req.method === 'POST') {
+    const { body } = req
+
     res.status(201).json({
-      message: `${req.body.name} agregada correctamente`,
-      data: response,
+      message: `en proces....`,
+      data: body,
     })
+  } else {
+    return res.status(405).json({ error: 'Method not allowed' })
   }
 }

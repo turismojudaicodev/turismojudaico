@@ -1,42 +1,39 @@
-import { prisma } from 'lib/prisma'
+import { db } from 'lib/mysql'
 
 export default async function handler(req, res) {
-  if (req.method === 'DELETE') {
+  if (req.method === 'GET') {
+    const postId = parseInt(req.query.id)
+    return new Promise((resolve, reject) => {
+      db.query(
+        `SELECT * FROM contenidos WHERE codigo=${postId}`,
+        (err, data) => {
+          if (err) {
+            res
+              .status(500)
+              .json({ error: err.sqlMessage || 'Error interno del servidor' })
+            return resolve()
+          }
+          res.status(200).json({ data: data[0] })
+          return resolve()
+        }
+      )
+    })
+  } else if (req.method === 'DELETE') {
     const postId = Number.parseInt(req.query.id)
-    await prisma.postEntry.deleteMany({
-      where: {
-        postId,
-      },
-    })
-    const result = await prisma.post.delete({
-      where: {
-        id: postId,
-      },
-    })
-    res
-      .status(200)
-      .json({ message: `Post con id "${result.id}" borrado exitosamente` })
+    res.status(200).json({ message: `Post con id "..." borrado exitosamente` })
   } else if (req.method === 'PUT') {
-    const postId = Number.parseInt(req.query.id)
-    const formData = req.body
-    const parsedFormData = {
-      ...formData,
-      countryId: parseInt(formData.countryId) || undefined,
-      cityId: parseInt(formData.cityId) || undefined,
-      categoryId: parseInt(formData.categoryId) || undefined,
-      subCategoryId: parseInt(formData.subCategoryId) || undefined,
-    }
+    const postId = parseInt(req.query.id)
+    const { body } = req
+
     try {
-      const result = await prisma.post.update({
-        where: { id: postId },
-        data: parsedFormData,
-      })
       res.status(200).json({
         data: result,
-        message: `Post "${result.title}" actualizado exitosamente`,
+        message: `Post "$..." actualizado exitosamente`,
       })
     } catch (error) {
       res.status(500).json({ error: 'Error interno del servidor' })
     }
+  } else {
+    return res.status(405).json({ error: 'Method not allowed' })
   }
 }

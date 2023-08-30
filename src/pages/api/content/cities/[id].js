@@ -1,13 +1,25 @@
-import { prisma } from 'lib/prisma'
+import { db } from 'lib/mysql'
 
 export default async function handler(req, res) {
   if (req.method === 'DELETE') {
-    const cityId = Number.parseInt(req.query.id)
-    const result = await prisma.city.delete({
-      where: {
-        id: cityId,
-      },
+    const cityId = parseInt(req.query.id)
+
+    return new Promise((resolve, reject) => {
+      db.query(`DELETE FROM ciudades WHERE codigo=${cityId}`, (err, data) => {
+        if (err) {
+          res
+            .status(500)
+            .json({ error: err.sqlMessage ?? 'Error al borrar ciudad' })
+          return resolve()
+        }
+        res.status(200).json({
+          message: `Ciudad con id "${cityId}" borrada exitosamente`,
+          data,
+        })
+        return resolve()
+      })
     })
-    res.status(200).json({ message: `${result.name} borrada exitosamente` })
+  } else {
+    return res.status(405).json({ error: 'Method not allowed' })
   }
 }

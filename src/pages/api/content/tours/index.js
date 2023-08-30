@@ -1,32 +1,41 @@
-import { prisma } from 'lib/prisma'
+import { db } from 'lib/mysql'
 
 export default async function handler(req, res) {
-  if (req.method === 'POST') {
-    const { posts } = req.body
+  if (req.method === 'GET') {
+    const params = Object.entries(req.query)
 
-    const conditionsObj = {}
-    if (posts) conditionsObj.posts = posts
+    let queryParams = ''
 
-    try {
-      const result = await prisma.post.findMany({
-        where: {
-          title: {
-            contains: post,
-          },
-          ...conditionsObj,
-        },
-        include: {
-          posts: true,
-        },
+    if (params.length > 0) {
+      params.forEach(([field, value]) => {
+        queryParams += `AND ${field}=${value}`
       })
-      if (!result)
-        return res
-          .status(404)
-          .json({ error: 'No se encontraron posts con estas características' })
-      res.status(200).json({ data: result })
-    } catch (error) {
-      console.log(error)
-      res.status(500).json({ error: 'Error interno' })
     }
+
+    return new Promise((resolve, reject) => {
+      db.query(
+        `SELECT * FROM paquetes WHERE estado=1 ${queryParams}`,
+        (err, data) => {
+          if (err) {
+            res
+              .status(500)
+              .json({ error: err.sqlMessage ?? 'Error al cargar tours' })
+            return resolve()
+          }
+          res.status(200).json({ data })
+          return resolve()
+        }
+      )
+    })
+  } else if (req.method === 'POST') {
+    const { body } = req
+    return new Promise((resolve, reject) => {
+      res
+        .status(201)
+        .json({ message: 'Implementar post method para los tours', data: body })
+      return resolve()
+    })
+  } else {
+    res.status(405).json({ error: 'Method not allowed' })
   }
 }

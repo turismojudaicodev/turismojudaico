@@ -1,38 +1,47 @@
-import { prisma } from 'lib/prisma'
+import { isNumeric } from 'helpers'
+import { db } from 'lib/mysql'
 
-// return { error or data object dependeing on success}
 export default async function handler(req, res) {
-  if (req.method === 'POST') {
-    const { enBlog, spBlog } = req.body
-    const { title, description, content } = spBlog
-    const {
-      title: engTitle,
-      description: engDescription,
-      content: engContent,
-    } = enBlog
-
-    if (
-      !title ||
-      !description ||
-      !content ||
-      !engTitle ||
-      !engDescription ||
-      !engContent
-    ) {
-      return res.status(400).json({
-        error: 'Ambos blogs deben tener los campos obligatorios completos',
+  if (req.method === 'GET') {
+    return new Promise((resolve, reject) => {
+      db.query('SELECT * FROM noticias', (err, data) => {
+        if (err) {
+          res
+            .status(500)
+            .json({ error: err.sqlMessage ?? 'Error al cargar blogs' })
+          return resolve()
+        }
+        res.status(200).json({ data })
+        return resolve()
       })
-    }
-    const result = await prisma.blog.create({ data: {} })
+    })
+  } else if (req.method === 'POST') {
+    const { body } = req
+    const keys = Object.keys(body)
+    const values = Object.values(body).map((value) => {
+      if (!isNumeric(value)) return `"${value}"`
+      return value
+    })
 
-    await prisma.blogEntry.create({
-      data: { ...spBlog, blogId: result.id },
+    return new Promise((resolve, reject) => {
+      db.query(
+        `
+        INSERT INTO noticias (${keys.join(',')})
+        VALUES (${values.join(',')})
+      `,
+        (err, data) => {
+          if (err) {
+            res
+              .status(500)
+              .json({ error: err.sqlMessage ?? 'Error al crear blog' })
+            return resolve()
+          }
+          res.status(201).json({ message: 'Blog creado exitosamente', data })
+          return resolve()
+        }
+      )
     })
-    await prisma.blogEntry.create({
-      data: { ...enBlog, blogId: result.id },
-    })
-    res.status(201).json({ data: result, message: 'Blog creado exitosamente' })
   } else {
-    res.status(405).json({ error: 'Method  not allowed' })
+    res.status(405).json({ error: 'Method not allowed' })
   }
 }
