@@ -1,16 +1,17 @@
 // NPM
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import { useTranslation } from 'next-i18next'
+import { useEffect, useState } from 'react'
 // Local
-import { prisma } from 'lib/prisma'
+import { getContent } from 'lib/api'
 // Components
 import Head from 'next/head'
 import Layout from '@/components/Layout'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import Message from '@/components/Message'
-import ToursContainer from '@/components/ToursContainer'
 import Image from 'next/image'
 import { Carousel } from 'react-responsive-carousel'
+import { TourCardFeatured } from '@/components/TourCardFeatured'
 // Styles
 import styles from '@/styles/Home.module.css'
 import utils from '@/styles/utils.module.css'
@@ -53,28 +54,44 @@ const SUPPORTERS = [
 ]
 
 export async function getStaticProps({ locale }) {
-  const tours = await prisma.tourEntry.findMany({
-    include: {
-      Tour: true,
-    },
-    where: { active: true, locale, Tour: { featured: true } },
-  })
-  const staticImages = await prisma.staticImage.findMany({
-    where: { section: 'carousel' },
-  })
-
   return {
     props: {
       ...(await serverSideTranslations(locale, ['index', 'common'])),
-      tours: JSON.parse(JSON.stringify(tours)),
-      staticImages,
       locale,
     },
   }
 }
 
-export default function Home({ tours, staticImages, locale }) {
+export default function Home({ locale }) {
+  // tours, staticImages,
+  const [toursSmall, setToursSmall] = useState([])
+  const [toursBig, setToursBig] = useState([])
+  const [sponsors, setSponsors] = useState([])
+  const [errorMessage, setErrorMessage] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const staticImages = []
+
   const { t } = useTranslation(['index', 'common'])
+
+  useEffect(() => {
+    async function fetchData() {
+      const { data: toursChico, error: toursChicoError } = await getContent(
+        '/api/content/tours?destacadohomechico=1'
+      )
+      const { data: toursGrande, error: toursGrandeError } = await getContent(
+        '/api/content/tours?destacadohomegrande=1'
+      )
+      setIsLoading(false)
+      if (toursChicoError || toursGrandeError)
+        return setErrorMessage(
+          `${toursChicoError ?? ''} ${toursGrandeError ?? ''}`
+        )
+      setToursSmall(toursChico)
+      setToursBig(toursGrande)
+    }
+    setIsLoading(true)
+    fetchData()
+  }, [])
 
   return (
     <>
@@ -125,10 +142,14 @@ export default function Home({ tours, staticImages, locale }) {
           </div>
           <div className={styles.postsContainer}>
             <h2 className={utils.mediumTitle}>{t('body.featuredTours')}</h2>
-            {!tours ? (
+            {isLoading ? (
               <LoadingIndicator />
-            ) : tours.length > 0 ? (
-              <ToursContainer tours={tours} />
+            ) : toursSmall.length > 0 ? (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
+                {toursSmall.map((tour) => (
+                  <TourCardFeatured key={tour.codigo} tour={tour} />
+                ))}
+              </div>
             ) : (
               <Message
                 type="info"

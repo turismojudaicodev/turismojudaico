@@ -30,15 +30,10 @@ export default function Newsletter() {
 
   const handleSubmit = async (ev) => {
     ev.preventDefault()
-    try {
-      setErrorMessage('')
-      const formData = Object.fromEntries(new FormData(ev.target))
-      const { success, error } = await handleNewsletterSignup(formData)
-      if (error) throw new Error(error)
-      console.log(success)
-    } catch (error) {
-      setErrorMessage(error.message)
-    }
+    setErrorMessage('')
+    const formData = Object.fromEntries(new FormData(ev.target))
+    const { message, error } = await handleNewsletterSignup(formData)
+    if (error) return setErrorMessage(error)
   }
 
   return (

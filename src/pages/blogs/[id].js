@@ -1,54 +1,54 @@
+// NPM
+import { useRouter } from 'next/router'
+import { useEffect, useState } from 'react'
 // Local
-import { prisma } from 'lib/prisma'
+import { getUniqueContent } from 'lib/api'
 import { formatDate } from 'helpers'
 // Components
 import Head from 'next/head'
 import Image from 'next/image'
 import Layout from '@/components/Layout'
 import LoadingIndicator from '@/components/LoadingIndicator'
+import Message from '@/components/Message'
 // Styles
-import utils from '@/styles/utils.module.css'
 import styles from '@/styles/Blogs.module.css'
+import utils from '@/styles/utils.module.css'
 
-export async function getStaticPaths() {
-  const esBlogs = await prisma.blogEntry.findMany({ where: { locale: 'es' } })
-  const enBlogs = await prisma.blogEntry.findMany({ where: { locale: 'en' } })
+export default function Blog() {
+  const [blog, setBlog] = useState({})
+  const [isLoading, setIsLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
 
-  const esPaths = esBlogs.map((blog) => ({
-    params: { id: blog.id.toString() },
-  }))
-  const enPaths = enBlogs.map((blog) => ({
-    params: { id: blog.id.toString(), locale: 'en' },
-  }))
-  return {
-    paths: [...esPaths, ...enPaths],
-    fallback: true,
-  }
-}
+  const router = useRouter()
 
-export async function getStaticProps({ params: { id } }) {
-  const blog = await prisma.blogEntry.findUnique({ where: { id: Number(id) } })
+  useEffect(() => {
+    async function fetchData() {
+      const { data, error } = await getUniqueContent(
+        '/api/content/blogs',
+        router.query.id
+      )
+      setIsLoading(false)
+      if (error) return setErrorMessage(error)
+      setBlog(data)
+    }
+    setIsLoading(true)
+    if (router.isReady) fetchData()
+  }, [router.isReady])
 
-  return {
-    props: {
-      blog: JSON.parse(JSON.stringify(blog)),
-    },
-  }
-}
-
-export default function Blog({ blog }) {
   return (
     <>
       <Head>
-        <title>{blog?.title || 'Error al cargar el blog'}</title>
+        <title>{blog?.nombre || 'Blog'}</title>
       </Head>
       <Layout>
         <main className={`${utils.container} ${styles.main}`}>
-          {!blog ? (
+          {isLoading ? (
             <LoadingIndicator />
+          ) : errorMessage.length > 0 ? (
+            <Message type="error" message={errorMessage} />
           ) : (
             <div className={styles.blogInfo}>
-              <h2 className={utils.bigTitle}>{blog.title}</h2>
+              <h2 className={utils.bigTitle}>{blog.nombre}</h2>
               <p>{blog.description}</p>
               <Image
                 src={blog.image || '/images/logo.png'}
@@ -56,11 +56,16 @@ export default function Blog({ blog }) {
                 width={300}
                 alt="Blog main image"
               />
-              <div
-                dangerouslySetInnerHTML={{ __html: blog.content }}
-                className={utils.htmlContent}
-              />
-              <p>Publicado el {formatDate(blog.createdAt)}</p>
+              <div>
+                {blog?.texto?.split('\n\r').map((text, i) => (
+                  <div style={{ marginBlock: '1.5em' }} key={i}>
+                    {text.split('\n').map((text, i) => (
+                      <p key={i}>{text}</p>
+                    ))}
+                  </div>
+                ))}
+              </div>
+              <p>Publicado el {formatDate(blog.fechacreacion)}</p>
             </div>
           )}
         </main>

@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 // Local
 import { formatDate } from 'helpers'
-import { handleError } from 'lib/errors'
+import { getUniqueContent } from 'lib/api'
 // Components
 import Head from 'next/head'
 import Layout from '@/components/Layout'
@@ -13,17 +13,30 @@ import Message from '@/components/Message'
 import utils from '@/styles/utils.module.css'
 
 export default function Post() {
-  const router = useRouter()
-  const { id } = router.query
-
   const [post, setPost] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
+  const router = useRouter()
+
+  useEffect(() => {
+    async function fetchData() {
+      const { data, error } = await getUniqueContent(
+        '/api/content/posts',
+        router.query.id
+      )
+      setIsLoading(false)
+      if (error) return setErrorMessage(error)
+      setPost(data)
+    }
+    setIsLoading(true)
+    fetchData()
+  }, [router.isReady])
+
   return (
     <>
       <Head>
-        <title>{post?.attributes?.title || 'Error al cargar el post'}</title>
+        <title>{post?.nombre || 'Error al cargar el post'}</title>
       </Head>
       <Layout>
         <main className={`${utils.container} ${utils.marginBlock}`}>
@@ -33,12 +46,9 @@ export default function Post() {
             <LoadingIndicator />
           ) : (
             <>
-              <h2 className={utils.bigTitle}>{post.attributes.title}</h2>
-              <div
-                dangerouslySetInnerHTML={{ __html: post.attributes.content }}
-                className={utils.htmlContent}
-              ></div>
-              <p>Publicado el {formatDate(post.attributes.createdAt)}</p>
+              <h2 className={utils.bigTitle}>{post.nombre}</h2>
+
+              <p>Publicado el {formatDate(post.fechacreacion)}</p>
             </>
           )}
         </main>

@@ -1,68 +1,71 @@
 // NPM
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import { useTranslation } from 'next-i18next'
-import { useState } from 'react'
-import { useRouter } from 'next/router'
+import { useEffect, useState } from 'react'
 // Local
-import { handleError } from 'lib/errors'
-import { prisma } from 'lib/prisma'
+import { getContent } from 'lib/api'
 // Components
 import Head from 'next/head'
 import Layout from '@/components/Layout'
 import Message from '@/components/Message'
-import CardsContainer from '@/components/CardsContainer'
 import LoadingIndicator from '@/components/LoadingIndicator'
+import { TourCard } from '@/components/TourCard'
+import { InputText, Select } from '@/components/DashboardComponents'
 // Styles
 import styles from '@/styles/Citytours.module.css'
 import utils from '@/styles/utils.module.css'
 
 export async function getStaticProps({ locale }) {
-  const tours = await prisma.tourEntry.findMany({ where: { locale } })
-  const countries = await prisma.country.findMany()
-
   return {
     props: {
       ...(await serverSideTranslations(locale, ['citytours', 'common'])),
-      tours: JSON.parse(JSON.stringify(tours)),
-      countries: JSON.parse(JSON.stringify(countries)),
       locale,
     },
   }
 }
 
-export default function Citytours({ locale, tours, countries }) {
-  const [isLoading, setIsLoading] = useState(false)
+export default function Citytours({ locale }) {
+  const [tours, setTours] = useState([])
+  const [countries, setCountries] = useState([])
+  const [isLoading, setIsLoading] = useState({
+    tours: false,
+    countries: false,
+  })
+  const [isFormLoading, setIsFormLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
   const { t } = useTranslation(['citytours', 'common'])
 
+  useEffect(() => {
+    async function fetchData() {
+      const { data: tours, error: toursError } = await getContent(
+        '/api/content/tours'
+      )
+      setIsLoading((value) => ({ ...value, tours: false }))
+      setTours(tours)
+      const { data: countries, error: countriesError } = await getContent(
+        '/api/content/countries'
+      )
+      setIsLoading((value) => ({ ...value, countries: false }))
+      if (toursError || countriesError) {
+        return setErrorMessage(`${toursError ?? ''} ${countriesError ?? ''}`)
+      }
+      setCountries(countries)
+    }
+    setIsLoading({ tours: true, countries: true })
+    fetchData()
+  }, [])
+
   const handleSubmit = async (ev) => {
     ev.preventDefault()
 
-    setIsLoading(true)
+    setIsFormLoading(true)
 
     const formData = Object.fromEntries(new FormData(ev.target))
-    // const filters = []
 
-    // if (formData.tour)
-    //   filters.push(['filters[title][$containsi]', `${formData.tour}`])
-    // if (formData.country)
-    //   filters.push(['filters[country][name][$eq]', `${formData.country}`])
+    alert(`${formData.tour} ${formData.country}`)
 
-    // if (filters.length > 0) {
-    //   filters.forEach((filter, index) => {
-    //     queryParams += `&${filter[0]}[${index}]=${filter[1]}`
-    //   })
-    // }
-
-    // try {
-    //   const { data, error } = await fetchStrapi('tours', queryParams)
-    //   if (error) handleError(error)
-    //   setTours(data)
-    // } catch (error) {
-    //   setErrorMessage(error.message)
-    // }
-    // setIsLoading(false)
+    setIsFormLoading(false)
   }
 
   return (
@@ -76,14 +79,12 @@ export default function Citytours({ locale, tours, countries }) {
             <h1 className={utils.bigTitle}>City Tours</h1>
             {errorMessage ? (
               <Message type="error" message={errorMessage} />
-            ) : (tours.length === 0 && isLoading) || isLoading ? (
+            ) : (tours.length === 0 && isLoading.tours) || isLoading.tours ? (
               <LoadingIndicator />
             ) : tours.length > 0 ? (
-              <CardsContainer
-                cardsName="tours"
-                cards={tours}
-                linkText={t('cardsContainerText', { ns: 'common' })}
-              />
+              tours.map((tour) => (
+                <TourCard tour={tour} locale={locale} key={tour.codigo} />
+              ))
             ) : (
               <Message
                 type="info"
@@ -96,32 +97,25 @@ export default function Citytours({ locale, tours, countries }) {
               {t('body.filter', { ns: 'citytours' })}
             </h2>
             <form onSubmit={handleSubmit} className={utils.form}>
-              <div>
-                <label htmlFor="tour">
-                  {t('body.form.title', { ns: 'citytours' })}
-                </label>
-                <input
-                  type="text"
-                  name="tour"
-                  className={utils.input}
-                  placeholder={t('body.form.placeholder', { ns: 'citytours' })}
-                ></input>
-              </div>
-              <div>
-                <label htmlFor="country">
-                  {t('body.form.country', { ns: 'citytours' })}
-                </label>
-                <select id="country" name="country" className={utils.input}>
-                  <option value="">-</option>
-                  {countries.map((country) => (
-                    <option value={country.name} key={country.id}>
-                      {locale === 'es' ? country.name : country.englishName}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <InputText
+                label={t('body.form.title', { ns: 'citytours' })}
+                name="tour"
+                attrs={{
+                  className: utils.input,
+                  placeholder: t('body.form.placeholder', { ns: 'citytours' }),
+                }}
+              />
+              <Select
+                label={t('body.form.country', { ns: 'citytours' })}
+                name="country"
+                options={countries}
+                attrs={{ className: utils.input }}
+              />
+
               <button className={utils.button} type="submit">
-                {t('body.form.submit', { ns: 'citytours' })}
+                {isFormLoading
+                  ? 'Cargando...'
+                  : t('body.form.submit', { ns: 'citytours' })}
               </button>
             </form>
           </div>
