@@ -32,27 +32,25 @@ function PostForm({ data }) {
     setIsLoading(true)
 
     const formData = Object.fromEntries(new FormData(ev.target))
-    // formData.imagen1 = handleCloudinaryUpload(formData.imagen1)
-    // formData.imagen2 = handleCloudinaryUpload(formData.imagen2)
-    // formData.imagen3 = handleCloudinaryUpload(formData.imagen3)
-    // formData.imagen4 = handleCloudinaryUpload(formData.imagen4)
-    // formData.imagen5 = handleCloudinaryUpload(formData.imagen5)
+    formData.imagen1 = await handleCloudinaryUpload(formData.imagen1)
+    formData.imagen2 = await handleCloudinaryUpload(formData.imagen2)
+    formData.imagen3 = await handleCloudinaryUpload(formData.imagen3)
+    formData.imagen4 = await handleCloudinaryUpload(formData.imagen4)
+    formData.imagen5 = await handleCloudinaryUpload(formData.imagen5)
 
-    // const response = await postContent('/api/content/posts/new', {
-    //   post: formData,
-    // })
-    // const { message, error } = response
+    const response = await postContent('/api/content/posts', formData)
+    const { message, error } = response
     setIsLoading(false)
-    // if (error) {
-    //   setErrorMessage(error)
-    //   return
-    // }
-
-    // setInfoMessage(message)
+    if (error) {
+      setErrorMessage(error)
+      return
+    }
+    setInfoMessage(message)
+    document.getElementById('post-form').reset()
   }
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} id="post-form">
       {errorMessage && (
         <Notification
           type="error"
@@ -63,17 +61,17 @@ function PostForm({ data }) {
       {infoMessage && (
         <Notification
           notification={infoMessage}
-          setInfoMessage={setInfoMessage}
+          setNotification={setInfoMessage}
         />
       )}
       <div>
         <div style={{ display: 'flex', gap: '1rem' }}>
           <div className={styles.formCreate}>
-            <InputText label="Nombre en español" name="nombre" />
+            <InputText label="Nombre en español" name="nombre" required />
             <Textarea label="Texto en español" name="texto" />
           </div>
           <div className={styles.formCreate}>
-            <InputText label="Nombre en inglés" name="nombre_en" />
+            <InputText label="Nombre en inglés" name="nombre_en" required />
             <Textarea label="Texto en inglés" name="texto_en" />
           </div>
         </div>
@@ -87,6 +85,7 @@ function PostForm({ data }) {
             label="País"
             name="pais"
             options={data.countries}
+            required
             attrs={{ onChange: (ev) => setSelectedCountry(ev.target.value) }}
           />
           <Select
@@ -95,17 +94,17 @@ function PostForm({ data }) {
             options={data?.cities?.filter(
               (city) => city.pais == selectedCountry
             )}
+            required
           />
         </div>
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
           <InputText label="Dirección" name="direccion" />
           <InputText label="Localidad" name="localidad" />
         </div>
-        <Select label="Categoría" name="categoria" options={data.categories} />
         <InputText label="Link" name="link" />
         <InputText label="Mail" name="mail" />
-        <InputNumber label="Orden" name="orden" min={0} />
-        <InputNumber label="Estado" name="estado" min={0} max={2} />
+        <InputNumber label="Orden" name="orden" min={0} required />
+        <InputNumber label="Estado" name="estado" min={0} max={2} required />
       </div>
       <AdminButtonLoader attrs={{ type: 'submit' }} isLoading={isLoading}>
         Crear
@@ -127,21 +126,15 @@ export default function PostCreator() {
       const { data: cities, error: citiesError } = await getContent(
         '/api/content/cities?reduced=1&active=1'
       )
-      const { data: categories, error: categoriesError } = await getContent(
-        '/api/content/categories?reduced=1&active=1'
-      )
       setIsLoading(false)
-      if (countriesError || citiesError || categoriesError) {
+      if (countriesError || citiesError) {
         setErrorMessage(
-          `Error del servidor: ${countriesError ?? ''} ${citiesError ?? ''} ${
-            categoriesError ?? ''
-          }`
+          `Error del servidor: ${countriesError ?? ''} ${citiesError ?? ''}`
         )
         return
       }
       setData({
         countries,
-        categories,
         cities,
       })
     }

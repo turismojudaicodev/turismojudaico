@@ -5,6 +5,7 @@ import { getContent } from 'lib/api'
 // Components
 import DashboardTablePosts from '@/components/DashboardTablePosts'
 import AdminLayout from '@/components/AdminLayout'
+import { NotificationLoading } from '@/components/Notification'
 // Styles
 import utils from '@/styles/utils.module.css'
 import styles from '@/styles/Dashboard.module.css'
@@ -38,7 +39,7 @@ export default function Dashboard() {
     return (
       <AdminLayout>
         <h1 className={utils.bigTitle}>Atracciones Judaicas</h1>
-        <p>Cargando posts...</p>
+        <NotificationLoading message="Cargando posts" />
       </AdminLayout>
     )
 

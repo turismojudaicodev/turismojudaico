@@ -1,4 +1,5 @@
 import { db } from 'lib/mysql'
+import { isNumeric } from 'helpers'
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
@@ -15,9 +16,31 @@ export default async function handler(req, res) {
       })
     })
   } else if (req.method === 'POST') {
-    return res
-      .status(201)
-      .json({ message: 'Implementar metodo post para posts' })
+    const { body } = req
+    const keys = Object.keys(body)
+    const values = Object.values(body).map((value) => {
+      if (!isNumeric(value)) return `"${value}"`
+      return value
+    })
+    return new Promise((resolve, reject) => {
+      db.query(
+        `INSERT INTO contenidos (${keys.join(',')})
+        VALUES (${values.join(',')})`,
+        (err, data) => {
+          if (err) {
+            res
+              .status(500)
+              .json({ error: err.sqlMessage ?? 'Error al crear post' })
+            return resolve()
+          }
+          res.status(201).json({
+            data,
+            message: `Post "${body?.nombre}" creado correctamente`,
+          })
+          return resolve()
+        }
+      )
+    })
   } else {
     return res.status(405).json({ error: 'Method not allowed' })
   }
