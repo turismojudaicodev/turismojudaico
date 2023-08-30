@@ -29,9 +29,8 @@ export default async function handler(req, res) {
   } else if (req.method === 'POST') {
     const { body } = req
 
-    res.status(201).json({
-      message: `en proces....`,
-      data: body,
+    res.status(500).json({
+      error: `Falta implementar agregado de ciudades`,
     })
   } else {
     return res.status(405).json({ error: 'Method not allowed' })

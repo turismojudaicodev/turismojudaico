@@ -16,8 +16,8 @@ export default async function handler(req, res) {
     })
   } else if (req.method === 'POST') {
     return res
-      .status(201)
-      .json({ message: 'Implementar post para proveedores' })
+      .status(500)
+      .json({ error: 'Falta mplementar post para proveedores' })
   } else {
     return res.status(405).json({ error: 'Method not allowed' })
   }
