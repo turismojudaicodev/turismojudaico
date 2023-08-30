@@ -1,209 +1,86 @@
 // NPM
 import { useEffect, useState } from 'react'
-import { useQuill } from 'react-quilljs'
+import { useRouter } from 'next/router'
 // Local
-import { prisma } from 'lib/prisma'
-import { updateUniqueContent } from 'lib/api'
+import { getUniqueContent, updateUniqueContent } from 'lib/api'
+import { uploadCloudinaryImage } from 'helpers'
 // Components
 import AdminLayout from '@/components/AdminLayout'
-import Notification from '@/components/Notification'
+import Notification, { NotificationLoading } from '@/components/Notification'
 import AdminButtonLoader from '@/components/AdminButtonLoader'
+import {
+  InputImage,
+  InputNumber,
+  InputText,
+  Textarea,
+} from '@/components/DashboardComponents'
 // Styles
-import utils from '@/styles/utils.module.css'
 import styles from '@/styles/Dashboard.module.css'
-import 'quill/dist/quill.snow.css' // quill snow theme
-import Image from 'next/image'
 
-export async function getStaticPaths() {
-  const blogs = await prisma.blogEntry.findMany({ where: { locale: 'es' } })
-  const paths = blogs.map((blog) => ({
-    params: { id: blog.blogId.toString() },
-  }))
-  return {
-    paths,
-    fallback: false,
-  }
-}
-
-export async function getStaticProps(context) {
-  const blogId = Number(context.params.id)
-  const blogs = await prisma.blogEntry.findMany({ where: { blogId } })
-  return {
-    props: {
-      blogId,
-      entries: JSON.parse(JSON.stringify(blogs)),
-    },
-  }
-}
-
-function BlogForm({ title, prefix, formData, setFormData, quill, quillRef }) {
-  const [previewSource, setPreviewSource] = useState(formData.image || '')
-  const [fileInput, setFileInput] = useState('')
-
-  const handleImageChange = (ev) => {
-    const file = ev.target.files[0]
-    if (!file) {
-      setPreviewSource('')
-      setFileInput('')
-      return
-    }
-    const reader = new FileReader()
-    reader.readAsDataURL(file)
-    reader.onloadend = () => {
-      setPreviewSource(reader.result)
-      setFormData((prev) => ({ ...prev, image: reader.result }))
-    }
-    setFileInput(ev.target.value)
-  }
-
-  useEffect(() => {
-    if (quill) {
-      quill.clipboard.dangerouslyPasteHTML(formData.content)
-    }
-  }, [quill])
-
+function BlogForm({ blog }) {
   return (
-    <div>
-      <h3 className={styles.languageTitle}>{title}</h3>
-      <div className={styles.formCreate}>
-        <div>
-          <label>
-            <span className={utils.inputRequired}>Título</span>
-            <input
-              type="text"
-              name={`${prefix}_title`}
-              id={`${prefix}_title`}
-              value={formData.title}
-              onChange={(ev) =>
-                setFormData((value) => ({ ...value, title: ev.target.value }))
-              }
-              className={styles.input}
-            ></input>
-          </label>
+    <div style={{ marginBottom: '1rem' }}>
+      <h3 className={styles.languageTitle}>Editar blog {blog?.codigo}</h3>
+      <div style={{ display: 'flex', gap: '1rem' }}>
+        <div className={styles.formCreate}>
+          <InputText
+            label="Nombre en español"
+            name="nombre"
+            defaultValue={blog?.nombre}
+            required
+          />
+          <Textarea
+            label="Texto en español"
+            name="texto"
+            defaultValue={blog?.texto}
+          />
+          <InputImage label="Imagen en español" name="imagen" />
+          {blog.imagen && <p>Imagen actual: {blog.imagen}</p>}
         </div>
-        <div>
-          <label>
-            <span className={utils.inputRequired}>Descripción</span>
-            <textarea
-              type="text"
-              name={`${prefix}_description`}
-              id={`${prefix}_description`}
-              value={formData.description}
-              onChange={(ev) =>
-                setFormData((value) => ({
-                  ...value,
-                  description: ev.target.value,
-                }))
-              }
-              className={styles.input}
-            ></textarea>
-          </label>
-        </div>
-        <div>
-          <label>
-            <span style={{ display: 'block', marginBlock: '.5rem' }}>
-              Imagen de portada
-            </span>
-            <input
-              type="file"
-              name={`${prefix}_image`}
-              id={`${prefix}_image`}
-              onChange={handleImageChange}
-              value={fileInput}
-            />
-          </label>
-          {previewSource && (
-            <Image
-              src={previewSource}
-              alt="Imagen de portada"
-              width={200}
-              height={200}
-              style={{ marginTop: '.5rem' }}
-            />
-          )}
-        </div>
-        <div>
-          <p className={utils.inputRequired}>Contenido</p>
-          <div className={styles.quillContainer}>
-            <div>
-              <div ref={quillRef} />
-            </div>
-          </div>
-        </div>
-        <div>
-          <label>
-            <span>Visible</span>
-            <input
-              style={{ width: '25px' }}
-              type="checkbox"
-              name={`${prefix}_active`}
-              id={`${prefix}_active`}
-              value={formData.active}
-              defaultChecked
-              onChange={() =>
-                setFormData((value) => ({ ...value, active: !value.active }))
-              }
-              className={styles.input}
-            ></input>
-          </label>
+        <div className={styles.formCreate}>
+          <InputText
+            label="Nombre en inglés"
+            name="nombre_en"
+            defaultValue={blog?.nombre_en}
+            required
+          />
+          <Textarea
+            label="Texto en inglés"
+            name="texto_en"
+            defaultValue={blog?.texto_en}
+          />
+          <InputImage label="Imagen en inglés" name="imagen_en" />
+          {blog.imagen_en && <p>Imagen actual: {blog.imagen_en}</p>}
         </div>
       </div>
+      <InputNumber
+        label="Estado"
+        name="estado"
+        defaultValue={blog?.estado}
+        required
+      />
     </div>
   )
 }
 
-export default function Blog({ blogId, entries }) {
-  const englishBlog = entries.find((blog) => blog.locale === 'en')
-  const spanishBlog = entries.find((blog) => blog.locale === 'es')
+export default function Blog() {
+  const router = useRouter()
 
   const [errorMessage, setErrorMessage] = useState('')
+  const [blog, setBlog] = useState({})
   const [infoMessage, setInfoMessage] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const [isDataLoading, setIsLoading] = useState(false)
 
-  const [spanishFormData, setSpanishFormData] = useState({
-    title: spanishBlog.title,
-    description: spanishBlog.description,
-    image: spanishBlog.image,
-    active: spanishBlog.active,
-    locale: spanishBlog.locale,
-    content: spanishBlog.content,
-  })
-  const [englishFormData, setEnglishFormData] = useState({
-    title: englishBlog.title,
-    description: englishBlog.description,
-    image: englishBlog.image,
-    active: englishBlog.active,
-    locale: englishBlog.locale,
-    content: englishBlog.content,
-  })
-
-  let { quill: spanishQuill, quillRef: spanishQuillRef } = useQuill({
-    theme: 'snow',
-    modules: {
-      toolbar: [
-        ['bold', 'italic', 'underline', 'strike'],
-
-        [{ list: 'ordered' }, { list: 'bullet' }],
-
-        [{ header: [1, 2, 3, 4, 5, 6, false] }],
-        ['link', 'image', 'video'],
-      ],
-    },
-  })
-
-  let { quill: englishQuill, quillRef: englishQuillRef } = useQuill({
-    theme: 'snow',
-    modules: {
-      toolbar: [
-        ['bold', 'italic', 'underline', 'strike'],
-
-        [{ list: 'ordered' }, { list: 'bullet' }],
-
-        [{ header: [1, 2, 3, 4, 5, 6, false] }],
-        ['link', 'image', 'video'],
-      ],
-    },
-  })
+  useEffect(() => {
+    async function fetchBlog() {
+      await getUniqueContent('/api/content/blogs', router.query.id)
+        .then((data) => setBlog(data[0]))
+        .catch((error) => setErrorMessage(error.message))
+      setIsLoading(false)
+    }
+    setIsLoading(true)
+    if (router.isReady) fetchBlog()
+  }, [router.isReady])
 
   const handleUpdate = async (ev) => {
     ev.preventDefault()
@@ -211,53 +88,25 @@ export default function Blog({ blogId, entries }) {
     setInfoMessage('')
     setErrorMessage('')
 
-    const spBlog = {
-      ...spanishFormData,
-      content: spanishQuill.root.innerHTML,
-      id: spanishBlog.id,
-    }
+    const formData = Object.fromEntries(new FormData(ev.target))
 
-    const enBlog = {
-      ...englishFormData,
-      content: englishQuill.root.innerHTML,
-      id: englishBlog.id,
+    if (formData.imagen.size > 0) {
+      const data = uploadCloudinaryImage(formData.imagen)
+      formData.imagen = data.secure_url
+    } else {
+      formData.imagen = ''
     }
-
-    const currentFormData = new FormData(ev.target)
-    const spImage = currentFormData.get('sp_image')
-    const enImage = currentFormData.get('en_image')
-
-    if (spImage.size > 0) {
-      const fd = new FormData()
-      fd.append('file', spImage)
-      fd.append('upload_preset', 'tj_local')
-      const data = await fetch(
-        'https://api.cloudinary.com/v1_1/paiput/image/upload',
-        {
-          method: 'POST',
-          body: fd,
-        }
-      ).then((r) => r.json())
-      spBlog.image = data.secure_url
-    }
-    if (enImage.size > 0) {
-      const fd = new FormData()
-      fd.append('file', enImage)
-      fd.append('upload_preset', 'tj_local')
-      const data = await fetch(
-        'https://api.cloudinary.com/v1_1/paiput/image/upload',
-        {
-          method: 'POST',
-          body: fd,
-        }
-      ).then((r) => r.json())
-      enBlog.image = data.secure_url
+    if (formData.imagen_en.size > 0) {
+      const data = uploadCloudinaryImage(formData.imagen_en)
+      formData.imagen_en = data.secure_url
+    } else {
+      formData.imagen_en = ''
     }
 
     const res = await updateUniqueContent(
       '/api/content/blogs',
-      blogId.toString(),
-      { spBlog, enBlog }
+      router.query.id.toString(),
+      formData
     )
 
     setIsLoading(false)
@@ -285,26 +134,12 @@ export default function Blog({ blogId, entries }) {
           setNotification={setInfoMessage}
         />
       )}
+      {isDataLoading && <NotificationLoading />}
       <form onSubmit={handleUpdate}>
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <BlogForm
-            title="Versión en español"
-            prefix="sp"
-            formData={spanishFormData}
-            setFormData={setSpanishFormData}
-            quill={spanishQuill}
-            quillRef={spanishQuillRef}
-          />
-          <BlogForm
-            title="Versión en inglés"
-            prefix="en"
-            formData={englishFormData}
-            setFormData={setEnglishFormData}
-            quill={englishQuill}
-            quillRef={englishQuillRef}
-          />
-        </div>
-        <AdminButtonLoader isLoading={isLoading}>Confirmar</AdminButtonLoader>
+        <BlogForm blog={blog} />
+        <AdminButtonLoader isLoading={isDataLoading}>
+          Confirmar
+        </AdminButtonLoader>
       </form>
     </AdminLayout>
   )

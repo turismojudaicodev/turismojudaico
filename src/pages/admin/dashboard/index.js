@@ -1,7 +1,7 @@
 // NPM
 import { useState } from 'react'
 // Local
-import { prisma } from 'lib/prisma'
+import { deleteContent, postContent } from 'lib/api'
 // Components
 import AdminLayout from '@/components/AdminLayout'
 import Image from 'next/image'
@@ -10,21 +10,8 @@ import Notification from '@/components/Notification'
 import utils from '@/styles/utils.module.css'
 import styles from '@/styles/DashboardIndex.module.css'
 import dashboardStyles from '@/styles/Dashboard.module.css'
-import { deleteContent, postContent } from 'lib/api'
 
-export async function getStaticProps() {
-  const currentImages = await prisma.staticImage.findMany({
-    where: { section: 'carousel' },
-  })
-
-  return {
-    props: {
-      currentImages,
-    },
-  }
-}
-
-export default function Dashboard({ currentImages }) {
+export default function Dashboard() {
   const [previewSource, setPreviewSource] = useState('')
   const [fileInput, setFileInput] = useState('')
   const [infoMessage, setInfoMessage] = useState('')
@@ -116,7 +103,7 @@ export default function Dashboard({ currentImages }) {
       <div>
         <h2>Imágenes del slider</h2>
         <div>
-          {currentImages?.length > 0 &&
+          {/* {currentImages?.length > 0 &&
             currentImages.map((image) => (
               <div key={image.id}>
                 <p>{image.name}</p>
@@ -140,7 +127,7 @@ export default function Dashboard({ currentImages }) {
                   onClick={() => handleSliderDelete(image.id, image.name)}
                 />
               </div>
-            ))}
+            ))} */}
         </div>
         <form
           onSubmit={handleSliderFormSubmit}

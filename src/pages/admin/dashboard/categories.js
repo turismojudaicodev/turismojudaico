@@ -1,147 +1,50 @@
 // NPM
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 // Local
-import { prisma } from 'lib/prisma'
-import { deleteContent, postContent } from 'lib/api'
-import { setTimedMessage } from 'helpers'
+import { getContent, postContent } from 'lib/api'
 // Components
 import AdminLayout from '@/components/AdminLayout'
-import Image from 'next/image'
-import Message from '@/components/Message'
-import DeleteIcon from 'public/icons/delete.svg'
+import Notification from '@/components/Notification'
+import DashboardTableCategories from '@/components/DashboardTableCategories'
+import AdminButtonLoader from '@/components/AdminButtonLoader'
+import { InputNumber, InputText } from '@/components/DashboardComponents'
 // Styles
 import utils from '@/styles/utils.module.css'
 import styles from '@/styles/Dashboard.module.css'
 
-function ExistingContent({
-  setVisibleCategories,
-  visibleCategories,
-  setVisibleSubCategories,
-  visibleSubCategories,
-}) {
-  const [errorMessage, setErrorMessage] = useState('')
-  const [infoMessage, setInfoMessage] = useState('')
-
-  const handleCategoryDelete = async (categoryId) => {
-    const result = await deleteContent('/api/content/categories', categoryId)
-    const { message, error } = result
-    if (error) return setTimedMessage(error, setErrorMessage)
-    setTimedMessage(message, setInfoMessage)
-    setVisibleCategories((prev) =>
-      prev.filter((category) => category.id !== categoryId)
-    )
-    setVisibleSubCategories((prev) =>
-      prev.filter((subCategory) => subCategory.category.id !== categoryId)
-    )
-  }
-
-  const handleCityDelete = async (subCategoryId) => {
-    const result = await deleteContent(
-      '/api/content/subCategories',
-      subCategoryId
-    )
-    const { message, error } = result
-    if (error) return setTimedMessage(error, setErrorMessage)
-    setTimedMessage(message, setInfoMessage)
-    setVisibleSubCategories((prev) =>
-      prev.filter((subCategory) => subCategory.id !== subCategoryId)
-    )
-  }
-
+function ExistingContent({ setVisibleCategories, visibleCategories }) {
   return (
     <div style={{ display: 'flex', gap: '1rem' }}>
       <div>
-        {visibleCategories.map((category) => (
-          <div
-            className={styles.entryCard}
-            key={category.id}
-            style={{ alignItems: 'center' }}
-          >
-            <div className={styles.entryTextContainer}>
-              <p>{category.name}</p>
-            </div>
-            <div className={styles.entryButtonsContainer}>
-              <button
-                className={styles.deleteButton}
-                onClick={() => handleCategoryDelete(category.id)}
-              >
-                <Image
-                  src={DeleteIcon}
-                  alt="Delete Icon"
-                  height={16}
-                  width={16}
-                />
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-      <div>
-        {visibleSubCategories.map((subCategory) => (
-          <div
-            className={styles.entryCard}
-            key={subCategory.id}
-            style={{ alignItems: 'center' }}
-          >
-            <div className={styles.entryTextContainer}>
-              <p>{subCategory.name}</p>
-              <p style={{ fontSize: '.75rem' }}>{subCategory.category.name}</p>
-            </div>
-            <div className={styles.entryButtonsContainer}>
-              <button
-                className={styles.deleteButton}
-                onClick={() => handleCityDelete(subCategory.id)}
-              >
-                <Image
-                  src={DeleteIcon}
-                  alt="Delete Icon"
-                  height={16}
-                  width={16}
-                />
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-      <div className={utils.messageContainer}>
-        {errorMessage && <Message type="error" message={errorMessage} />}
-        {infoMessage && <Message type="info" message={infoMessage} />}
+        <DashboardTableCategories
+          table={visibleCategories}
+          setVisibleTable={setVisibleCategories}
+        />
       </div>
     </div>
   )
 }
 
-function Form({
-  visibleCategories,
-  setVisibileCategories,
-  setVisibleSubCategories,
-}) {
+function Form({ setVisibileCategories }) {
+  const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [infoMessage, setInfoMessage] = useState('')
 
   const handleCategorySubmit = async (ev) => {
     ev.preventDefault()
+    setIsLoading(true)
     const category = Object.fromEntries(new FormData(ev.target))
     const response = await postContent('/api/content/categories', category)
+    setIsLoading(false)
     const { message, error, data } = response
-    if (error) return setTimedMessage(error, setErrorMessage)
-    setVisibileCategories((prev) => prev.concat(data))
-    setTimedMessage(message, setInfoMessage)
-    document.getElementById('category-form').reset()
-  }
-
-  const handleSubCategorySubmit = async (ev) => {
-    ev.preventDefault()
-    const subCategoryData = Object.fromEntries(new FormData(ev.target))
-    const response = await postContent(
-      '/api/content/subCategories',
-      subCategoryData
+    if (error) {
+      return setErrorMessage(error)
+    }
+    setVisibileCategories((prev) =>
+      prev.concat({ ...category, codigo: data.insertId })
     )
-    const { message, error, data } = response
-    if (error) return setTimedMessage(error, setErrorMessage)
-    setVisibleSubCategories((prev) => prev.concat(data))
-    setTimedMessage(message, setInfoMessage)
-    document.getElementById('subCategory-form').reset()
+    setInfoMessage(message)
+    document.getElementById('category-form').reset()
   }
 
   return (
@@ -152,121 +55,82 @@ function Form({
           onSubmit={handleCategorySubmit}
           id="category-form"
         >
-          <div>
-            <label htmlFor="category">Categoría</label>
-            <input
-              type="text"
-              name="name"
-              id="category"
-              className={styles.input}
-              style={{ maxWidth: '350px' }}
-            ></input>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <div>
+              <InputText name="nombre" label="Categoría" />
+              <InputText name="nombre_en" label="Categoría en inglés" />
+            </div>
+            <div>
+              <InputNumber name="padre" label="Padre" />
+              <InputNumber name="orden" label="Orden" />
+              <InputNumber name="estado" label="Estado" />
+            </div>
           </div>
-          <div>
-            <label htmlFor="categoryEnglishName">Categoría en inglés</label>
-            <input
-              type="text"
-              name="englishName"
-              id="categoryEnglishName"
-              className={styles.input}
-              style={{ maxWidth: '350px' }}
-            ></input>
-          </div>
-          <button type="submit" className={styles.submitButton}>
+          <AdminButtonLoader
+            attrs={{ type: 'submit', style: { width: 'fit-content' } }}
+            isLoading={isLoading}
+          >
             Agregar
-          </button>
-        </form>
-        <form
-          className={styles.formCreate}
-          onSubmit={handleSubCategorySubmit}
-          id="subCategory-form"
-        >
-          <div>
-            <label htmlFor="subCategory">Sub Categoría</label>
-            <input
-              type="text"
-              name="name"
-              id="subCategory"
-              className={styles.input}
-              style={{ maxWidth: '350px' }}
-            ></input>
-          </div>
-          <div>
-            <label htmlFor="subCategoryEnglishName">
-              Sub Categoría en inglés
-            </label>
-            <input
-              type="text"
-              name="englishName"
-              id="subCategoryEnglishName"
-              className={styles.input}
-              style={{ maxWidth: '350px' }}
-            ></input>
-          </div>
-          <div>
-            <label htmlFor="subCategoryCategory">Categoría</label>
-            <select
-              id="subCategoryCategory"
-              name="categoryId"
-              className={styles.input}
-              style={{ maxWidth: '350px' }}
-            >
-              <option value=""> </option>
-              {visibleCategories.map((category) => (
-                <option value={category.id} key={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <button type="submit" className={styles.submitButton}>
-            Agregar
-          </button>
+          </AdminButtonLoader>
         </form>
       </div>
-      <div className={utils.messageContainer}>
-        {errorMessage && <Message type="error" message={errorMessage} />}
-        {infoMessage && <Message type="info" message={infoMessage} />}
-      </div>
+      {errorMessage && (
+        <Notification
+          type="error"
+          notification={errorMessage}
+          setNotification={setErrorMessage}
+        />
+      )}
+      {infoMessage && (
+        <Notification
+          notification={infoMessage}
+          setNotification={setInfoMessage}
+        />
+      )}
     </div>
   )
 }
 
-export default function Countries({ categories, subCategories }) {
-  const [visibleCategories, setVisibileCategories] = useState(categories)
-  const [visibleSubCategories, setVisibleSubCategories] =
-    useState(subCategories)
+export default function Categories() {
+  const [visibleCategories, setVisibileCategories] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
+
+  useEffect(() => {
+    async function fetchData() {
+      await getContent('/api/content/categories')
+        .then(({ data }) => setVisibileCategories(data))
+        .catch((error) => setErrorMessage(error))
+      setIsLoading(false)
+    }
+    setIsLoading(true)
+    fetchData()
+  }, [])
+
+  if (isLoading)
+    return (
+      <AdminLayout>
+        <h1 className={utils.bigTitle}>Categorías</h1>
+        <p>Cargando categorias...</p>
+      </AdminLayout>
+    )
+
+  if (errorMessage.length > 0)
+    return (
+      <AdminLayout>
+        <h1 className={utils.bigTitle}>Categorías</h1>
+        <p>{errorMessage}</p>
+      </AdminLayout>
+    )
 
   return (
     <AdminLayout>
       <h1 className={utils.bigTitle}>Categorías</h1>
-      <Form
-        visibleCategories={visibleCategories}
-        setVisibileCategories={setVisibileCategories}
-        setVisibleSubCategories={setVisibleSubCategories}
-      />
+      <Form setVisibileCategories={setVisibileCategories} />
       <ExistingContent
         setVisibleCategories={setVisibileCategories}
         visibleCategories={visibleCategories}
-        visibleSubCategories={visibleSubCategories}
-        setVisibleSubCategories={setVisibleSubCategories}
       />
     </AdminLayout>
   )
-}
-
-export async function getStaticProps() {
-  const categories = await prisma.category.findMany()
-  const subCategories = await prisma.subCategory.findMany({
-    include: {
-      category: true,
-    },
-  })
-
-  return {
-    props: {
-      categories: JSON.parse(JSON.stringify(categories)),
-      subCategories: JSON.parse(JSON.stringify(subCategories)),
-    },
-  }
 }

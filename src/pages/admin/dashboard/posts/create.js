@@ -1,8 +1,7 @@
 // NPM
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/router'
 // Local
-import { getContent, getUniqueContent, postContent } from 'lib/api'
+import { getContent, postContent } from 'lib/api'
 import { handleCloudinaryUpload } from 'helpers'
 // Components
 import AdminLayout from '@/components/AdminLayout'
@@ -16,15 +15,16 @@ import {
   Textarea,
 } from '@/components/DashboardComponents'
 import Message from '@/components/Message'
+import Link from 'next/link'
 // Styles
 import utils from '@/styles/utils.module.css'
 import styles from '@/styles/Dashboard.module.css'
 
-function PostForm({ post, data }) {
+function PostForm({ data }) {
   const [errorMessage, setErrorMessage] = useState('')
   const [infoMessage, setInfoMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [selectedCountry, setSelectedCountry] = useState(post.pais || null)
+  const [selectedCountry, setSelectedCountry] = useState(null)
 
   const handleSubmit = async (ev) => {
     ev.preventDefault()
@@ -69,112 +69,58 @@ function PostForm({ post, data }) {
       <div>
         <div style={{ display: 'flex', gap: '1rem' }}>
           <div className={styles.formCreate}>
-            <InputText
-              label="Nombre en español"
-              name="nombre"
-              defaultValue={post.nombre}
-            />
-            <Textarea
-              label="Texto en español"
-              name="texto"
-              defaultValue={post.texto}
-            />
+            <InputText label="Nombre en español" name="nombre" />
+            <Textarea label="Texto en español" name="texto" />
           </div>
           <div className={styles.formCreate}>
-            <InputText
-              label="Nombre en inglés"
-              name="nombre_en"
-              defaultValue={post.nombre_en}
-            />
-            <Textarea
-              label="Texto en inglés"
-              name="texto_en"
-              defaultValue={post.texto_en}
-            />
+            <InputText label="Nombre en inglés" name="nombre_en" />
+            <Textarea label="Texto en inglés" name="texto_en" />
           </div>
         </div>
         <InputImage label="Imagen1" name="imagen1" />
-        {post.imagen1 && <p>Imagen actual: {post.imagen1}</p>}
         <InputImage label="Imagen2" name="imagen2" />
-        {post.imagen2 && <p>Imagen actual: {post.imagen2}</p>}
         <InputImage label="Imagen3" name="imagen3" />
-        {post.imagen3 && <p>Imagen actual: {post.imagen3}</p>}
         <InputImage label="Imagen4" name="imagen4" />
-        {post.imagen4 && <p>Imagen actual: {post.imagen4}</p>}
         <InputImage label="Imagen5" name="imagen5" />
-        {post.imagen5 && <p>Imagen actual: {post.imagen5}</p>}
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
           <Select
             label="País"
             name="pais"
             options={data.countries}
-            defaultValue={post.pais}
             attrs={{ onChange: (ev) => setSelectedCountry(ev.target.value) }}
           />
           <Select
             label="Ciudad"
             name="ciudad"
-            defaultValue={post.ciudad}
             options={data?.cities?.filter(
               (city) => city.pais == selectedCountry
             )}
           />
         </div>
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-          <InputText
-            label="Dirección"
-            name="direccion"
-            defaultValue={post.direccion}
-          />
-          <InputText
-            label="Localidad"
-            name="localidad"
-            defaultValue={post.localidad}
-          />
+          <InputText label="Dirección" name="direccion" />
+          <InputText label="Localidad" name="localidad" />
         </div>
-        <Select
-          label="Categoría"
-          name="categoria"
-          options={data.categories}
-          defaultValue={post.categoria}
-        />
-        <InputText label="Link" name="link" defaultValue={post.link} />
-        <InputText label="Mail" name="mail" defaultValue={post.mail} />
-        <InputNumber
-          label="Orden"
-          name="orden"
-          min={0}
-          defaultValue={post.orden}
-        />
-        <InputNumber
-          label="Estado"
-          name="estado"
-          min={0}
-          max={2}
-          defaultValue={post.estado}
-        />
+        <Select label="Categoría" name="categoria" options={data.categories} />
+        <InputText label="Link" name="link" />
+        <InputText label="Mail" name="mail" />
+        <InputNumber label="Orden" name="orden" min={0} />
+        <InputNumber label="Estado" name="estado" min={0} max={2} />
       </div>
       <AdminButtonLoader attrs={{ type: 'submit' }} isLoading={isLoading}>
-        Aplicar cambios
+        Crear
       </AdminButtonLoader>
     </form>
   )
 }
 
-export default function PostEditor() {
-  const [post, setPost] = useState({})
+export default function PostCreator() {
   const [errorMessage, setErrorMessage] = useState('')
   const [data, setData] = useState({})
   const [isLoading, setIsLoading] = useState(false)
 
-  const router = useRouter()
-
   useEffect(() => {
     async function fetchData() {
-      const { data: post, error: postError } = await getUniqueContent(
-        '/api/content/posts',
-        router.query.id
-      )
       const { data: countries, error: countriesError } = await getContent(
         '/api/content/countries?reduced=1&active=1'
       )
@@ -185,15 +131,14 @@ export default function PostEditor() {
         '/api/content/categories?reduced=1&active=1'
       )
       setIsLoading(false)
-      if (countriesError || citiesError || categoriesError || postError) {
+      if (countriesError || citiesError || categoriesError) {
         setErrorMessage(
           `Error del servidor: ${countriesError ?? ''} ${citiesError ?? ''} ${
             categoriesError ?? ''
-          } ${postError ?? ''}`
+          }`
         )
         return
       }
-      setPost(post)
       setData({
         countries,
         categories,
@@ -201,8 +146,8 @@ export default function PostEditor() {
       })
     }
     setIsLoading(true)
-    if (router.isReady) fetchData()
-  }, [router.isReady])
+    fetchData()
+  }, [])
 
   if (errorMessage.length > 0) {
     return (
@@ -216,10 +161,16 @@ export default function PostEditor() {
   return (
     <AdminLayout>
       <h3 className={utils.bigTitle}>Atracciones Judaicas</h3>
+      <Link href="/admin/dashboard/posts" className={styles.actionButton}>
+        Mostar Posts
+      </Link>
+      <Link href="" className={styles.actionButtonSelected}>
+        Crear Post
+      </Link>
       {isLoading ? (
         <NotificationLoading message="Cargando datos" />
       ) : (
-        <PostForm post={post} data={data} />
+        <PostForm data={data} />
       )}
     </AdminLayout>
   )

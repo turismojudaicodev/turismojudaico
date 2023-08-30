@@ -1,227 +1,141 @@
 // NPM
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 // Local
-import { prisma } from 'lib/prisma'
-import { deleteContent, postContent } from 'lib/api'
-import { setTimedMessage } from 'helpers'
+import { getContent, postContent } from 'lib/api'
 // Components
 import AdminLayout from '@/components/AdminLayout'
-import Image from 'next/image'
+import DashboardTableCountries from '@/components/DashboardTableCountries'
+import {
+  InputColor,
+  InputImage,
+  InputNumber,
+  InputText,
+  Textarea,
+} from '@/components/DashboardComponents'
+import AdminButtonLoader from '@/components/AdminButtonLoader'
 import Message from '@/components/Message'
-import DeleteIcon from 'public/icons/delete.svg'
+import Notification, { NotificationLoading } from '@/components/Notification'
 // Styles
 import utils from '@/styles/utils.module.css'
 import styles from '@/styles/Dashboard.module.css'
 
-function ExistingContent({
-  setVisibleCountries,
-  visibleCountries,
-  setVisibleCities,
-  visibleCities,
-}) {
-  const [errorMessage, setErrorMessage] = useState('')
-  const [infoMessage, setInfoMessage] = useState('')
-
-  const handleCountryDelete = async (countryId) => {
-    const result = await deleteContent('/api/content/countries', countryId)
-    const { message, error } = result
-    if (error) return setTimedMessage(error, setErrorMessage)
-    setTimedMessage(message, setInfoMessage)
-    setVisibleCountries((prev) =>
-      prev.filter((country) => country.id !== countryId)
-    )
-    setVisibleCities((prev) =>
-      prev.filter((city) => city.country.id !== countryId)
-    )
-  }
-
-  const handleCityDelete = async (cityId) => {
-    const result = await deleteContent('/api/content/cities', cityId)
-    const { message, error } = result
-    if (error) return setTimedMessage(error, setErrorMessage)
-    setTimedMessage(message, setInfoMessage)
-    setVisibleCities((prev) => prev.filter((city) => city.id !== cityId))
-  }
-
+function ExistingContent({ setVisibleCountries, visibleCountries }) {
   return (
     <div style={{ display: 'flex', gap: '1rem' }}>
-      <div>
-        {visibleCountries.map((country) => (
-          <div
-            className={styles.entryCard}
-            key={country.id}
-            style={{ alignItems: 'center' }}
-          >
-            <div className={styles.entryTextContainer}>
-              <p>{country.name}</p>
-              <p style={{ fontSize: '.8em' }}>{country.englishName}</p>
-            </div>
-            <div className={styles.entryButtonsContainer}>
-              <button
-                className={styles.deleteButton}
-                onClick={() => handleCountryDelete(country.id)}
-              >
-                <Image
-                  src={DeleteIcon}
-                  alt="Delete Icon"
-                  height={16}
-                  width={16}
-                />
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-      <div>
-        {visibleCities.map((city) => (
-          <div
-            className={styles.entryCard}
-            key={city.id}
-            style={{ alignItems: 'center' }}
-          >
-            <div className={styles.entryTextContainer}>
-              <p>{city.name}</p>
-              <p style={{ fontSize: '.75rem' }}>{city.country.name}</p>
-            </div>
-            <div className={styles.entryButtonsContainer}>
-              <button
-                className={styles.deleteButton}
-                onClick={() => handleCityDelete(city.id)}
-              >
-                <Image
-                  src={DeleteIcon}
-                  alt="Delete Icon"
-                  height={16}
-                  width={16}
-                />
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-      <div className={utils.messageContainer}>
-        {errorMessage && <Message type="error" message={errorMessage} />}
-        {infoMessage && <Message type="info" message={infoMessage} />}
-      </div>
+      <DashboardTableCountries
+        table={visibleCountries}
+        setVisibleTable={setVisibleCountries}
+      />
     </div>
   )
 }
 
-function Form({ visibleCountries, setVisibileCountries, setVisibleCities }) {
+function Form({ setVisibileCountries }) {
   const [errorMessage, setErrorMessage] = useState('')
   const [infoMessage, setInfoMessage] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleCountrySubmit = async (ev) => {
     ev.preventDefault()
+    setIsLoading(true)
     const country = Object.fromEntries(new FormData(ev.target))
     const response = await postContent('/api/content/countries', country)
+    setIsLoading(false)
     const { message, error, data } = response
-    if (error) return setTimedMessage(error, setErrorMessage)
-    setVisibileCountries((prev) => prev.concat(data))
-    setTimedMessage(message, setInfoMessage)
+    if (error) return setErrorMessage(error)
+    setVisibileCountries((prev) =>
+      prev.concat({ ...country, codigo: data.insertId })
+    )
+    setInfoMessage(message)
     document.getElementById('country-form').reset()
-  }
-
-  const handleCitySubmit = async (ev) => {
-    ev.preventDefault()
-    const cityData = Object.fromEntries(new FormData(ev.target))
-    const response = await postContent('/api/content/cities', cityData)
-    const { message, error, data } = response
-    if (error) return setTimedMessage(error, setErrorMessage)
-    setVisibleCities((prev) => prev.concat(data))
-    setTimedMessage(message, setInfoMessage)
-    document.getElementById('city-form').reset()
   }
 
   return (
     <div>
-      <div style={{ display: 'flex', gap: '1rem' }}>
-        <form
-          className={styles.formCreate}
-          onSubmit={handleCountrySubmit}
-          id="country-form"
+      <form onSubmit={handleCountrySubmit} id="country-form">
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <div className={styles.formCreate}>
+            <InputText label="País en español" name="nombre" />
+            <Textarea label="Descripción A en español" name="descripcionA" />
+            <Textarea label="Descripción B en español" name="descripcionB" />
+          </div>
+          <div className={styles.formCreate}>
+            <InputText label="País en inglés" name="nombre_en" />
+            <Textarea label="Descripción A en inglés" name="descripcionA_en" />
+            <Textarea label="Descripción B en inglés" name="descripcionB_en" />
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <InputColor label="Color1" name="color1" />
+          <InputColor label="Color2" name="color2" />
+          <InputColor label="Color3" name="color3" />
+        </div>
+        <InputImage label="Mapa" name="mapa" />
+        <div style={{ display: 'flex', gap: '1rem', marginBlock: '1rem' }}>
+          <InputNumber label="Dolar" name="dolar" />
+          <InputNumber label="Euro" name="euro" />
+          <InputNumber label="GMT" name="gmt" min={-12} max={12} />
+          <InputNumber label="Estado" name="estado" min={0} max={2} />
+        </div>
+        <AdminButtonLoader
+          attrs={{ type: 'submit', style: { marginBottom: '1rem' } }}
+          isLoading={isLoading}
         >
-          <div>
-            <label htmlFor="country">País</label>
-            <input
-              type="text"
-              name="name"
-              id="country"
-              className={styles.input}
-              style={{ maxWidth: '350px' }}
-            ></input>
-          </div>
-          <div>
-            <label htmlFor="countryEnglishName">País en inglés</label>
-            <input
-              type="text"
-              name="englishName"
-              id="countryEnglishName"
-              className={styles.input}
-              style={{ maxWidth: '350px' }}
-            ></input>
-          </div>
-          <button type="submit" className={styles.submitButton}>
-            Agregar
-          </button>
-        </form>
-        <form
-          className={styles.formCreate}
-          onSubmit={handleCitySubmit}
-          id="city-form"
-        >
-          <div>
-            <label htmlFor="city">Ciudad</label>
-            <input
-              type="text"
-              name="name"
-              id="city"
-              className={styles.input}
-              style={{ maxWidth: '350px' }}
-            ></input>
-          </div>
-          <div>
-            <label htmlFor="cityEnglishName">Ciudad en inglés</label>
-            <input
-              type="text"
-              name="englishName"
-              id="cityEnglishName"
-              className={styles.input}
-              style={{ maxWidth: '350px' }}
-            ></input>
-          </div>
-          <div>
-            <label htmlFor="cityCountry">País</label>
-            <select
-              id="cityCountry"
-              name="countryId"
-              className={styles.input}
-              style={{ maxWidth: '350px' }}
-            >
-              <option value=""> </option>
-              {visibleCountries.map((country) => (
-                <option value={country.id} key={country.id}>
-                  {country.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <button type="submit" className={styles.submitButton}>
-            Agregar
-          </button>
-        </form>
-      </div>
-      <div className={utils.messageContainer}>
-        {errorMessage && <Message type="error" message={errorMessage} />}
-        {infoMessage && <Message type="info" message={infoMessage} />}
-      </div>
+          Agregar
+        </AdminButtonLoader>
+      </form>
+      {errorMessage && (
+        <Notification
+          type="error"
+          notification={errorMessage}
+          setNotification={setErrorMessage}
+        />
+      )}
+      {infoMessage && (
+        <Notification
+          notification={infoMessage}
+          setNotification={setInfoMessage}
+        />
+      )}
     </div>
   )
 }
 
-export default function Countries({ countries, cities }) {
-  const [visibleCountries, setVisibileCountries] = useState(countries)
-  const [visibleCities, setVisibleCities] = useState(cities)
+export default function Countries() {
+  const [visibleCountries, setVisibileCountries] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
+
+  useEffect(() => {
+    setIsLoading(true)
+    async function fetchCountries() {
+      const { data, error } = await getContent('/api/content/countries')
+      setIsLoading(false)
+      if (error) {
+        setErrorMessage(error)
+        return
+      }
+      setVisibileCountries(data)
+    }
+    setIsLoading(true)
+    fetchCountries()
+  }, [])
+
+  if (isLoading)
+    return (
+      <AdminLayout>
+        <h1 className={utils.bigTitle}>Países</h1>
+        <NotificationLoading message="Cargando países..." />
+      </AdminLayout>
+    )
+
+  if (errorMessage.length > 0)
+    return (
+      <AdminLayout>
+        <h1 className={utils.bigTitle}>Países</h1>
+        <Message type="error" message={errorMessage} />
+      </AdminLayout>
+    )
 
   return (
     <AdminLayout>
@@ -229,30 +143,13 @@ export default function Countries({ countries, cities }) {
       <Form
         visibleCountries={visibleCountries}
         setVisibileCountries={setVisibileCountries}
-        setVisibleCities={setVisibleCities}
       />
-      <ExistingContent
-        setVisibleCountries={setVisibileCountries}
-        visibleCountries={visibleCountries}
-        visibleCities={visibleCities}
-        setVisibleCities={setVisibleCities}
-      />
+      {visibleCountries.length > 0 && (
+        <ExistingContent
+          setVisibleCountries={setVisibileCountries}
+          visibleCountries={visibleCountries}
+        />
+      )}
     </AdminLayout>
   )
-}
-
-export async function getStaticProps() {
-  const countries = await prisma.country.findMany()
-  const cities = await prisma.city.findMany({
-    include: {
-      country: true,
-    },
-  })
-
-  return {
-    props: {
-      countries: JSON.parse(JSON.stringify(countries)),
-      cities: JSON.parse(JSON.stringify(cities)),
-    },
-  }
 }
