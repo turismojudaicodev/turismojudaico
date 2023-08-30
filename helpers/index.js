@@ -22,3 +22,33 @@ export function setTimedMessage(message, setMessage, time = 2000) {
     setMessage('')
   }, time)
 }
+
+export function isNumeric(str) {
+  if (typeof str != 'string') return false
+  return (
+    !isNaN(str) && // use type coercion to parse the entirety of the string (`parseFloat` alone does not do this)...
+    !isNaN(parseFloat(str))
+  )
+}
+
+export async function uploadCloudinaryImage(image) {
+  const fd = new FormData()
+  fd.append('file', image)
+  fd.append('upload_preset', 'tj_local')
+  const data = await fetch(
+    'https://api.cloudinary.com/v1_1/paiput/image/upload',
+    {
+      method: 'POST',
+      body: fd,
+    }
+  ).then((r) => r.json())
+  return data
+}
+
+export async function handleCloudinaryUpload(image) {
+  if (image.size > 0) {
+    const data = await uploadCloudinaryImage(image)
+    return data.secure_url
+  }
+  return ''
+}
