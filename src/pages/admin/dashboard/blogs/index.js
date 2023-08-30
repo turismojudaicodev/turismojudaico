@@ -128,11 +128,14 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
+    async function fetchData() {
+      const { data, error } = await getContent('/api/content/blogs')
+      setIsLoading(false)
+      if (error) return setErrorMessage(error)
+      setBlogs(data)
+    }
     setIsLoading(true)
-    getContent('/api/content/blogs')
-      .then((blogs) => setBlogs(blogs))
-      .catch((error) => setErrorMessage(error.message))
-      .finally(() => setIsLoading(false))
+    fetchData()
   }, [])
 
   if (isLoading)
