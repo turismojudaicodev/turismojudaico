@@ -215,7 +215,7 @@ export function Select({
         defaultValue={defaultValue}
         {...attrs}
       >
-        <option value=""> </option>
+        <option value="0"> </option>
         {options.map((option) => (
           <option value={option.codigo} key={option.codigo}>
             {option.nombre}
