@@ -65,8 +65,7 @@ export function isValidImage(image) {
 export function setImageSrc(image, path = undefined) {
   if (!isValidImage(image)) return '/images/logo.png'
   if (isLocalImage(image)) {
-    if (!path)
-      throw new Error('No se puede establecer url de la imagen sin su path')
+    if (!path) return '/images/logo.png'
     return `/images/uploads/${path}/${image}`
   }
   return image
