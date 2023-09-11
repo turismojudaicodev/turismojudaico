@@ -33,8 +33,11 @@ export default function Content() {
     categories: [],
   })
   const [posts, setPosts] = useState([])
+  const [offset, setOffset] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
+  const [isFiltersLoading, setIsFiltersLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
+  const [selectedCountry, setSelectedCountry] = useState(null)
 
   const { t } = useTranslation(['posts', 'common'])
 
@@ -42,12 +45,38 @@ export default function Content() {
 
   useEffect(() => {
     async function fetchData() {
-      const { data, error } = await getContent('/api/content/posts')
+      const { data: postsData, error: postsError } = await getContent(
+        '/api/content/posts?limit=5&offset=0&estado=1'
+      )
       setIsLoading(false)
-      if (error) return setErrorMessage(error)
-      setPosts(data)
+      if (postsError) return setErrorMessage(postsError)
+      setPosts(postsData)
+      const { data: countriesData, error: countriesError } = await getContent(
+        '/api/content/countries?reduced=1&active=1'
+      )
+      const { data: citiesData, error: citiesError } = await getContent(
+        '/api/content/cities?reduced=1&active=1'
+      )
+      const { data: categoriesData, error: categoriesError } = await getContent(
+        '/api/content/categories?reduced=1&active=1'
+      )
+      setIsFiltersLoading(false)
+      if (countriesError || citiesError || categoriesError) {
+        return setErrorMessage(
+          `${countriesError ?? ''} ${citiesError ?? ''} ${
+            categoriesError ?? ''
+          }`
+        )
+      }
+      setOffset((v) => (v += 5))
+      setData({
+        countries: countriesData,
+        cities: citiesData,
+        categories: categoriesData,
+      })
     }
     setIsLoading(true)
+    setIsFiltersLoading(true)
     fetchData()
   }, [])
 
@@ -58,16 +87,28 @@ export default function Content() {
     const formData = Object.fromEntries(new FormData(ev.target))
 
     try {
-      const { data, error } = await getFilteredContent(
-        '/api/content/posts',
-        formData
-      )
-      if (error) return setErrorMessage(error)
-      setPosts(data)
+      console.log(formData)
+      // const { data, error } = await getFilteredContent(
+      //   '/api/content/posts?limit=5&offset=0&estado=1',
+      //   formData
+      // )
+      // if (error) return setErrorMessage(error)
+      // setPosts(data)
     } catch (error) {
       setErrorMessage(error.message)
     }
     setIsLoading(false)
+  }
+
+  const handleLoadMore = async (ev) => {
+    setIsLoading(true)
+    const { data, error } = await getContent(
+      `/api/content/posts?estado=1&limit=5&offset=${offset}`
+    )
+    setIsLoading(false)
+    if (error) return setErrorMessage(error)
+    setOffset((v) => (v += 5))
+    setPosts(data)
   }
 
   return (
@@ -97,36 +138,47 @@ export default function Content() {
               ) : (
                 <Message type="info" message={t('body.alerts.noContent')} />
               )}
+              <ButtonLoader
+                isLoading={isLoading}
+                attrs={{ onClick: handleLoadMore }}
+              >
+                {router.locale === 'es' ? 'Cargar siguientes' : 'Load more'}
+              </ButtonLoader>
             </div>
           </div>
-          <div>
+          <div className={styles.formContainer}>
             <h2 className={utils.bigTitle}>
               {t('body.filter', { ns: 'posts' })}
             </h2>
             <form onSubmit={handleSubmit} className={utils.form}>
               <InputText
                 label={t('body.form.title', { ns: 'posts' })}
-                name="post"
+                name="nombre"
                 attrs={{ placeholder: t('body.form.placeholder') }}
               />
               <Select
                 label={t('body.form.country', { ns: 'posts' })}
-                name="country"
+                name="pais"
                 options={data.countries}
+                attrs={{
+                  onChange: (ev) => setSelectedCountry(ev.target.value),
+                }}
               />
               <Select
                 label={t('body.form.city', { ns: 'posts' })}
-                name="city"
-                options={data.cities}
+                name="ciudad"
+                options={data?.cities?.filter(
+                  (city) => city.pais == selectedCountry
+                )}
               />
               <Select
                 label={t('body.form.category', { ns: 'posts' })}
-                name="category"
+                name="categoria"
                 options={data.categories}
               />
 
               <ButtonLoader
-                isLoading={isLoading}
+                isLoading={isLoading || isFiltersLoading}
                 className={utils.button}
                 type="submit"
               >

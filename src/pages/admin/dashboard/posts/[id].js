@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 // Local
-import { getContent, getUniqueContent, postContent } from 'lib/api'
+import { getContent, getUniqueContent, updateUniqueContent } from 'lib/api'
 import { handleCloudinaryUpload } from 'helpers'
 // Components
 import AdminLayout from '@/components/AdminLayout'
@@ -32,23 +32,25 @@ function PostForm({ post, data }) {
     setIsLoading(true)
 
     const formData = Object.fromEntries(new FormData(ev.target))
-    // formData.imagen1 = handleCloudinaryUpload(formData.imagen1)
-    // formData.imagen2 = handleCloudinaryUpload(formData.imagen2)
-    // formData.imagen3 = handleCloudinaryUpload(formData.imagen3)
-    // formData.imagen4 = handleCloudinaryUpload(formData.imagen4)
-    // formData.imagen5 = handleCloudinaryUpload(formData.imagen5)
+    formData.imagen1 = await handleCloudinaryUpload(formData.imagen1)
+    formData.imagen2 = await handleCloudinaryUpload(formData.imagen2)
+    formData.imagen3 = await handleCloudinaryUpload(formData.imagen3)
+    formData.imagen4 = await handleCloudinaryUpload(formData.imagen4)
+    formData.imagen5 = await handleCloudinaryUpload(formData.imagen5)
 
-    // const response = await postContent('/api/content/posts/new', {
-    //   post: formData,
-    // })
-    // const { message, error } = response
+    const response = await updateUniqueContent(
+      '/api/content/posts',
+      post.codigo,
+      formData
+    )
+    const { message, error } = response
     setIsLoading(false)
-    // if (error) {
-    //   setErrorMessage(error)
-    //   return
-    // }
+    if (error) {
+      setErrorMessage(error)
+      return
+    }
 
-    // setInfoMessage(message)
+    setInfoMessage(message)
   }
 
   return (
@@ -94,15 +96,15 @@ function PostForm({ post, data }) {
           </div>
         </div>
         <InputImage label="Imagen1" name="imagen1" />
-        {post.imagen1 && <p>Imagen actual: {post.imagen1}</p>}
+        {post.imagen1 && <p>Imagen1 actual: {post.imagen1}</p>}
         <InputImage label="Imagen2" name="imagen2" />
-        {post.imagen2 && <p>Imagen actual: {post.imagen2}</p>}
+        {post.imagen2 && <p>Imagen2 actual: {post.imagen2}</p>}
         <InputImage label="Imagen3" name="imagen3" />
-        {post.imagen3 && <p>Imagen actual: {post.imagen3}</p>}
+        {post.imagen3 && <p>Imagen3 actual: {post.imagen3}</p>}
         <InputImage label="Imagen4" name="imagen4" />
-        {post.imagen4 && <p>Imagen actual: {post.imagen4}</p>}
+        {post.imagen4 && <p>Imagen4 actual: {post.imagen4}</p>}
         <InputImage label="Imagen5" name="imagen5" />
-        {post.imagen5 && <p>Imagen actual: {post.imagen5}</p>}
+        {post.imagen5 && <p>Imagen5 actual: {post.imagen5}</p>}
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
           <Select
             label="País"

@@ -28,9 +28,10 @@ export default function Post() {
       setIsLoading(false)
       if (error) return setErrorMessage(error)
       setPost(data)
+      console.log({ data })
     }
     setIsLoading(true)
-    fetchData()
+    if (router.isReady) fetchData()
   }, [router.isReady])
 
   return (
@@ -46,9 +47,10 @@ export default function Post() {
             <LoadingIndicator />
           ) : (
             <>
-              <h2 className={utils.bigTitle}>{post.nombre}</h2>
-
-              <p>Publicado el {formatDate(post.fechacreacion)}</p>
+              <h2 className={utils.bigTitle}>
+                {router.locale === 'es' ? post.nombre : post.nombre_en}
+              </h2>
+              <p>{router.locale === 'es' ? post.texto : post.text_en}</p>
             </>
           )}
         </main>

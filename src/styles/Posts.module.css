@@ -1,6 +1,6 @@
 .main {
   display: flex;
-  flex-direction: column;
+  flex-direction: column-reverse;
   gap: 1rem;
   justify-content: space-evenly;
   margin-block: var(--margin-block);
@@ -18,7 +18,18 @@
 }
 
 .blogsContainer {
-  width: 100%;
+  width: 75%;
+}
+
+.formContainer {
+  width: 25%;
+}
+
+@media (max-width: 768px) {
+  .blogsContainer,
+  .formContainer {
+    width: 100%;
+  }
 }
 
 .searchedContentContainer {

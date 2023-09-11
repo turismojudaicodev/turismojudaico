@@ -37,9 +37,39 @@ export default async function handler(req, res) {
   } else if (req.method === 'PUT') {
     const postId = parseInt(req.query.id)
     const { body } = req
+    const entries = Object.entries(body)
 
-    res.status(500).json({
-      error: `Falta implementar funcionalidad para modificar posts`,
+    let colsToUpdate = ''
+    const colsValues = []
+
+    entries.forEach(([key, value], i) => {
+      if (
+        value === '' ||
+        value === undefined ||
+        value === null ||
+        (typeof value === 'object' && Object.keys(value).length === 0)
+      )
+        return // Para evitar setear en string vacio imagenes no cambiadas
+      colsToUpdate += `${key}=?`
+      if (i !== entries.length - 1) colsToUpdate += ', '
+      colsValues.push(value)
+    })
+
+    const queryString = `UPDATE contenidos SET ${colsToUpdate} WHERE codigo=${postId}`
+
+    return new Promise((resolve, reject) => {
+      db.query(queryString, colsValues, (err, data) => {
+        if (err) {
+          res
+            .status(500)
+            .json({ error: err.sqlMessage ?? 'Error al borrar post' })
+          return resolve()
+        }
+        res
+          .status(200)
+          .json({ message: `Post con id "${postId} borrado exitosamente"` })
+        return resolve()
+      })
     })
   } else {
     return res.status(405).json({ error: 'Method not allowed' })
