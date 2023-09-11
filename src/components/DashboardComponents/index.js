@@ -89,6 +89,7 @@ export function InputImage({ label, name, defaultValue = undefined }) {
           id={name}
           className={styles.input}
           defaultValue={defaultValue}
+          accept="image/*"
         />
       </label>
     </div>
