@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 // Local
 import { getUniqueContent } from 'lib/api'
-import { formatDate } from 'helpers'
+import { formatDate, setImageSrc } from 'helpers'
 // Components
 import Head from 'next/head'
 import Image from 'next/image'
@@ -38,7 +38,7 @@ export default function Blog() {
   return (
     <>
       <Head>
-        <title>{blog?.nombre || 'Blog'}</title>
+        <title>{router.locale === 'es' ? blog?.nombre : blog?.nombre_en}</title>
       </Head>
       <Layout>
         <main className={`${utils.container} ${styles.main}`}>
@@ -48,24 +48,41 @@ export default function Blog() {
             <Message type="error" message={errorMessage} />
           ) : (
             <div className={styles.blogInfo}>
-              <h2 className={utils.bigTitle}>{blog.nombre}</h2>
-              <p>{blog.description}</p>
+              <h2 className={utils.bigTitle}>
+                {router.locale === 'es' ? blog.nombre : blog.nombre_en}
+              </h2>
               <Image
-                src={blog.image || '/images/logo.png'}
-                height={250}
-                width={300}
+                src={
+                  router.locale === 'es'
+                    ? setImageSrc(blog.imagen, 'noticias')
+                    : setImageSrc(blog.imagen_en, 'noticias')
+                }
+                height={300}
+                width={425}
                 alt="Blog main image"
               />
               <div>
-                {blog?.texto?.split('\n\r').map((text, i) => (
-                  <div style={{ marginBlock: '1.5em' }} key={i}>
-                    {text.split('\n').map((text, i) => (
-                      <p key={i}>{text}</p>
+                {router.locale === 'es'
+                  ? blog?.texto?.split('\n\r').map((text, i) => (
+                      <div style={{ marginBlock: '1.5em' }} key={i}>
+                        {text.split('\n').map((text, i) => (
+                          <p key={i}>{text}</p>
+                        ))}
+                      </div>
+                    ))
+                  : blog?.texto_en?.split('\n\r').map((text, i) => (
+                      <div style={{ marginBlock: '1.5em' }} key={i}>
+                        {text.split('\n').map((text, i) => (
+                          <p key={i}>{text}</p>
+                        ))}
+                      </div>
                     ))}
-                  </div>
-                ))}
               </div>
-              <p>Publicado el {formatDate(blog.fechacreacion)}</p>
+              <p>
+                {router.locale === 'es'
+                  ? `Publicado el ${formatDate(blog.fechacreacion)}`
+                  : `Published at ${formatDate(blog.fechacreacion, 'en-US')}`}
+              </p>
             </div>
           )}
         </main>

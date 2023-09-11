@@ -21,7 +21,7 @@ export default function DashboardTable({ table, setVisibleTable = null }) {
   const router = useRouter()
 
   const handleDelete = async (itemId) => {
-    if (!confirm(`Está seguro de que desea borrar la entrada con id ${itemId}`))
+    if (!confirm(`Está seguro de que desea borrar el blog con id ${itemId}`))
       return
     setIsLoading(true)
     const result = await deleteContent(`/api/content/blogs`, itemId)

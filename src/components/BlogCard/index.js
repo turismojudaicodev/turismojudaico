@@ -1,13 +1,21 @@
 import Link from 'next/link'
 import styles from './BlogCard.module.css'
 import Image from 'next/image'
+import { setImageSrc } from 'helpers'
 
 export function BlogCard({ blog, locale = 'es' }) {
   return (
     <div className={styles.card}>
       <Link href={`/blogs/${blog.codigo}`} className={styles.imgContainer}>
-        <Image src={'/images/logo.png'} alt={blog.imagen} fill />
-        {/* `/${blog.imagen}` || */}
+        <Image
+          src={
+            locale === 'es'
+              ? setImageSrc(blog.imagen, 'noticias')
+              : setImageSrc(blog.imagen_en, 'noticias')
+          }
+          alt={blog.imagen}
+          fill
+        />
       </Link>
       <div className={styles.text}>
         <Link href={`/blogs/${blog.codigo}`}>
@@ -18,17 +26,3 @@ export function BlogCard({ blog, locale = 'es' }) {
     </div>
   )
 }
-
-// export function BlogCardSkeleton() {
-//   return (
-//     <div>
-//       <div>
-
-//       </div>
-//       <div>
-//         <div className={styles.skeleton}></div>
-//         <div className={styles.skeleteonTextLines}></div>
-//       </div>
-//     </div>
-//   )
-// }

@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 // Local
 import { getUniqueContent, updateUniqueContent } from 'lib/api'
-import { uploadCloudinaryImage } from 'helpers'
+import { handleCloudinaryUpload } from 'helpers'
 // Components
 import AdminLayout from '@/components/AdminLayout'
 import Notification, { NotificationLoading } from '@/components/Notification'
@@ -35,7 +35,7 @@ function BlogForm({ blog }) {
             defaultValue={blog?.texto}
           />
           <InputImage label="Imagen en español" name="imagen" />
-          {blog.imagen && <p>Imagen actual: {blog.imagen}</p>}
+          {blog?.imagen && <p>Imagen actual: {blog?.imagen}</p>}
         </div>
         <div className={styles.formCreate}>
           <InputText
@@ -50,7 +50,7 @@ function BlogForm({ blog }) {
             defaultValue={blog?.texto_en}
           />
           <InputImage label="Imagen en inglés" name="imagen_en" />
-          {blog.imagen_en && <p>Imagen actual: {blog.imagen_en}</p>}
+          {blog?.imagen_en && <p>Imagen actual: {blog?.imagen_en}</p>}
         </div>
       </div>
       <InputNumber
@@ -73,9 +73,12 @@ export default function Blog() {
 
   useEffect(() => {
     async function fetchBlog() {
-      await getUniqueContent('/api/content/blogs', router.query.id)
-        .then((data) => setBlog(data[0]))
-        .catch((error) => setErrorMessage(error.message))
+      const { data, error } = await getUniqueContent(
+        '/api/content/blogs',
+        router.query.id
+      )
+      if (error) return setErrorMessage(error)
+      setBlog(data)
       setIsLoading(false)
     }
     setIsLoading(true)
@@ -90,18 +93,8 @@ export default function Blog() {
 
     const formData = Object.fromEntries(new FormData(ev.target))
 
-    if (formData.imagen.size > 0) {
-      const data = uploadCloudinaryImage(formData.imagen)
-      formData.imagen = data.secure_url
-    } else {
-      formData.imagen = ''
-    }
-    if (formData.imagen_en.size > 0) {
-      const data = uploadCloudinaryImage(formData.imagen_en)
-      formData.imagen_en = data.secure_url
-    } else {
-      formData.imagen_en = ''
-    }
+    formData.imagen = await handleCloudinaryUpload(formData.imagen)
+    formData.imagen_en = await handleCloudinaryUpload(formData.imagen_en)
 
     const res = await updateUniqueContent(
       '/api/content/blogs',

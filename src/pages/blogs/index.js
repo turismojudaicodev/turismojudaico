@@ -2,6 +2,7 @@
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import { useTranslation } from 'next-i18next'
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/router'
 // Local
 import { getContent } from 'lib/api'
 // Components
@@ -29,9 +30,11 @@ export default function Blogs() {
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
+  const router = useRouter()
+
   useEffect(() => {
     async function fetchData() {
-      const { data, error } = await getContent('/api/content/blogs')
+      const { data, error } = await getContent('/api/content/blogs?estado=1')
       setIsLoading(false)
       if (error) return setErrorMessage(error)
       setBlogs(data)
@@ -51,19 +54,19 @@ export default function Blogs() {
             {t('body.title', { ns: 'blogs' })}
           </h1>
           {isLoading && <LoadingIndicator />}
-          {blogs.length > 0 ? (
+          {errorMessage.length > 0 && (
+            <Message type="error" message={errorMessage} />
+          )}
+          {blogs.length > 0 && (
             <div>
               {blogs.map((blog) => (
-                <BlogCard blog={blog} key={blog.codigo} />
+                <BlogCard
+                  blog={blog}
+                  key={blog.codigo}
+                  locale={router.locale}
+                />
               ))}
             </div>
-          ) : errorMessage.length > 0 ? (
-            <Message type="error" message={errorMessage} />
-          ) : (
-            <Message
-              type="info"
-              message={t('body.alerts.noContent', { ns: 'blogs' })}
-            />
           )}
         </main>
       </Layout>

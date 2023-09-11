@@ -1,4 +1,4 @@
-export function formatDate(date) {
+export function formatDate(date, locale = 'es-ES') {
   const newDate = new Date(date)
 
   const options = {
@@ -7,7 +7,7 @@ export function formatDate(date) {
     day: '2-digit',
   }
 
-  return newDate.toLocaleDateString('es-ES', options)
+  return newDate.toLocaleDateString(locale, options)
 }
 
 /**
@@ -51,4 +51,23 @@ export async function handleCloudinaryUpload(image) {
     return data.secure_url
   }
   return ''
+}
+
+export function isLocalImage(image) {
+  return !image.includes('http://') && !image.includes('https://')
+}
+
+export function isValidImage(image) {
+  console.log(image !== null && image !== undefined)
+  return image !== null && image !== undefined
+}
+
+export function setImageSrc(image, path = undefined) {
+  if (!isValidImage(image)) return '/images/logo.png'
+  if (isLocalImage(image)) {
+    if (!path)
+      throw new Error('No se puede establecer url de la imagen sin su path')
+    return `/images/uploads/${path}/${image}`
+  }
+  return image
 }
