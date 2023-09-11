@@ -10,7 +10,8 @@ import Layout from '@/components/Layout'
 import Message from '@/components/Message'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { TourCard } from '@/components/TourCard'
-import { InputText, Select } from '@/components/DashboardComponents'
+import { InputText } from '@/components/DashboardComponents'
+import ButtonLoader from '@/components/ButtonLoader'
 // Styles
 import styles from '@/styles/Citytours.module.css'
 import utils from '@/styles/utils.module.css'
@@ -26,11 +27,8 @@ export async function getStaticProps({ locale }) {
 
 export default function Citytours({ locale }) {
   const [tours, setTours] = useState([])
-  const [countries, setCountries] = useState([])
-  const [isLoading, setIsLoading] = useState({
-    tours: false,
-    countries: false,
-  })
+  const [isLoading, setIsLoading] = useState(false)
+  const [toursOffset, setToursOffset] = useState(0)
   const [isFormLoading, setIsFormLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
@@ -39,22 +37,27 @@ export default function Citytours({ locale }) {
   useEffect(() => {
     async function fetchData() {
       const { data: tours, error: toursError } = await getContent(
-        '/api/content/tours'
+        `/api/content/tours?estado=1&limit=5&offset=${toursOffset ?? 0}`
       )
-      setIsLoading((value) => ({ ...value, tours: false }))
+      setIsLoading(false)
       setTours(tours)
-      const { data: countries, error: countriesError } = await getContent(
-        '/api/content/countries'
-      )
-      setIsLoading((value) => ({ ...value, countries: false }))
-      if (toursError || countriesError) {
-        return setErrorMessage(`${toursError ?? ''} ${countriesError ?? ''}`)
-      }
-      setCountries(countries)
+      if (toursError) return setErrorMessage(toursError)
+      setToursOffset((v) => v + 5)
     }
-    setIsLoading({ tours: true, countries: true })
+    setIsLoading(true)
     fetchData()
   }, [])
+
+  const handleLoadMore = async () => {
+    setIsLoading(true)
+    const { data, error } = await getContent(
+      `/api/content/tours?estado=1&limit=5&offset=${toursOffset ?? 0}`
+    )
+    setIsLoading(false)
+    if (error) return setErrorMessage(error)
+    setToursOffset((v) => v + 5)
+    setTours(data)
+  }
 
   const handleSubmit = async (ev) => {
     ev.preventDefault()
@@ -62,9 +65,16 @@ export default function Citytours({ locale }) {
     setIsFormLoading(true)
 
     const formData = Object.fromEntries(new FormData(ev.target))
-
-    alert(`${formData.tour} ${formData.country}`)
-
+    if (!formData.nombre) {
+      setIsFormLoading(false)
+      return
+    }
+    const { data, error } = await getContent(
+      `/api/content/tours?nombre=${formData.nombre}`
+    )
+    alert(`${formData.tour} ${formData.proveedor}`)
+    if (error) return setErrorMessage(error)
+    setTours(data)
     setIsFormLoading(false)
   }
 
@@ -79,7 +89,7 @@ export default function Citytours({ locale }) {
             <h1 className={utils.bigTitle}>City Tours</h1>
             {errorMessage ? (
               <Message type="error" message={errorMessage} />
-            ) : (tours.length === 0 && isLoading.tours) || isLoading.tours ? (
+            ) : (tours.length === 0 && isLoading) || isLoading ? (
               <LoadingIndicator />
             ) : tours.length > 0 ? (
               tours.map((tour) => (
@@ -91,6 +101,16 @@ export default function Citytours({ locale }) {
                 message={t('body.alerts.noContent', { ns: 'citytours' })}
               />
             )}
+            {!isLoading && (
+              <>
+                <ButtonLoader
+                  isLoading={isLoading}
+                  attrs={{ onClick: handleLoadMore }}
+                >
+                  {locale === 'es' ? 'Cargar siguientes' : 'Load more'}
+                </ButtonLoader>
+              </>
+            )}
           </div>
           <div>
             <h2 className={utils.bigTitle}>
@@ -99,24 +119,18 @@ export default function Citytours({ locale }) {
             <form onSubmit={handleSubmit} className={utils.form}>
               <InputText
                 label={t('body.form.title', { ns: 'citytours' })}
-                name="tour"
+                name="nombre"
                 attrs={{
                   className: utils.input,
                   placeholder: t('body.form.placeholder', { ns: 'citytours' }),
                 }}
               />
-              <Select
-                label={t('body.form.country', { ns: 'citytours' })}
-                name="country"
-                options={countries}
-                attrs={{ className: utils.input }}
-              />
-
-              <button className={utils.button} type="submit">
-                {isFormLoading
-                  ? 'Cargando...'
-                  : t('body.form.submit', { ns: 'citytours' })}
-              </button>
+              <ButtonLoader
+                isLoading={isFormLoading}
+                attrs={{ type: 'submit' }}
+              >
+                {t('body.form.submit', { ns: 'citytours' })}
+              </ButtonLoader>
             </form>
           </div>
         </main>

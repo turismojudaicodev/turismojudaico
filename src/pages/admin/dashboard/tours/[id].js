@@ -28,18 +28,18 @@ function TourForm({ tour, data }) {
 
     const formData = Object.fromEntries(new FormData(ev.target))
 
-    // const response = await updateUniqueContent(
-    //   '/api/content/tours',
-    //   tour.codigo,
-    //   formData
-    // )
-    // const { message, error } = response
+    const response = await updateUniqueContent(
+      '/api/content/tours',
+      tour.codigo,
+      formData
+    )
+    const { message, error } = response
     setIsLoading(false)
-    // if (error) {
-    //   setErrorMessage(error)
-    //   return
-    // }
-    // setInfoMessage(message)
+    if (error) {
+      setErrorMessage(error)
+      return
+    }
+    setInfoMessage(message)
   }
 
   return (
@@ -116,15 +116,20 @@ function TourForm({ tour, data }) {
         </div>
 
         <InputImage label="Imagen1" name="imagen1" />
-        {tour.imagen1 && <p>Imagen actual: {tour.imagen1}</p>}
+        {tour.imagen1 && <p>Imagen1 actual: {tour.imagen1}</p>}
         <InputImage label="Imagen2" name="imagen2" />
-        {tour.imagen2 && <p>Imagen actual: {tour.imagen2}</p>}
+        {tour.imagen2 && <p>Imagen2 actual: {tour.imagen2}</p>}
         <InputImage label="Imagen3" name="imagen3" />
-        {tour.imagen3 && <p>Imagen actual: {tour.imagen3}</p>}
+        {tour.imagen3 && <p>Imagen3 actual: {tour.imagen3}</p>}
         <InputImage label="Imagen4" name="imagen4" />
-        {tour.imagen4 && <p>Imagen actual: {tour.imagen4}</p>}
+        {tour.imagen4 && <p>Imagen4 actual: {tour.imagen4}</p>}
 
-        <InputText label="Video" name="video" defaultValue={tour.video} />
+        <Select
+          label="Proveedor"
+          name="proveedor"
+          options={data.providers}
+          defaultValue={tour.proveedor}
+        />
 
         <div style={{ display: 'flex', gap: '1rem' }}>
           <div className={styles.formCreate}>
@@ -192,11 +197,13 @@ function TourForm({ tour, data }) {
             />
           </div>
         </div>
-        <Select
-          label="Proveedor"
-          name="proveedor"
-          options={data.providers}
-          defaultValue={tour.proveedor}
+        <InputText label="Video" name="video" defaultValue={tour.video} />
+        <InputNumber
+          label="Orden"
+          name="orden"
+          min={0}
+          required
+          defaultValue={tour.orden}
         />
         <InputNumber
           label="Estado"

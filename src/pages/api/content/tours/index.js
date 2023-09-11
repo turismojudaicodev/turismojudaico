@@ -1,21 +1,35 @@
 import { db } from 'lib/mysql'
-import { isNumeric } from 'helpers'
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
-    const params = Object.entries(req.query)
+    const params = req.query
+    let queryParams = []
+    let limit = ''
 
-    let queryParams = ''
-
-    if (params.length > 0) {
-      queryParams += 'WHERE estado=1'
-      params.forEach(([field, value]) => {
-        queryParams += ` AND ${field}=${value}`
-      })
+    if (params.limit && params.offset) {
+      limit = `LIMIT ${params.offset}, ${params.limit}`
+    }
+    if (params.estado) {
+      queryParams.push(`estado=${params.estado}`)
+    }
+    if (params.destacadohomegrande) {
+      queryParams.push('destacadohomegrande=1')
+    }
+    if (params.destacadohomechico) {
+      queryParams.push('destacadohomechico=1')
+    }
+    if (params.proveedor) {
+      queryParams.push(`proveedor=${params.proveedor}`)
     }
 
+    const queryString = `SELECT * FROM paquetes ${
+      queryParams.length > 0 ? 'WHERE ' + queryParams.join(' AND ') : ''
+    } ${limit}`
+
+    console.log(queryString)
+
     return new Promise((resolve, reject) => {
-      db.query(`SELECT * FROM paquetes ${queryParams}`, (err, data) => {
+      db.query(queryString, (err, data) => {
         if (err) {
           res
             .status(500)
@@ -29,29 +43,25 @@ export default async function handler(req, res) {
   } else if (req.method === 'POST') {
     const { body } = req
     const keys = Object.keys(body)
-    const values = Object.values(body).map((value) => {
-      if (!isNumeric(value)) return `"${value}"`
-      return value
-    })
+    const values = Object.values(body)
+
+    const queryString = `INSERT INTO paquetes (${keys.join(',')})
+    VALUES (${new Array(values.length).fill('?').join(',')})`
 
     return new Promise((resolve, reject) => {
-      db.query(
-        `INSERT INTO paquetes (${keys.join(',')})
-        VALUES (${values.join(',')})`,
-        (err, data) => {
-          if (err) {
-            res
-              .status(500)
-              .json({ error: err.sqlMessage ?? 'Error al crear tour' })
-            return resolve()
-          }
-          res.status(201).json({
-            data,
-            message: `Tour "${body?.nombre}" creado exitosamente`,
-          })
+      db.query(queryString, values, (err, data) => {
+        if (err) {
+          res
+            .status(500)
+            .json({ error: err.sqlMessage ?? 'Error al crear tour' })
           return resolve()
         }
-      )
+        res.status(201).json({
+          data,
+          message: `Tour "${body?.nombre}" creado exitosamente`,
+        })
+        return resolve()
+      })
     })
   } else {
     res.status(405).json({ error: 'Method not allowed' })

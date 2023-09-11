@@ -113,15 +113,15 @@ export default function Home({ locale }) {
               dynamicHeight
               width="100%"
             >
-              {staticImages.length > 0 ? (
-                staticImages.map((image) => (
+              {toursBig.length > 0 ? (
+                toursBig.map((tour) => (
                   <div
-                    key={image.url}
+                    key={tour.codigo}
                     style={{ aspectRatio: '5/3', position: 'relative' }}
                   >
                     <Image
-                      alt="Slider image"
-                      src={image.url}
+                      alt={tour.imagen1}
+                      src={`/images/${tour.imagen1}`}
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     />

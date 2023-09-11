@@ -32,6 +32,43 @@ export default async function handler(req, res) {
       })
     })
   } else if (req.method === 'PUT') {
+    const tourId = parseInt(req.query.id)
+    const { body } = req
+    const entries = Object.entries(body)
+
+    let colsToUpdate = ''
+    const colsValues = []
+
+    entries.forEach(([key, value], i) => {
+      if (
+        value === '' ||
+        value === undefined ||
+        value === null ||
+        (typeof value === 'object' && Object.keys(value).length === 0)
+      )
+        return // Para evitar setear en string vacio imagenes no cambiadas
+      colsToUpdate += `${key}=?`
+      if (i !== entries.length - 1) colsToUpdate += ', '
+      colsValues.push(value)
+    })
+
+    const queryString = `UPDATE paquetes SET ${colsToUpdate} WHERE codigo=${tourId}`
+
+    return new Promise((resolve, reject) => {
+      db.query(queryString, colsValues, (err, data) => {
+        if (err) {
+          res
+            .status(500)
+            .json({ error: err.sqlMessage ?? 'Error al editar tour' })
+          return resolve()
+        }
+        res.status(200).json({
+          data,
+          message: `Tour con id "${tourId}" actualizado exitosamente`,
+        })
+        return resolve()
+      })
+    })
   } else {
     return res.status(405).json({ error: 'Method not allowed' })
   }

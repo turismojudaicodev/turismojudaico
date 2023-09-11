@@ -1,12 +1,15 @@
+import { setImageSrc } from 'helpers'
+// components
 import Link from 'next/link'
-import styles from './TourCard.module.css'
 import Image from 'next/image'
+// styles
+import styles from './TourCard.module.css'
 
 export function TourCard({ tour, locale = 'es' }) {
   return (
     <div className={styles.card}>
       <Link href={`/tours/${tour.codigo}`} className={styles.imgContainer}>
-        <Image src={'/images/logo.png'} alt={tour.imagen1} fill />
+        <Image src={setImageSrc(tour.imagen1)} alt={tour.imagen1} fill />
       </Link>
       <div className={styles.text}>
         <Link href={`/tours/${tour.codigo}`}>
@@ -19,17 +22,3 @@ export function TourCard({ tour, locale = 'es' }) {
     </div>
   )
 }
-
-// export function BlogCardSkeleton() {
-//   return (
-//     <div>
-//       <div>
-
-//       </div>
-//       <div>
-//         <div className={styles.skeleton}></div>
-//         <div className={styles.skeleteonTextLines}></div>
-//       </div>
-//     </div>
-//   )
-// }
