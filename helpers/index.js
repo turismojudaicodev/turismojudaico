@@ -58,7 +58,6 @@ export function isLocalImage(image) {
 }
 
 export function isValidImage(image) {
-  console.log(image !== null && image !== undefined)
   return image !== null && image !== undefined
 }
 

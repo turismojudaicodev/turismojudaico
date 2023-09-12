@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 // Local
 import { getUniqueContent, postContent } from 'lib/api'
+import { setImageSrc } from 'helpers'
 // Components
 import Layout from '@/components/Layout'
 import LoadingIndicator from '@/components/LoadingIndicator'
@@ -16,6 +17,7 @@ import {
   InputText,
   Textarea,
 } from '@/components/DashboardComponents'
+import Image from 'next/image'
 // Styles
 import styles from '@/styles/Citytours.module.css'
 import utils from '@/styles/utils.module.css'
@@ -118,13 +120,35 @@ export default function CityTour() {
             <h2 className={utils.bigTitle}>
               {router.locale === 'es' ? tour.nombre : tour.nombre_en}
             </h2>
-            <p>
+            {/* <p>
               {router.locale === 'es' ? tour.descripcion : tour.descripcion_en}
-            </p>
+            </p> */}
             <div
               style={{ position: 'relative', width: '250px', height: '250px' }}
             >
-              <p>Aca va la imagen</p>
+              <Image
+                src={setImageSrc(tour.imagen1, 'citytours')}
+                alt={tour.imagen1}
+                width={350}
+                height={225}
+              />
+            </div>
+            <div>
+              {router.locale === 'es'
+                ? tour?.descripcion?.split('\n\r').map((text, i) => (
+                    <div style={{ marginBlock: '1.5em' }} key={i}>
+                      {text.split('\n').map((text, i) => (
+                        <p key={i} dangerouslySetInnerHTML={{ __html: text }} />
+                      ))}
+                    </div>
+                  ))
+                : tour?.descripcion_en?.split('\n\r').map((text, i) => (
+                    <div style={{ marginBlock: '1.5em' }} key={i}>
+                      {text.split('\n').map((text, i) => (
+                        <p key={i} dangerouslySetInnerHTML={{ __html: text }} />
+                      ))}
+                    </div>
+                  ))}
             </div>
           </div>
         )}

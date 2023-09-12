@@ -9,7 +9,11 @@ export function TourCard({ tour, locale = 'es' }) {
   return (
     <div className={styles.card}>
       <Link href={`/tours/${tour.codigo}`} className={styles.imgContainer}>
-        <Image src={setImageSrc(tour.imagen1)} alt={tour.imagen1} fill />
+        <Image
+          src={setImageSrc(tour.imagen1, 'citytours')}
+          alt={tour.imagen1}
+          fill
+        />
       </Link>
       <div className={styles.text}>
         <Link href={`/tours/${tour.codigo}`}>

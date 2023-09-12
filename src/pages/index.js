@@ -4,6 +4,7 @@ import { useTranslation } from 'next-i18next'
 import { useEffect, useState } from 'react'
 // Local
 import { getContent } from 'lib/api'
+import { setImageSrc } from 'helpers'
 // Components
 import Head from 'next/head'
 import Layout from '@/components/Layout'
@@ -121,7 +122,8 @@ export default function Home({ locale }) {
                   >
                     <Image
                       alt={tour.imagen1}
-                      src={`/images/${tour.imagen1}`}
+                      // src={`/images/${tour.imagen1}`}
+                      src={setImageSrc(tour.imagen1, 'citytours')}
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     />
