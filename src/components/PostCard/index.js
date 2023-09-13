@@ -1,13 +1,17 @@
 import Link from 'next/link'
 import styles from './PostCard.module.css'
 import Image from 'next/image'
+import { setImageSrc } from 'helpers'
 
 export function PostCard({ post, locale = 'es' }) {
   return (
     <div className={styles.card}>
       <Link href={`/posts/${post.codigo}`} className={styles.imgContainer}>
-        <Image src={'/images/logo.png'} alt={post.imagen} fill />
-        {/* `/${post.imagen}` || */}
+        <Image
+          src={setImageSrc(post.imagen1, 'contenidos')}
+          alt={post.imagen1 || 'Sin imagen'}
+          fill
+        />
       </Link>
       <div className={styles.text}>
         <Link href={`/posts/${post.codigo}`}>
@@ -18,17 +22,3 @@ export function PostCard({ post, locale = 'es' }) {
     </div>
   )
 }
-
-// export function PostCardSkeleton() {
-//   return (
-//     <div>
-//       <div>
-
-//       </div>
-//       <div>
-//         <div className={styles.skeleton}></div>
-//         <div className={styles.skeleteonTextLines}></div>
-//       </div>
-//     </div>
-//   )
-// }

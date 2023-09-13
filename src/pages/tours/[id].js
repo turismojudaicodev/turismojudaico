@@ -18,9 +18,31 @@ import {
   Textarea,
 } from '@/components/DashboardComponents'
 import Image from 'next/image'
+import { Carousel } from 'react-responsive-carousel'
 // Styles
 import styles from '@/styles/Citytours.module.css'
 import utils from '@/styles/utils.module.css'
+import 'react-responsive-carousel/lib/styles/carousel.min.css' // Carousel requires a loader
+
+function SliderImage({ imgSrc, alt }) {
+  return (
+    <div
+      style={{
+        aspectRatio: '5/3',
+        position: 'relative',
+        border: '1px solid lightgray',
+      }}
+    >
+      <Image
+        alt={alt || 'Sin Imagen'}
+        src={imgSrc}
+        fill
+        style={{ objectFit: 'contain' }}
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+      />
+    </div>
+  )
+}
 
 export default function CityTour() {
   const router = useRouter()
@@ -120,10 +142,42 @@ export default function CityTour() {
             <h2 className={utils.bigTitle}>
               {router.locale === 'es' ? tour.nombre : tour.nombre_en}
             </h2>
-            {/* <p>
-              {router.locale === 'es' ? tour.descripcion : tour.descripcion_en}
-            </p> */}
-            <div
+            <div style={{ borderBottom: '4px solid var(--clr-green)' }}>
+              <Carousel
+                autoPlay
+                infiniteLoop
+                showStatus={false}
+                showThumbs={false}
+                dynamicHeight
+                width="100%"
+              >
+                {tour.imagen1 && (
+                  <SliderImage
+                    imgSrc={setImageSrc(tour?.imagen1, 'citytours')}
+                    alt={tour.imagen1}
+                  />
+                )}
+                {tour.imagen2 && (
+                  <SliderImage
+                    imgSrc={setImageSrc(tour?.imagen2, 'citytours')}
+                    alt={tour.imagen2}
+                  />
+                )}
+                {tour.imagen3 && (
+                  <SliderImage
+                    imgSrc={setImageSrc(tour?.imagen3, 'citytours')}
+                    alt={tour.imagen3}
+                  />
+                )}
+                {tour.imagen4 && (
+                  <SliderImage
+                    imgSrc={setImageSrc(tour?.imagen4, 'citytours')}
+                    alt={tour.imagen4}
+                  />
+                )}
+              </Carousel>
+            </div>
+            {/* <div
               style={{ position: 'relative', width: '250px', height: '250px' }}
             >
               <Image
@@ -132,7 +186,7 @@ export default function CityTour() {
                 width={350}
                 height={225}
               />
-            </div>
+            </div> */}
             <div>
               {router.locale === 'es'
                 ? tour?.descripcion?.split('\n\r').map((text, i) => (

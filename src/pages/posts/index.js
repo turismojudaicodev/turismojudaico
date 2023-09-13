@@ -4,7 +4,6 @@ import { useRouter } from 'next/router'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import { useTranslation } from 'next-i18next'
 // Local
-import { getFilteredContent } from 'lib/api'
 import { getContent } from 'lib/api'
 // Components
 import Head from 'next/head'
@@ -85,15 +84,17 @@ export default function Content() {
     setIsLoading(true)
 
     const formData = Object.fromEntries(new FormData(ev.target))
-
     try {
-      console.log(formData)
-      // const { data, error } = await getFilteredContent(
-      //   '/api/content/posts?limit=5&offset=0&estado=1',
-      //   formData
-      // )
-      // if (error) return setErrorMessage(error)
-      // setPosts(data)
+      const params = Object.entries(formData).filter(([key, value]) => {
+        return value !== '' && value !== '0'
+      })
+      const stringParams = new URLSearchParams(params).toString()
+
+      const { data, error } = await getContent(
+        `/api/content/posts?estado=1&${stringParams}`
+      )
+      if (error) return setErrorMessage(error)
+      setPosts(data)
     } catch (error) {
       setErrorMessage(error.message)
     }
@@ -138,12 +139,14 @@ export default function Content() {
               ) : (
                 <Message type="info" message={t('body.alerts.noContent')} />
               )}
-              <ButtonLoader
-                isLoading={isLoading}
-                attrs={{ onClick: handleLoadMore }}
-              >
-                {router.locale === 'es' ? 'Cargar siguientes' : 'Load more'}
-              </ButtonLoader>
+              {!isLoading && posts.length !== 0 && (
+                <ButtonLoader
+                  isLoading={isLoading}
+                  attrs={{ onClick: handleLoadMore }}
+                >
+                  {router.locale === 'es' ? 'Cargar siguientes' : 'Load more'}
+                </ButtonLoader>
+              )}
             </div>
           </div>
           <div className={styles.formContainer}>

@@ -66,14 +66,20 @@ export default function Blog() {
                   ? blog?.texto?.split('\n\r').map((text, i) => (
                       <div style={{ marginBlock: '1.5em' }} key={i}>
                         {text.split('\n').map((text, i) => (
-                          <p key={i}>{text}</p>
+                          <p
+                            key={i}
+                            dangerouslySetInnerHTML={{ __html: text }}
+                          />
                         ))}
                       </div>
                     ))
                   : blog?.texto_en?.split('\n\r').map((text, i) => (
                       <div style={{ marginBlock: '1.5em' }} key={i}>
                         {text.split('\n').map((text, i) => (
-                          <p key={i}>{text}</p>
+                          <p
+                            key={i}
+                            dangerouslySetInnerHTML={{ __html: text }}
+                          />
                         ))}
                       </div>
                     ))}

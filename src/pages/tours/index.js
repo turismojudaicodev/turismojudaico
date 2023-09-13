@@ -121,7 +121,7 @@ export default function Citytours({ locale }) {
                 label={t('body.form.title', { ns: 'citytours' })}
                 name="nombre"
                 attrs={{
-                  className: utils.input,
+                  style: { minWidth: '200px' },
                   placeholder: t('body.form.placeholder', { ns: 'citytours' }),
                 }}
               />
