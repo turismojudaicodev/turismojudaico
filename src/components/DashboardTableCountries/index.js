@@ -5,14 +5,12 @@ import { useRouter } from 'next/router'
 import { deleteContent } from 'lib/api'
 import DeleteIcon from 'public/icons/delete.svg'
 import EditIcon from 'public/icons/edit.svg'
-import { setTimedMessage } from 'helpers'
 // Components
 import Image from 'next/image'
 import Link from 'next/link'
-import Message from '../Message'
+import Notification, { NotificationLoading } from '../Notification'
 // Styles
 import styles from './DashboardTableCountries.module.css'
-import utils from '@/styles/utils.module.css'
 import dashboardStyles from '@/styles/Dashboard.module.css'
 
 export default function DashboardTableCountries({
@@ -21,28 +19,39 @@ export default function DashboardTableCountries({
 }) {
   const [errorMessage, setErrorMessage] = useState('')
   const [infoMessage, setInfoMessage] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
   const router = useRouter()
 
   const handleDelete = async (itemId) => {
-    if (!confirm(`Está seguro de que desea borrar la entrada con id ${itemId}`))
+    setIsLoading(true)
+    if (!confirm(`Está seguro de que desea borrar el país con id ${itemId}`))
       return
-    const currentPath = router.pathname
-    const tablePath = currentPath.substring(currentPath.lastIndexOf('/'))
-    const result = await deleteContent(`/api/content${tablePath}`, itemId)
+    const result = await deleteContent(`/api/content/countries`, itemId)
+    setIsLoading(false)
     const { message, error } = result
-    if (error) return setTimedMessage(error, setErrorMessage)
-    setTimedMessage(message, setInfoMessage)
+    if (error) return setErrorMessage(error)
+    setInfoMessage(message)
     if (setVisibleTable)
       setVisibleTable((prev) => prev.filter((item) => item.codigo !== itemId))
   }
 
   return (
     <div>
-      <div className={utils.messageContainer}>
-        {errorMessage && <Message type="error" message={errorMessage} />}
-        {infoMessage && <Message type="info" message={infoMessage} />}
-      </div>
+      {isLoading && <NotificationLoading />}
+      {errorMessage && (
+        <Notification
+          type="error"
+          notification={errorMessage}
+          setNotification={setErrorMessage}
+        />
+      )}
+      {infoMessage && (
+        <Notification
+          notification={infoMessage}
+          setNotification={setInfoMessage}
+        />
+      )}
       <table className={styles.table}>
         <thead>
           <tr>

@@ -5,14 +5,12 @@ import { useRouter } from 'next/router'
 import { deleteContent } from 'lib/api'
 import DeleteIcon from 'public/icons/delete.svg'
 import EditIcon from 'public/icons/edit.svg'
-import { setTimedMessage } from 'helpers'
 // Components
 import Image from 'next/image'
 import Link from 'next/link'
-import Message from '../Message'
+import Notification from '../Notification'
 // Styles
 import styles from './DashboardTable.module.css'
-import utils from '@/styles/utils.module.css'
 import dashboardStyles from '@/styles/Dashboard.module.css'
 
 export default function DashboardTable({ table, setVisibleTable = null }) {
@@ -28,18 +26,27 @@ export default function DashboardTable({ table, setVisibleTable = null }) {
     const tablePath = currentPath.substring(currentPath.lastIndexOf('/'))
     const result = await deleteContent(`/api/content${tablePath}`, itemId)
     const { message, error } = result
-    if (error) return setTimedMessage(error, setErrorMessage)
-    setTimedMessage(message, setInfoMessage)
+    if (error) return setErrorMessage(error)
+    setInfoMessage(message)
     if (setVisibleTable)
       setVisibleTable((prev) => prev.filter((item) => item.id !== itemId))
   }
 
   return (
     <div>
-      <div className={utils.messageContainer}>
-        {errorMessage && <Message type="error" message={errorMessage} />}
-        {infoMessage && <Message type="info" message={infoMessage} />}
-      </div>
+      {errorMessage && (
+        <Notification
+          type="error"
+          notification={errorMessage}
+          setNotification={setErrorMessage}
+        />
+      )}
+      {infoMessage && (
+        <Notification
+          notification={infoMessage}
+          setNotification={setInfoMessage}
+        />
+      )}
       <table className={styles.table}>
         <thead>
           <tr style={{ overflowX: 'scroll' }}>
