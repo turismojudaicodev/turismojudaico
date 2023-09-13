@@ -1,13 +1,14 @@
 // Local
 import { getContent } from 'lib/api'
 // Components
+import Link from 'next/link'
 import AdminLayout from '@/components/AdminLayout'
 import { useEffect, useState } from 'react'
 import { NotificationLoading } from '@/components/Notification'
 import Message from '@/components/Message'
 // Styles
 import utils from '@/styles/utils.module.css'
-import styles from '@/styles/DashboardIndex.module.css'
+import styles from '@/styles/Dashboard.module.css'
 import dashboardStyles from '@/styles/Dashboard.module.css'
 import DashboardTableProviders from '@/components/DashboardTableProviders'
 
@@ -48,6 +49,17 @@ export default function Partners() {
   return (
     <AdminLayout>
       <h1 className={utils.bigTitle}>Proveedores</h1>
+      <div style={{ marginBlock: '2rem' }}>
+        <Link href="" className={styles.actionButtonSelected}>
+          Mostar Proveedores
+        </Link>
+        <Link
+          href="/admin/dashboard/providers/create"
+          className={styles.actionButton}
+        >
+          Agregar Proveedor
+        </Link>
+      </div>
       <div>
         <DashboardTableProviders
           table={providers}

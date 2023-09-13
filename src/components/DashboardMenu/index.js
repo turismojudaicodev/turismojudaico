@@ -37,7 +37,7 @@ const DASHBOARD_SECTIONS = [
   // },
   {
     name: 'Proveedores',
-    url: '/partners',
+    url: '/providers',
   },
   {
     name: 'Ajustes',
