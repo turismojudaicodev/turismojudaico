@@ -10,19 +10,6 @@ export function formatDate(date, locale = 'es-ES') {
   return newDate.toLocaleDateString(locale, options)
 }
 
-/**
- *
- * @param {String} message The message that will be stored in the state
- * @param {Function} setMessage Callback function that will set the message
- * @param {Number} time Time to undo the message
- */
-export function setTimedMessage(message, setMessage, time = 2000) {
-  setMessage(message)
-  setTimeout(() => {
-    setMessage('')
-  }, time)
-}
-
 export function isNumeric(str) {
   if (typeof str != 'string') return false
   return (

@@ -3,7 +3,6 @@ import { useState } from 'react'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import { useTranslation } from 'react-i18next'
 // Local
-import { setTimedMessage } from 'helpers'
 import emailIcon from 'public/icons/email.svg'
 import { postContent } from 'lib/api'
 // Components
@@ -11,13 +10,12 @@ import Head from 'next/head'
 import Link from 'next/link'
 import Image from 'next/image'
 import Layout from '@/components/Layout'
+import Message from '@/components/Message'
+import Notification from '@/components/Notification'
+import ButtonLoader from '@/components/ButtonLoader'
 // Styles
 import styles from '@/styles/Contact.module.css'
 import utils from '@/styles/utils.module.css'
-import LoadingIndicator from '@/components/LoadingIndicator'
-import Message from '@/components/Message'
-import ButtonLoader from '@/components/ButtonLoader'
-import { handleError } from 'lib/errors'
 
 export async function getStaticProps({ locale }) {
   return {
@@ -46,13 +44,13 @@ export default function Contact() {
     ev.preventDefault()
     setIsLoading(true)
     const formData = Object.fromEntries(new FormData(ev.target))
-    
+
     try {
       const { message, error } = await postContent('/api/contact', formData)
-      if (error) return setTimedMessage(error, setErrorMessage, 3000)
-      setTimedMessage(message, setInfoMessage, 3000)
+      if (error) return setErrorMessage(error)
+      setInfoMessage(message)
     } catch (error) {
-      setTimedMessage(error.message, setErrorMessage, 3000)
+      setErrorMessage(error.message)
     }
     setContactMessage(contactMessageInitState)
     setIsLoading(false)
@@ -146,7 +144,10 @@ export default function Contact() {
                   ></textarea>
                 </div>
                 {infoMessage ? (
-                  <Message type="info" message={infoMessage} />
+                  <Notification
+                    notification={infoMessage}
+                    setNotification={setInfoMessage}
+                  />
                 ) : errorMessage ? (
                   <Message type="error" message={errorMessage} />
                 ) : null}
