@@ -14,6 +14,7 @@ export default async function handler(req, res) {
     //   FROM ciudades c INNER JOIN paises p ON c.pais = p.codigo
     //   `
     // }
+
     return new Promise((resolve, reject) => {
       db.query(sqlQuery, (err, data) => {
         if (err) {
@@ -28,9 +29,23 @@ export default async function handler(req, res) {
     })
   } else if (req.method === 'POST') {
     const { body } = req
+    const keys = Object.keys(body)
+    const values = Object.values(body)
 
-    res.status(500).json({
-      error: `Falta implementar agregado de ciudades`,
+    const queryString = `INSERT INTO ciudades (${keys.join(',')})
+    VALUES (${new Array(values.length).fill('?').join(',')})`
+
+    return new Promise((resolve, reject) => {
+      db.query(queryString, values, (err, data) => {
+        if (err) {
+          res
+            .status(500)
+            .json({ error: err.sqlMessage ?? 'Error al crear ciudad' })
+        }
+        return resolve()
+      })
+      res.status(201).json({ message: 'Ciudad creada exitosamente' })
+      return resolve()
     })
   } else {
     return res.status(405).json({ error: 'Method not allowed' })
