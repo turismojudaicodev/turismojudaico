@@ -4,7 +4,7 @@
   }, 
   "body": {
     "alerts": {
-      "noContent": "Aún no hay toures disponibles"
+      "noContent": "No se encontraron tours que coincidan con los criterios de búsqueda"
     },
     "filter": "Filtrar",
     "form": {

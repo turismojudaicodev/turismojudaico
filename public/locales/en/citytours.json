@@ -4,7 +4,7 @@
   }, 
   "body": {
     "alerts": {
-      "noContent": "There isn't any tour available yet"
+      "noContent": "No tours found matching your search criteria"
     },
     "filter": "Filter",
     "form": {

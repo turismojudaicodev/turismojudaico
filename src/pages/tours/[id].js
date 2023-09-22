@@ -187,7 +187,7 @@ export default function CityTour() {
                 height={225}
               />
             </div> */}
-            <div>
+            <div className={styles.content}>
               {router.locale === 'es'
                 ? tour?.descripcion?.split('\n\r').map((text, i) => (
                     <div style={{ marginBlock: '1.5em' }} key={i}>

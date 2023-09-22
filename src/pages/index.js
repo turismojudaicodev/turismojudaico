@@ -147,9 +147,13 @@ export default function Home({ locale }) {
             {isLoading ? (
               <LoadingIndicator />
             ) : toursSmall.length > 0 ? (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
+              <div className={styles.featuredToursContainer}>
                 {toursSmall.map((tour) => (
-                  <TourCardFeatured key={tour.codigo} tour={tour} />
+                  <TourCardFeatured
+                    key={tour.codigo}
+                    tour={tour}
+                    locale={locale}
+                  />
                 ))}
               </div>
             ) : (

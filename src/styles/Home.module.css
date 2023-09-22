@@ -25,6 +25,18 @@
   width: 80%;
 }
 
+.featuredToursContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .featuredToursContainer {
+    justify-content: center;
+  }
+}
+
 /* Enable hover only on non-touch devices */
 @media (hover: hover) and (pointer: fine) {
 

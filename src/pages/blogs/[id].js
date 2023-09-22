@@ -61,7 +61,7 @@ export default function Blog() {
                 width={425}
                 alt="Blog main image"
               />
-              <div>
+              <div className={styles.content}>
                 {router.locale === 'es'
                   ? blog?.texto?.split('\n\r').map((text, i) => (
                       <div style={{ marginBlock: '1.5em' }} key={i}>

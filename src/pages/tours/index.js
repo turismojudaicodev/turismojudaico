@@ -70,9 +70,8 @@ export default function Citytours({ locale }) {
       return
     }
     const { data, error } = await getContent(
-      `/api/content/tours?nombre=${formData.nombre}`
+      `/api/content/tours?estado=1&nombre=${formData.nombre}`
     )
-    alert(`${formData.tour} ${formData.proveedor}`)
     if (error) return setErrorMessage(error)
     setTours(data)
     setIsFormLoading(false)

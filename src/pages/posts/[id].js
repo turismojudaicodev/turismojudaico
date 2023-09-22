@@ -13,6 +13,7 @@ import Image from 'next/image'
 import { Carousel } from 'react-responsive-carousel'
 // Styles
 import utils from '@/styles/utils.module.css'
+import styles from '@/styles/Posts.module.css'
 import 'react-responsive-carousel/lib/styles/carousel.min.css' // Carousel requires a loader
 
 function SliderImage({ imgSrc, alt }) {
@@ -136,7 +137,7 @@ export default function Post() {
                   <p>{post.link || 'No especificado'}</p>
                 </div>
               </div> */}
-              <div>
+              <div className={styles.content}>
                 {router.locale === 'es'
                   ? post?.texto?.split('\n\r').map((text, i) => (
                       <div style={{ marginBlock: '1.5em' }} key={i}>

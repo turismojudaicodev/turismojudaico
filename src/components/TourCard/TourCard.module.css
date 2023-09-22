@@ -6,9 +6,16 @@
 
 .imgContainer {
   position: relative;
-  width: 165px;
-  height: 135px;
+  width: 180px;
+  height: 120px;
   border-bottom: 4px solid var(--clr-green);
+}
+
+@media (max-width: 475px) {
+  .imgContainer {
+    width: 100%;
+    height: 50vw;
+  }  
 }
 
 .imgContainer img {
