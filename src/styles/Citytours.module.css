@@ -24,3 +24,17 @@
 .content * {
   width: 100%;
 }
+
+.filterLink {
+  border: none;
+  background-color: transparent;
+  padding-block: .25rem;
+  color: var(--clr-bg-2);
+  cursor: pointer;
+  width: max-content;
+}
+
+.filterLink:hover {
+  text-decoration: underline;
+}
+

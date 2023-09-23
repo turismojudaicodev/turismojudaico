@@ -29,7 +29,11 @@ export default function Citytours({ locale }) {
   const [tours, setTours] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [toursOffset, setToursOffset] = useState(0)
-  const [isFormLoading, setIsFormLoading] = useState(false)
+  const [isFiltersLoading, setIsFiltersLoading] = useState(false)
+  const [data, setData] = useState({
+    countries: [],
+    toursCount: 0,
+  })
   const [errorMessage, setErrorMessage] = useState('')
 
   const { t } = useTranslation(['citytours', 'common'])
@@ -43,7 +47,14 @@ export default function Citytours({ locale }) {
       setTours(tours)
       if (toursError) return setErrorMessage(toursError)
       setToursOffset((v) => v + 5)
+      const { data: countries, error: countriesError } = await getContent(
+        '/api/content/tours/countries?estado=1'
+      )
+      setIsFiltersLoading(false)
+      if (countriesError) return setErrorMessage(countriesError)
+      setData((prev) => ({ ...prev, countries }))
     }
+    setIsFiltersLoading(true)
     setIsLoading(true)
     fetchData()
   }, [])
@@ -59,22 +70,14 @@ export default function Citytours({ locale }) {
     setTours(data)
   }
 
-  const handleSubmit = async (ev) => {
-    ev.preventDefault()
-
-    setIsFormLoading(true)
-
-    const formData = Object.fromEntries(new FormData(ev.target))
-    if (!formData.nombre) {
-      setIsFormLoading(false)
-      return
-    }
+  const handleSubmit = async (countryId) => {
+    setIsLoading(true)
     const { data, error } = await getContent(
-      `/api/content/tours?estado=1&nombre=${formData.nombre}`
+      `/api/content/tours/from?pais=${countryId}`
     )
     if (error) return setErrorMessage(error)
     setTours(data)
-    setIsFormLoading(false)
+    setIsLoading(false)
   }
 
   return (
@@ -84,6 +87,30 @@ export default function Citytours({ locale }) {
       </Head>
       <Layout>
         <main className={`${utils.container} ${styles.main}`}>
+          <div>
+            <h2 className={utils.bigTitle}>
+              {t('body.filter', { ns: 'citytours' })}
+            </h2>
+            {isFiltersLoading ? (
+              <LoadingIndicator />
+            ) : (
+              <div>
+                <ul style={{ listStyle: 'none' }}>
+                  {data.countries.map((country) => (
+                    <li key={country.codigo}>
+                      <button
+                        onClick={() => handleSubmit(country.codigo)}
+                        className={styles.filterLink}
+                      >
+                        {locale === 'es' ? country.nombre : country.nombre_en} (
+                        {country.tours})
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
           <div className={styles.toursContainer}>
             <h1 className={utils.bigTitle}>City Tours</h1>
             {errorMessage ? (
@@ -110,27 +137,6 @@ export default function Citytours({ locale }) {
                 </ButtonLoader>
               </>
             )}
-          </div>
-          <div>
-            <h2 className={utils.bigTitle}>
-              {t('body.filter', { ns: 'citytours' })}
-            </h2>
-            <form onSubmit={handleSubmit} className={utils.form}>
-              <InputText
-                label={t('body.form.title', { ns: 'citytours' })}
-                name="nombre"
-                attrs={{
-                  style: { minWidth: '200px' },
-                  placeholder: t('body.form.placeholder', { ns: 'citytours' }),
-                }}
-              />
-              <ButtonLoader
-                isLoading={isFormLoading}
-                attrs={{ type: 'submit' }}
-              >
-                {t('body.form.submit', { ns: 'citytours' })}
-              </ButtonLoader>
-            </form>
           </div>
         </main>
       </Layout>

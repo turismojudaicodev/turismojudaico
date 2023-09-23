@@ -7,7 +7,7 @@ export default async function handler(req, res) {
     let sqlQuery = 'SELECT * FROM paises'
 
     if (query.reduced == 1 && query.active == 1) {
-      sqlQuery = 'SELECT codigo, nombre FROM paises WHERE estado=1'
+      sqlQuery = 'SELECT codigo, nombre, nombre_en FROM paises WHERE estado=1'
     }
 
     return new Promise((resolve, reject) => {

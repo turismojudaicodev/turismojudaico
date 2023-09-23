@@ -12,6 +12,9 @@ export default async function handler(req, res) {
     if (params.estado) {
       queryParams.push(`estado=${params.estado}`)
     }
+    if (params.pais) {
+      // ver como fetchear tours filtrando por pais
+    }
     if (params.destacadohomegrande) {
       queryParams.push('destacadohomegrande=1')
     }
@@ -20,6 +23,12 @@ export default async function handler(req, res) {
     }
     if (params.proveedor) {
       queryParams.push(`proveedor=${params.proveedor}`)
+    }
+    if (params.nombre) {
+      queryParams.push(`nombre LIKE "%${params.nombre}%"`)
+    }
+    if (params.nombre_en) {
+      queryParams.push(`nombre_en LIKE "%${params.nombre_en}%"`)
     }
 
     const queryString = `SELECT * FROM paquetes ${

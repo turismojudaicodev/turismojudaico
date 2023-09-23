@@ -70,7 +70,6 @@ export default function Home({ locale }) {
   const [sponsors, setSponsors] = useState([])
   const [errorMessage, setErrorMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const staticImages = []
 
   const { t } = useTranslation(['index', 'common'])
 
@@ -167,7 +166,11 @@ export default function Home({ locale }) {
               />
             )}
           </div>
-          <h2>NOS ACOMPAÑAN Y CONFÍAN EN NOSOTROS</h2>
+          <h2>
+            {locale === 'es'
+              ? 'NOS ACOMPAÑAN Y CONFÍAN EN NOSOTROS'
+              : 'THEY ACCOMPANY US AND TRUST US:'}
+          </h2>
           <div className={styles.supporters}>
             {SUPPORTERS.map((supporter, index) => (
               <Image
