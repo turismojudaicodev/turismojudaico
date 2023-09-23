@@ -21,11 +21,12 @@ export async function getStaticProps({ locale }) {
   return {
     props: {
       ...(await serverSideTranslations(locale, ['common', 'posts'])),
+      locale,
     },
   }
 }
 
-export default function Content() {
+export default function Content({ locale }) {
   const [data, setData] = useState({
     countries: [],
     cities: [],
@@ -50,6 +51,9 @@ export default function Content() {
       setIsLoading(false)
       if (postsError) return setErrorMessage(postsError)
       setPosts(postsData)
+      // const { data: postsCount, error: postsCountError } = await getContent(
+      //   '/api/content/posts/count?estado=1'
+      // )
       const { data: countriesData, error: countriesError } = await getContent(
         '/api/content/countries?reduced=1&active=1'
       )
@@ -144,7 +148,7 @@ export default function Content() {
                   isLoading={isLoading}
                   attrs={{ onClick: handleLoadMore }}
                 >
-                  {router.locale === 'es' ? 'Cargar siguientes' : 'Load more'}
+                  {router.locale === 'es' ? 'Cargar otros' : 'Load more'}
                 </ButtonLoader>
               )}
             </div>

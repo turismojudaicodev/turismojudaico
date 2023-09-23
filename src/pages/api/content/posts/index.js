@@ -5,6 +5,7 @@ export default async function handler(req, res) {
     const params = req.query
     let queryParams = []
     let limit = ''
+    let joinCategories = ''
 
     if (params.limit && params.offset) {
       limit = `LIMIT ${params.offset}, ${params.limit}`
@@ -16,13 +17,21 @@ export default async function handler(req, res) {
       }
     }
     if (params.categoria) {
-      queryParams.push(`categoria=${params.categoria}`)
+      //
+      queryParams.push(`cxc.categoria=${params.categoria}`)
+      joinCategories = `INNER JOIN contenidos_x_categoria cxc ON cxc.contenido = contenidos.codigo`
     }
     if (params.estado) {
       queryParams.push(`estado=${params.estado}`)
     }
+    if (params.nombre) {
+      queryParams.push(`nombre LIKE "%${params.nombre}%"`)
+    }
+    if (params.nombre_en) {
+      queryParams.push(`nombre_en LIKE "%${params.nombre_en}%"`)
+    }
 
-    const queryString = `SELECT * FROM contenidos ${
+    const queryString = `SELECT * FROM contenidos ${joinCategories} ${
       queryParams.length > 0 ? 'WHERE ' + queryParams.join(' AND ') : ''
     } ${limit}`
 
