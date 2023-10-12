@@ -19,6 +19,8 @@ import {
 } from '@/components/DashboardComponents'
 import Image from 'next/image'
 import { Carousel } from 'react-responsive-carousel'
+import Link from 'next/link'
+import Notification from '@/components/Notification'
 // Styles
 import styles from '@/styles/Citytours.module.css'
 import utils from '@/styles/utils.module.css'
@@ -96,7 +98,7 @@ export default function CityTour() {
     <Layout>
       <main className={`${utils.container} ${styles.main}`}>
         <div>
-          <h2>{i18n?.body?.reservation?.title}</h2>
+          <h2 id="reservation-form">{i18n?.body?.reservation?.title}</h2>
           <form className={utils.form} onSubmit={handleSubmit}>
             <InputText
               label={i18n?.body?.reservation?.fullName}
@@ -130,10 +132,19 @@ export default function CityTour() {
               {i18n?.body?.reservation?.submit}
             </ButtonLoader>
           </form>
-          <div className={utils.messageContainer}>
-            {errorMessage && <Message type="error" message={errorMessage} />}
-            {infoMessage && <Message type="info" message={infoMessage} />}
-          </div>
+          {errorMessage && (
+            <Notification
+              type="error"
+              notification={errorMessage}
+              setNotification={setErrorMessage}
+            />
+          )}
+          {infoMessage && (
+            <Notification
+              notification={infoMessage}
+              setNotification={setInfoMessage}
+            />
+          )}
         </div>
         {(!tour && !isLoading) || isLoading ? (
           <LoadingIndicator />
@@ -177,6 +188,13 @@ export default function CityTour() {
                 )}
               </Carousel>
             </div>
+            <Link
+              href="#reservation-form"
+              className={`${utils.button} ${styles.linkToReservation}`}
+              style={{ marginTop: '1rem' }}
+            >
+              {router.locale === 'es' ? 'Reservar' : 'Book'}
+            </Link>
             {/* <div
               style={{ position: 'relative', width: '250px', height: '250px' }}
             >

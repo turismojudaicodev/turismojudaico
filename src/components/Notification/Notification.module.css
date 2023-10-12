@@ -9,7 +9,7 @@
   border-radius: 5px;
   border: 1px solid;
   width: fit-content;
-  box-shadow: 0 2px 15px -2px lightgray;
+  box-shadow: 0 2px 15px -2px darkgray;
   animation: fadeIn .3s;
   z-index: 10000;
 }
@@ -44,6 +44,15 @@
   border: 1px solid;
   margin-left: 1em;
   cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .button {
+    display: block;
+    width: 100%;
+    margin: 0;
+    margin-top: .25rem;
+  }
 }
 
 .button:hover {
