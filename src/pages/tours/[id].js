@@ -85,49 +85,56 @@ export default function CityTour() {
     setIsFormLoading(true)
 
     const formData = Object.fromEntries(new FormData(ev.target))
-    formData.tourName = tour.nombre
+    formData.citytour_nombre = tour.nombre
 
     const { message, error } = await postContent('/api/reservation', formData)
     setIsFormLoading(false)
 
     if (error) return setErrorMessage(error)
     setInfoMessage(message)
+    document.getElementById('reservation-form').reset()
   }
 
   return (
     <Layout>
       <main className={`${utils.container} ${styles.main}`}>
         <div>
-          <h2 id="reservation-form">{i18n?.body?.reservation?.title}</h2>
-          <form className={utils.form} onSubmit={handleSubmit}>
+          <h2>{i18n?.body?.reservation?.title}</h2>
+          <form
+            className={utils.form}
+            onSubmit={handleSubmit}
+            id="reservation-form"
+          >
             <InputText
               label={i18n?.body?.reservation?.fullName}
-              name="fullName"
+              name="contacto_nombre"
               required
             />
             <InputNumber
               label={i18n?.body?.reservation?.passengers}
-              name="passengers"
+              name="contacto_pasajeros"
               min={1}
               required
             />
             <InputEmail
               label={i18n?.body?.reservation?.email}
-              name="email"
+              name="contacto_mail"
               required
             />
             <InputTelephone
               label={i18n?.body?.reservation?.telephone}
-              name="telephone"
+              name="contacto_telefono"
               required
             />
             <InputDate
               label={i18n?.body?.reservation?.desiredDate}
-              name="desiredDate"
+              name="contacto_fecha"
               required
             />
-
-            <Textarea label={i18n?.body?.reservation?.message} name="message" />
+            <Textarea
+              label={i18n?.body?.reservation?.message}
+              name="contacto_mensaje"
+            />
             <ButtonLoader isLoading={isFormLoading} attrs={{ type: 'submit' }}>
               {i18n?.body?.reservation?.submit}
             </ButtonLoader>

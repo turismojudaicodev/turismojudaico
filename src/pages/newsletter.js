@@ -8,10 +8,10 @@ import { handleNewsletterSignup } from 'lib/api'
 // Components
 import Head from 'next/head'
 import Layout from '@/components/Layout'
+import Notification from '@/components/Notification'
 // Styles
 import styles from '@/styles/Newsletter.module.css'
 import utils from '@/styles/utils.module.css'
-import Message from '@/components/Message'
 
 export async function getStaticProps({ locale }) {
   return {
@@ -23,6 +23,7 @@ export async function getStaticProps({ locale }) {
 
 export default function Newsletter() {
   const [errorMessage, setErrorMessage] = useState('')
+  const [infoMessage, setInfoMessage] = useState('')
 
   const { t } = useTranslation('newsletter')
 
@@ -34,6 +35,8 @@ export default function Newsletter() {
     const formData = Object.fromEntries(new FormData(ev.target))
     const { message, error } = await handleNewsletterSignup(formData)
     if (error) return setErrorMessage(error)
+    setInfoMessage(message)
+    document.getElementById('newsletter-form').reset()
   }
 
   return (
@@ -43,17 +46,34 @@ export default function Newsletter() {
       </Head>
       <Layout>
         <main className={styles.main}>
+          {errorMessage && (
+            <Notification
+              type="error"
+              notification={errorMessage}
+              setNotification={setErrorMessage}
+            />
+          )}
+          {infoMessage && (
+            <Notification
+              notification={infoMessage}
+              setNotification={setInfoMessage}
+            />
+          )}
           <div className={utils.container}>
             <h1>{t('body.title')}</h1>
             <p>{t('body.p1')}</p>
-            <form onSubmit={handleSubmit} className={styles.form}>
+            <form
+              onSubmit={handleSubmit}
+              className={styles.form}
+              id="newsletter-form"
+            >
               <div>
                 <label htmlFor="name" className={utils.inputRequired}>
                   {t('body.form.name')}
                 </label>
                 <input
                   id="name"
-                  name="name"
+                  name="nombre"
                   type="text"
                   className={utils.input}
                 ></input>
@@ -62,7 +82,7 @@ export default function Newsletter() {
                 <label htmlFor="lastName">{t('body.form.lastName')}</label>
                 <input
                   id="lastName"
-                  name="lastName"
+                  name="apellido"
                   type="text"
                   className={utils.input}
                 ></input>
@@ -73,15 +93,12 @@ export default function Newsletter() {
                 </label>
                 <input
                   id="email"
-                  name="email"
+                  name="mail"
                   type="email"
                   className={utils.input}
                   defaultValue={router.query?.email || ''}
                 ></input>
               </div>
-              {errorMessage ? (
-                <Message type="error" message={errorMessage} />
-              ) : null}
               <button type="submit" className={utils.button}>
                 {t('body.form.submit')}
               </button>
