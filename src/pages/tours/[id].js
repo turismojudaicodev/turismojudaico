@@ -7,7 +7,6 @@ import { setImageSrc } from 'helpers'
 // Components
 import Layout from '@/components/Layout'
 import LoadingIndicator from '@/components/LoadingIndicator'
-import Message from '@/components/Message'
 import ButtonLoader from '@/components/ButtonLoader'
 import {
   InputDate,
@@ -86,6 +85,7 @@ export default function CityTour() {
     setIsFormLoading(true)
 
     const formData = Object.fromEntries(new FormData(ev.target))
+    formData.tourName = tour.nombre
 
     const { message, error } = await postContent('/api/reservation', formData)
     setIsFormLoading(false)

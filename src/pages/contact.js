@@ -143,14 +143,9 @@ export default function Contact() {
                     className={utils.input}
                   ></textarea>
                 </div>
-                {infoMessage ? (
-                  <Notification
-                    notification={infoMessage}
-                    setNotification={setInfoMessage}
-                  />
-                ) : errorMessage ? (
+                {errorMessage && (
                   <Message type="error" message={errorMessage} />
-                ) : null}
+                )}
                 <ButtonLoader
                   attributes={{ type: 'submit' }}
                   isLoading={isLoading}
@@ -182,6 +177,12 @@ export default function Contact() {
               </div>
             </div>
           </div>
+          {infoMessage && (
+            <Notification
+              notification={infoMessage}
+              setNotification={setInfoMessage}
+            />
+          )}
         </main>
       </Layout>
     </>
