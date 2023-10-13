@@ -9,6 +9,10 @@ function generateEmailContent(data) {
   const htmlData = `
   <div>
     <div style="border: 1px solid #888; padding: .5rem 1rem; margin-bottom: .5rem;">
+      <h2 style="text-transform: capitalize;">Tour:</h2>
+      <p>${data.tourName || 'No especificado'}</p>
+    </div>
+    <div style="border: 1px solid #888; padding: .5rem 1rem; margin-bottom: .5rem;">
       <h2 style="text-transform: capitalize;">Nombre Completo:</h2>
       <p>${data.fullName || 'No especificado'}</p>
     </div>
@@ -47,7 +51,10 @@ export default async function handler(req, res) {
 
   const data = req.body
 
-  console.log('data', data)
+  if (!data.tourName)
+    return res
+      .status(500)
+      .json({ error: 'No se pudo obtener el nombre del tour' })
 
   if (
     !data.fullName ||
