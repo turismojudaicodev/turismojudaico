@@ -9,31 +9,31 @@ function generateEmailContent(data) {
 
   const htmlData = `
   <div>
-    <div style="border: 1px solid #888; padding: .5rem 1rem; margin-bottom: .5rem;">
+    <div>
       <h2 style="text-transform: capitalize;">Tour:</h2>
       <p>${data.citytour_nombre || 'No especificado'}</p>
     </div>
-    <div style="border: 1px solid #888; padding: .5rem 1rem; margin-bottom: .5rem;">
+    <div>
       <h2 style="text-transform: capitalize;">Nombre Completo:</h2>
       <p>${data.contacto_nombre || 'No especificado'}</p>
     </div>
-    <div style="border: 1px solid #888; padding: .5rem 1rem; margin-bottom: .5rem;">
+    <div>
       <h2 style="text-transform: capitalize;">Pasajeros:</h2>
       <p>${data.contacto_pasajeros || 'No especificado'}</p>
     </div>
-    <div style="border: 1px solid #888; padding: .5rem 1rem; margin-bottom: .5rem;">
+    <div>
       <h2 style="text-transform: capitalize;">Email:</h2>
       <p>${data.contacto_mail || 'No especificado'}</p>
     </div>
-    <div style="border: 1px solid #888; padding: .5rem 1rem; margin-bottom: .5rem;">
+    <div>
       <h2 style="text-transform: capitalize;">Teléfono:</h2>
       <p>${data.contacto_telefono || 'No especificado'}</p>
     </div>
-      <div style="border: 1px solid #888; padding: .5rem 1rem; margin-bottom: .5rem;">
+    <div>
       <h2 style="text-transform: capitalize;">Fecha deseada:</h2>
       <p>${data.contacto_fecha || 'No especificado'}</p>
     </div>
-    <div style="border: 1px solid #888; padding: .5rem 1rem; margin-bottom: .5rem;">
+    <div>
       <h2 style="text-transform: capitalize;">Mensaje:</h2>
       <p>${data.contacto_mensaje || 'No especificado'}</p>
     </div>
