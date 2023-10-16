@@ -14,6 +14,10 @@ function generateEmailContent(data) {
       <p>${data.citytour_nombre || 'No especificado'}</p>
     </div>
     <div>
+      <h2 style="text-transform: capitalize;">Ciudad de orígen:</h2>
+      <p>${data.contacto_ciudad_origen || 'No especificado'}</p>
+    </div>
+    <div>
       <h2 style="text-transform: capitalize;">Nombre Completo:</h2>
       <p>${data.contacto_nombre || 'No especificado'}</p>
     </div>

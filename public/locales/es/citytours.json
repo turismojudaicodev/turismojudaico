@@ -16,6 +16,7 @@
     "reservation": {
       "title": "Reservá ahora",
       "fullName": "Nombre completo",
+      "hometown": "Ciudad de orígen",
       "passengers": "Cant. pasajeros",
       "email": "Email",
       "telephone": "Teléfono",

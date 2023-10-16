@@ -16,6 +16,7 @@
     "reservation": {
       "title": "Book now",
       "fullName": "Full name",
+      "hometown": "Hometown",
       "passengers": "Passengers",
       "email": "Email",
       "telephone": "Telephone",

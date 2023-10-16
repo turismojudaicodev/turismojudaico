@@ -110,6 +110,10 @@ export default function CityTour() {
               name="contacto_nombre"
               required
             />
+            <InputText
+              label={i18n?.body?.reservation?.hometown}
+              name="contacto_ciudad_origen"
+            />
             <InputNumber
               label={i18n?.body?.reservation?.passengers}
               name="contacto_pasajeros"
