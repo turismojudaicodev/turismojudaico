@@ -6,6 +6,7 @@
 .contentSection {
   margin-inline: 2rem;
   margin-block: 2rem;
+  overflow-x: scroll;
 }
 
 .contentSection h1 {

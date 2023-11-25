@@ -31,10 +31,14 @@ const DASHBOARD_SECTIONS = [
     name: 'City Tours',
     url: '/tours',
   },
-  // {
-  //   name: 'Quienes Somos',
-  //   url: '/about',
-  // },
+  {
+    name: 'Reservas',
+    url: '/bookings',
+  },
+  {
+    name: 'Newsletter',
+    url: '/newsletter',
+  },
   {
     name: 'Proveedores',
     url: '/providers',
