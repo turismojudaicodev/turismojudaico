@@ -1,3 +1,5 @@
+import { getToursIds } from 'lib/sitemap'
+
 export default function Sitemap() {
   return null
 }
@@ -14,24 +16,7 @@ export const getServerSideProps = async (ctx) => {
 }
 
 async function generateSitemap() {
-  // const pages = getPages()
-
-  // return `<?xml version="1.0" encoding="UTF-8"?>
-  // <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  //   ${pages
-  //     .map(
-  //       (page) =>
-  //         `<url>
-  //         <loc>${page.url}</loc>
-  //         <lastmod>${page.updated_at + 'formatear correctamente'}</lastmod>
-  //       </url>`
-  //     )
-  //     .join('')}
-  //   <url>
-  //     <loc>https://turismojudaico.com</loc>
-  //     <lastmod>2022-06-04</lastmod>
-  //   </url>
-  // </urlset>`
+  const toursIds = await getToursIds()
 
   return `<?xml version="1.0" encoding="UTF-8"?>
   <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -47,22 +32,15 @@ async function generateSitemap() {
       <loc>https://turismojudaico.com/tours</loc>
       <lastmod>2023-11-25</lastmod>
     </url>
-    <url>
-      <loc>https://turismojudaico.com/tours/2</loc>
-      <lastmod>2023-11-25</lastmod>
-    </url>
-    <url>
-      <loc>https://turismojudaico.com/tours/3</loc>
-      <lastmod>2023-11-25</lastmod>
-    </url>
-    <url>
-      <loc>https://turismojudaico.com/tours/4</loc>
-      <lastmod>2023-11-25</lastmod>
-    </url>
-    <url>
-      <loc>https://turismojudaico.com/tours/6</loc>
-      <lastmod>2023-11-25</lastmod>
-    </url>
+    ${toursIds
+      .map(
+        (tour) =>
+          `<url>
+          <loc>${`https://turismojudaico.com/tours/${tour.codigo}`}</loc>
+          <lastmod>${formatDate(new Date())}</lastmod>
+        </url>`
+      )
+      .join('')}
     <url>
       <loc>https://turismojudaico.com/audioguides</loc>
       <lastmod>2023-11-25</lastmod>
@@ -86,6 +64,13 @@ async function generateSitemap() {
   </urlset>`
 }
 
-function getPages() {
-  // hacer
+function formatDate(date) {
+  const year = date.getFullYear()
+
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+
+  const formattedDate = `${year}-${month}-${day}`
+
+  return formattedDate
 }
