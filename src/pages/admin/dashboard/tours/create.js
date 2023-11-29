@@ -91,13 +91,6 @@ function TourForm({ data }) {
         <InputImage label="Imagen3" name="imagen3" />
         <InputImage label="Imagen4" name="imagen4" />
 
-        <Select
-          label="Proveedor"
-          name="proveedor"
-          options={data.providers}
-          required
-        />
-
         <div style={{ display: 'flex', gap: '1rem' }}>
           <div className={styles.formCreate}>
             <Select label="Atraccion1" name="atraccion1" options={data.posts} />
@@ -143,10 +136,7 @@ function TourForm({ data }) {
 }
 
 export default function TourCreator() {
-  const [data, setData] = useState({
-    providers: [],
-    posts: [],
-  })
+  const [data, setData] = useState({ posts: [] })
   const [errorMessage, setErrorMessage] = useState('')
   const [infoMessage, setInfoMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -156,16 +146,12 @@ export default function TourCreator() {
       const { data: posts, error: postsError } = await getContent(
         '/api/content/posts'
       )
-      const { data: providers, error: providersError } = await getContent(
-        '/api/content/providers'
-      )
       setIsLoading(false)
-      if (postsError || providersError) {
-        setErrorMessage(`${postsError ?? ''} ${providersError ?? ''}`)
+      if (postsError) {
+        setErrorMessage(postsError)
         return
       }
       setData((prev) => ({ ...prev, posts: posts }))
-      setData((prev) => ({ ...prev, providers: providers }))
     }
     setIsLoading(true)
     fetchData()

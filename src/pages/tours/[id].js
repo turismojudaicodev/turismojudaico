@@ -221,14 +221,22 @@ export default function CityTour() {
                 ? tour?.descripcion?.split('\n\r').map((text, i) => (
                     <div style={{ marginBlock: '1.5em' }} key={i}>
                       {text.split('\n').map((text, i) => (
-                        <p key={i} dangerouslySetInnerHTML={{ __html: text }} />
+                        <p
+                          key={i}
+                          style={{ marginBlock: '1em' }}
+                          dangerouslySetInnerHTML={{ __html: text }}
+                        />
                       ))}
                     </div>
                   ))
                 : tour?.descripcion_en?.split('\n\r').map((text, i) => (
                     <div style={{ marginBlock: '1.5em' }} key={i}>
                       {text.split('\n').map((text, i) => (
-                        <p key={i} dangerouslySetInnerHTML={{ __html: text }} />
+                        <p
+                          key={i}
+                          style={{ marginBlock: '1em' }}
+                          dangerouslySetInnerHTML={{ __html: text }}
+                        />
                       ))}
                     </div>
                   ))}

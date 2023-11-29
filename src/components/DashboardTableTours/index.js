@@ -52,7 +52,6 @@ export default function DashboardTableTours({ table, setVisibleTable = null }) {
             <th>id</th>
             <th>nombre</th>
             <th>nombre_en</th>
-            <th>proveedor</th>
             <th>dest.homegrande</th>
             <th>dest.homechico</th>
             <th>orden</th>
@@ -67,7 +66,6 @@ export default function DashboardTableTours({ table, setVisibleTable = null }) {
               <td>{row.codigo}</td>
               <td className={styles.colTitle}>{row.nombre}</td>
               <td className={styles.colTitle}>{row.nombre_en}</td>
-              <td style={{ textAlign: 'center' }}>{row.proveedor}</td>
               <td style={{ textAlign: 'center' }}>{row.destacadohomegrande}</td>
               <td style={{ textAlign: 'center' }}>{row.destacadohomechico}</td>
               <td style={{ textAlign: 'center' }}>{row.orden}</td>

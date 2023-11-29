@@ -124,13 +124,6 @@ function TourForm({ tour, data }) {
         <InputImage label="Imagen4" name="imagen4" />
         {tour.imagen4 && <p>Imagen4 actual: {tour.imagen4}</p>}
 
-        <Select
-          label="Proveedor"
-          name="proveedor"
-          options={data.providers}
-          defaultValue={tour.proveedor}
-        />
-
         <div style={{ display: 'flex', gap: '1rem' }}>
           <div className={styles.formCreate}>
             <Select
@@ -237,10 +230,7 @@ function TourForm({ tour, data }) {
 
 export default function TourEditor() {
   const [tour, setTour] = useState({})
-  const [data, setData] = useState({
-    providers: [],
-    posts: [],
-  })
+  const [data, setData] = useState({ posts: [] })
   const [errorMessage, setErrorMessage] = useState('')
   const [infoMessage, setInfoMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -256,17 +246,13 @@ export default function TourEditor() {
       const { data: posts, error: postsError } = await getContent(
         '/api/content/posts'
       )
-      const { data: providers, error: providersError } = await getContent(
-        '/api/content/providers'
-      )
       setIsLoading(false)
-      if (postsError || providersError || tourError) {
+      if (postsError || tourError) {
         setErrorMessage('Error al cargar datos iniciales')
         return
       }
       setTour(tour)
       setData((prev) => ({ ...prev, posts: posts }))
-      setData((prev) => ({ ...prev, providers: providers }))
     }
     setIsLoading(true)
     if (router.isReady) fetchData()
