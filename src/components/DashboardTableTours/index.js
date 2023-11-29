@@ -56,7 +56,7 @@ export default function DashboardTableTours({ table, setVisibleTable = null }) {
             <th>dest.homegrande</th>
             <th>dest.homechico</th>
             <th>orden</th>
-            <th>estado</th>
+            <th>activo</th>
             <th>fecha</th>
             <th>Acciones</th>
           </tr>
@@ -71,7 +71,14 @@ export default function DashboardTableTours({ table, setVisibleTable = null }) {
               <td style={{ textAlign: 'center' }}>{row.destacadohomegrande}</td>
               <td style={{ textAlign: 'center' }}>{row.destacadohomechico}</td>
               <td style={{ textAlign: 'center' }}>{row.orden}</td>
-              <td style={{ textAlign: 'center' }}>{row.estado}</td>
+              <td
+                style={{
+                  textAlign: 'center',
+                  color: row.estado == 1 ? 'green' : 'red',
+                }}
+              >
+                {row.estado == 1 ? 'si' : 'no'}
+              </td>
               <td style={{ textAlign: 'center' }}>
                 {new Date(row.fechacreacion).toLocaleDateString('es-ES', {
                   day: '2-digit',

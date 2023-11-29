@@ -119,6 +119,19 @@ function TourForm({ data }) {
           </div>
         </div>
 
+        <InputNumber
+          label="Destacado home grande"
+          name="destacadohomegrande"
+          min={0}
+          max={1}
+        />
+        <InputNumber
+          label="Destacado home chico"
+          name="destacadohomechico"
+          min={0}
+          max={1}
+        />
+
         <InputText label="Video" name="video" />
 
         <InputNumber label="Orden" name="orden" min={0} required />

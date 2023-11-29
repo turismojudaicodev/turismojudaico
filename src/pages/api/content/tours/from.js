@@ -12,7 +12,7 @@ export default async function handler(req, res) {
       FROM paquetes t 
       INNER JOIN ciudades_x_paquete cxp ON t.codigo = cxp.paquete 
       INNER JOIN ciudades c ON cxp.ciudad = c.codigo 
-      WHERE c.pais = ?`
+      WHERE t.estado = 1 AND c.pais = ?`
 
     console.log(queryString)
 

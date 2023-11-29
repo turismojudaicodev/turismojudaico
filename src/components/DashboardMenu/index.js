@@ -40,10 +40,6 @@ const DASHBOARD_SECTIONS = [
     url: '/newsletter',
   },
   {
-    name: 'Proveedores',
-    url: '/providers',
-  },
-  {
     name: 'Ajustes',
     url: '/settings',
   },
