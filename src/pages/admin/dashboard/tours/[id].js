@@ -197,6 +197,20 @@ function TourForm({ tour, data }) {
             />
           </div>
         </div>
+        <InputNumber
+          label="Destaco home grande"
+          name="destacadohomegrande"
+          min={0}
+          max={1}
+          defaultValue={tour.destacadohomegrande}
+        />
+        <InputNumber
+          label="Destaco home chico"
+          name="destacadohomechico"
+          min={0}
+          max={1}
+          defaultValue={tour.destacadohomechico}
+        />
         <InputText label="Video" name="video" defaultValue={tour.video} />
         <InputNumber
           label="Orden"
