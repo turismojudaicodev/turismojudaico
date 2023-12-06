@@ -33,7 +33,7 @@ export default async function handler(req, res) {
 
     const queryString = `SELECT * FROM paquetes ${
       queryParams.length > 0 ? 'WHERE ' + queryParams.join(' AND ') : ''
-    } ${limit}`
+    } ORDER BY orden DESC ${limit}`
 
     console.log(queryString)
 
@@ -53,6 +53,32 @@ export default async function handler(req, res) {
     const { body } = req
     const keys = Object.keys(body)
     const values = Object.values(body)
+    // let tourCityId = null,
+    //   tourId = null
+
+    // if (keys.includes('ciudad')) {
+    //   tourCityid = body.ciudad
+
+    //   new Promise((resolve, reject) => {
+    //     db.query(
+    //       'INSERT INTO ciudades_x_paquete (paquete, ciudad) VALUES',
+    //       [tourId, tourCityId],
+    //       (err, data) => {
+    //         if (err) {
+    //           res
+    //             .status(500)
+    //             .json({ error: err.sqlMessage ?? 'Error al setear ciudad' })
+    //           reject()
+    //         }
+    //         res.status(201).json({
+    //           data,
+    //           message: `Tour "${body?.nombre}" creado exitosamente`,
+    //         })
+    //         resolve()
+    //       }
+    //     )
+    //   })
+    // }
 
     const queryString = `INSERT INTO paquetes (${keys.join(',')})
     VALUES (${new Array(values.length).fill('?').join(',')})`
