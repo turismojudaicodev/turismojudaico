@@ -33,7 +33,7 @@ export default async function handler(req, res) {
 
     const queryString = `SELECT * FROM paquetes ${
       queryParams.length > 0 ? 'WHERE ' + queryParams.join(' AND ') : ''
-    } ORDER BY orden DESC ${limit}`
+    } ORDER BY orden ASC ${limit}`
 
     console.log(queryString)
 
