@@ -1,0 +1,32 @@
+{
+  "redirects": [
+    {
+      "source": "/contenidos/(.*)",
+      "destination": "https://en.turismojudaico.com/"
+    },
+    {
+      "source": "/paises/(.*)",
+      "destination": "https://en.turismojudaico.com/"
+    },
+    {
+      "source": "/ciudades/(.*)",
+      "destination": "https://en.turismojudaico.com/"
+    },
+    {
+      "source": "/contenidos/(.*)",
+      "destination": "https://en.turismojudaico.com/"
+    },
+    {
+      "source": "/contenido/(.*)",
+      "destination": "https://en.turismojudaico.com/"
+    },
+    {
+      "source": "/tour/(.*)",
+      "destination": "https://en.turismojudaico.com/"
+    },
+    {
+      "source": "/test/(.*)",
+      "destination": "https://en.turismojudaico.com/"
+    }
+  ]
+}
