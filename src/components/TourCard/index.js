@@ -12,6 +12,7 @@ export function TourCard({ tour, locale = 'es' }) {
         <Image
           src={setImageSrc(tour.imagen1, 'citytours')}
           alt={tour.imagen1}
+          sizes="(max-width: 500px) 100vw, 300px"
           fill
         />
       </Link>

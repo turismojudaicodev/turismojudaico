@@ -6,8 +6,12 @@ export default async function handler(req, res) {
     let queryParams = []
     let limit = ''
 
-    if (params.limit && params.offset) {
-      limit = `LIMIT ${params.offset}, ${params.limit}`
+    if (params.limit) {
+      if (params.offset) {
+        limit = `LIMIT ${params.offset}, ${params.limit}`
+      } else {
+        limit = `LIMIT ${params.limit}`
+      }
     }
     if (params.estado) {
       queryParams.push(`estado=${params.estado}`)
@@ -25,10 +29,12 @@ export default async function handler(req, res) {
       queryParams.push(`proveedor=${params.proveedor}`)
     }
     if (params.nombre) {
-      queryParams.push(`nombre LIKE "%${params.nombre}%"`)
-    }
-    if (params.nombre_en) {
-      queryParams.push(`nombre_en LIKE "%${params.nombre_en}%"`)
+      const words = params.nombre.split(' ')
+      words.forEach((word, i) => {
+        words[i] = `(nombre LIKE "%${word}%" OR nombre_en LIKE "%${word}%")`
+      })
+      const string = `(${words.join(' AND ')})`
+      queryParams.push(string)
     }
 
     const queryString = `SELECT * FROM paquetes ${

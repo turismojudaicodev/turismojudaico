@@ -26,13 +26,18 @@ export async function getStaticProps({ locale }) {
 }
 
 export default function Citytours({ locale }) {
+  const TOUR_LIMIT = 5
+
   const [tours, setTours] = useState([])
+  const [limit, setLimit] = useState(TOUR_LIMIT * 2)
+  const [selectedCountry, setSelectedCountry] = useState(null)
+
   const [isLoading, setIsLoading] = useState(false)
-  const [toursOffset, setToursOffset] = useState(0)
   const [isFiltersLoading, setIsFiltersLoading] = useState(false)
+
   const [data, setData] = useState({
     countries: [],
-    toursCount: 0,
+    totalTours: 0,
   })
   const [errorMessage, setErrorMessage] = useState('')
 
@@ -41,18 +46,22 @@ export default function Citytours({ locale }) {
   useEffect(() => {
     async function fetchData() {
       const { data: tours, error: toursError } = await getContent(
-        `/api/content/tours?estado=1&limit=5&offset=${toursOffset ?? 0}`
+        `/api/content/tours?estado=1&limit=${TOUR_LIMIT}`
       )
       setIsLoading(false)
       setTours(tours)
       if (toursError) return setErrorMessage(toursError)
-      setToursOffset((v) => v + 5)
       const { data: countries, error: countriesError } = await getContent(
         '/api/content/tours/countries?estado=1'
       )
       setIsFiltersLoading(false)
       if (countriesError) return setErrorMessage(countriesError)
       setData((prev) => ({ ...prev, countries }))
+      const { data: totalTours, error: totalToursError } = await getContent(
+        `/api/content/tours/count?estado=1`
+      )
+      setData((prev) => ({ ...prev, totalTours: totalTours.total }))
+      if (totalToursError) return setErrorMessage(totalToursError)
     }
     setIsFiltersLoading(true)
     setIsLoading(true)
@@ -62,21 +71,47 @@ export default function Citytours({ locale }) {
   const handleLoadMore = async () => {
     setIsLoading(true)
     const { data, error } = await getContent(
-      `/api/content/tours?estado=1&limit=5&offset=${toursOffset ?? 0}`
+      `/api/content/tours?estado=1&limit=${limit}`
     )
     setIsLoading(false)
     if (error) return setErrorMessage(error)
-    setToursOffset((v) => v + 5)
+    setLimit((v) => v + TOUR_LIMIT)
     setTours(data)
   }
 
-  const handleSubmit = async (countryId) => {
+  const handleFilterByCountry = async (countryId) => {
     setIsLoading(true)
+    if (countryId === selectedCountry) {
+      setSelectedCountry(null)
+      const { data, error } = await getContent(
+        `/api/content/tours?estado=1&limit=${limit}`
+      )
+      if (error) return setErrorMessage(error)
+      setTours(data)
+      setIsLoading(false)
+      return
+    }
+    setSelectedCountry(countryId)
+    // El /from se encarga solo de trear los que tienen estado=1
     const { data, error } = await getContent(
       `/api/content/tours/from?pais=${countryId}`
     )
     if (error) return setErrorMessage(error)
     setTours(data)
+    setIsLoading(false)
+  }
+
+  const handleTextSearch = async (ev) => {
+    ev.preventDefault()
+    setIsLoading(true)
+    const formData = Object.fromEntries(new FormData(ev.target))
+    const { nombre } = formData
+    const { data, error } = await getContent(
+      `/api/content/tours?nombre=${nombre}`
+    )
+    if (error) return setErrorMessage(error)
+    setTours(data)
+    console.log(data)
     setIsLoading(false)
   }
 
@@ -95,12 +130,34 @@ export default function Citytours({ locale }) {
               <LoadingIndicator />
             ) : (
               <div>
+                <form
+                  style={{ marginBottom: '.5rem' }}
+                  onSubmit={handleTextSearch}
+                >
+                  <InputText
+                    name="nombre"
+                    placeholder="Tour"
+                    attrs={{ className: utils.input }}
+                  />
+                  <ButtonLoader
+                    isLoading={isLoading}
+                    attrs={{ style: { marginTop: '.25rem' }, type: 'submit' }}
+                  >
+                    {locale === 'es' ? 'Buscar' : 'Search'}
+                  </ButtonLoader>
+                </form>
                 <ul style={{ listStyle: 'none' }}>
                   {data.countries.map((country) => (
-                    <li key={country.codigo}>
+                    <li key={`${country.codigo}-${country.nombre}`}>
                       <button
-                        onClick={() => handleSubmit(country.codigo)}
+                        onClick={() => handleFilterByCountry(country.codigo)}
                         className={styles.filterLink}
+                        style={{
+                          backgroundColor:
+                            selectedCountry === country.codigo
+                              ? 'lightblue'
+                              : '',
+                        }}
                       >
                         {locale === 'es' ? country.nombre : country.nombre_en} (
                         {country.tours})
@@ -127,15 +184,21 @@ export default function Citytours({ locale }) {
                 message={t('body.alerts.noContent', { ns: 'citytours' })}
               />
             )}
-            {!isLoading && (
-              <>
-                <ButtonLoader
-                  isLoading={isLoading}
-                  attrs={{ onClick: handleLoadMore }}
-                >
-                  {locale === 'es' ? 'Cargar siguientes' : 'Load more'}
-                </ButtonLoader>
-              </>
+            {!isLoading && selectedCountry === null && (
+              <div>
+                {tours.length < data.totalTours && (
+                  <ButtonLoader
+                    isLoading={isLoading}
+                    attrs={{ onClick: handleLoadMore }}
+                  >
+                    {locale === 'es' ? 'Cargar siguientes' : 'Load more'}
+                  </ButtonLoader>
+                )}
+                <p>
+                  {locale === 'es' ? 'Mostrando' : 'Showing'} {tours.length}/
+                  {data.totalTours}
+                </p>
+              </div>
             )}
           </div>
         </main>
