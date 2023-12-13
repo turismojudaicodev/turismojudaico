@@ -15,7 +15,7 @@ export default async function handler(req, res) {
     INNER JOIN paises p ON p.codigo = c.pais 
     INNER JOIN paquetes pq ON pq.codigo = cxp.paquete ${
       queryParams.length > 0 ? 'WHERE ' + queryParams.join(' AND ') : ''
-    } GROUP BY p.codigo`
+    } GROUP BY p.codigo ORDER BY p.nombre`
 
     console.log(queryString)
 
