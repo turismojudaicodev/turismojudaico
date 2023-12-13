@@ -37,22 +37,22 @@ const nextConfig = {
       },
       {
         source: '/contenidos/:slug*',
-        destination: '/blogs',
+        destination: '/',
         permanent: true,
       },
       {
         source: '/contenidos',
-        destination: '/blogs',
+        destination: '/',
         permanent: true,
       },
       {
         source: '/contenido/:slug*',
-        destination: '/blogs',
+        destination: '/',
         permanent: true,
       },
       {
         source: '/contenido',
-        destination: '/blogs',
+        destination: '/',
         permanent: true,
       },
       {
