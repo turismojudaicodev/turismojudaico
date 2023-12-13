@@ -21,9 +21,9 @@ export function isNumeric(str) {
 export async function uploadCloudinaryImage(image) {
   const fd = new FormData()
   fd.append('file', image)
-  fd.append('upload_preset', 'tj_local')
+  fd.append('upload_preset', 'turismojudaico')
   const data = await fetch(
-    'https://api.cloudinary.com/v1_1/paiput/image/upload',
+    'https://api.cloudinary.com/v1_1/ds1tdcumj/image/upload',
     {
       method: 'POST',
       body: fd,

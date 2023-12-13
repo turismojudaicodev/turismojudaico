@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 // Local
 import { getContent, getUniqueContent, updateUniqueContent } from 'lib/api'
+import { handleCloudinaryUpload } from 'helpers'
 // Components
 import AdminLayout from '@/components/AdminLayout'
 import Notification, { NotificationLoading } from '@/components/Notification'
@@ -27,6 +28,14 @@ function TourForm({ tour, data }) {
     setIsLoading(true)
 
     const formData = Object.fromEntries(new FormData(ev.target))
+    if (formData.imagen1.size > 0)
+      formData.imagen1 = await handleCloudinaryUpload(formData.imagen1)
+    if (formData.imagen2.size > 0)
+      formData.imagen2 = await handleCloudinaryUpload(formData.imagen2)
+    if (formData.imagen3.size > 0)
+      formData.imagen3 = await handleCloudinaryUpload(formData.imagen3)
+    if (formData.imagen4.size > 0)
+      formData.imagen4 = await handleCloudinaryUpload(formData.imagen4)
 
     const response = await updateUniqueContent(
       '/api/content/tours',
