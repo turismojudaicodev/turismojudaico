@@ -7,6 +7,7 @@ import { getContent } from 'lib/api'
 import { setImageSrc } from 'helpers'
 // Components
 import Head from 'next/head'
+import Link from 'next/link'
 import Layout from '@/components/Layout'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import Message from '@/components/Message'
@@ -119,18 +120,20 @@ export default function Home({ locale }) {
             >
               {toursBig.length > 0 ? (
                 toursBig.map((tour) => (
-                  <div
+                  <Link
+                    href={`/tours/${tour.codigo}`}
                     key={tour.codigo}
-                    style={{ aspectRatio: '5/3', position: 'relative' }}
+                    target="_blank"
                   >
-                    <Image
-                      alt={tour.imagen1}
-                      // src={`/images/${tour.imagen1}`}
-                      src={setImageSrc(tour.imagen1, 'citytours')}
-                      fill
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    />
-                  </div>
+                    <div style={{ aspectRatio: '5/3', position: 'relative' }}>
+                      <Image
+                        alt={tour.imagen1}
+                        src={setImageSrc(tour.imagen1, 'citytours')}
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      />
+                    </div>
+                  </Link>
                 ))
               ) : (
                 <div style={{ aspectRatio: '5/3', position: 'relative' }}>
