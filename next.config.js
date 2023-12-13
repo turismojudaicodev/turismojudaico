@@ -13,6 +13,60 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: '/paises/:slug*',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/paises',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/ciudades/:slug*',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/ciudades',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/contenidos/:slug*',
+        destination: '/blogs',
+        permanent: true,
+      },
+      {
+        source: '/contenidos',
+        destination: '/blogs',
+        permanent: true,
+      },
+      {
+        source: '/contenido/:slug*',
+        destination: '/blogs',
+        permanent: true,
+      },
+      {
+        source: '/contenido',
+        destination: '/blogs',
+        permanent: true,
+      },
+      {
+        source: '/tour/:slug*',
+        destination: '/tours',
+        permanent: true,
+      },
+      {
+        source: '/test/:slug*',
+        destination: '/',
+        permanent: true,
+      },
+    ]
+  },
   i18n,
 }
 
