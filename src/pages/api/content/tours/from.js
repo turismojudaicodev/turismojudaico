@@ -8,7 +8,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Falta especificar país' })
     }
 
-    const queryString = `SELECT t.codigo, t.nombre, t.nombre_en, t.imagen1, t.descripcioncorta, t.descripcioncorta_en
+    const queryString = `SELECT DISTINCT t.codigo, t.nombre, t.nombre_en, t.imagen1, t.descripcioncorta, t.descripcioncorta_en
       FROM paquetes t 
       INNER JOIN ciudades_x_paquete cxp ON t.codigo = cxp.paquete 
       INNER JOIN ciudades c ON cxp.ciudad = c.codigo 

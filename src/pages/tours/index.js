@@ -159,8 +159,8 @@ export default function Citytours({ locale }) {
                               : '',
                         }}
                       >
-                        {locale === 'es' ? country.nombre : country.nombre_en} (
-                        {country.tours})
+                        {locale === 'es' ? country.nombre : country.nombre_en}
+                        {/* ({country.tours}) */}
                       </button>
                     </li>
                   ))}
