@@ -107,7 +107,7 @@ export default function Citytours({ locale }) {
     const formData = Object.fromEntries(new FormData(ev.target))
     const { nombre } = formData
     const { data, error } = await getContent(
-      `/api/content/tours?nombre=${nombre}`
+      `/api/content/tours?estado=1&nombre=${nombre}`
     )
     if (error) return setErrorMessage(error)
     setTours(data)
