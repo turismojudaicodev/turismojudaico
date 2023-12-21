@@ -52,20 +52,10 @@ export default function DashboardTablePosts({ table, setVisibleTable = null }) {
             <th>id</th>
             <th>nombre</th>
             <th>nombre_en</th>
-            <th>ciudad</th>
             <th>pais</th>
-            <th>telefono</th>
-            <th>direccion</th>
-            <th>localidad</th>
-            <th>link</th>
-            <th>mail</th>
-            <th>imagen1</th>
-            <th>imagen2</th>
-            <th>imagen3</th>
-            <th>imagen4</th>
-            <th>imagen5</th>
+            <th>ciudad</th>
             <th>orden</th>
-            <th>estado</th>
+            <th>activo</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -75,20 +65,17 @@ export default function DashboardTablePosts({ table, setVisibleTable = null }) {
               <td>{row.codigo}</td>
               <td className={styles.colTitle}>{row.nombre}</td>
               <td className={styles.colTitle}>{row.nombre_en}</td>
-              <td style={{ textAlign: 'center' }}>{row.ciudad}</td>
               <td style={{ textAlign: 'center' }}>{row.pais}</td>
-              <td className={styles.colTitle}>{row.telefono}</td>
-              <td className={styles.colTitle}>{row.direccion}</td>
-              <td className={styles.colTitle}>{row.localidad}</td>
-              <td className={styles.colTitle}>{row.link}</td>
-              <td className={styles.colTitle}>{row.mail}</td>
-              <td className={styles.colTitle}>{row.imagen1}</td>
-              <td className={styles.colTitle}>{row.imagen2}</td>
-              <td className={styles.colTitle}>{row.imagen3}</td>
-              <td className={styles.colTitle}>{row.imagen4}</td>
-              <td className={styles.colTitle}>{row.imagen5}</td>
+              <td style={{ textAlign: 'center' }}>{row.ciudad}</td>
               <td style={{ textAlign: 'center' }}>{row.orden}</td>
-              <td style={{ textAlign: 'center' }}>{row.estado}</td>
+              <td
+                style={{
+                  textAlign: 'center',
+                  color: row.estado == 1 ? 'green' : 'red',
+                }}
+              >
+                {row.estado == 1 ? 'si' : 'no'}
+              </td>
               <td style={{ display: 'flex', gap: '.25em' }}>
                 <Link
                   style={{ height: '1rem', width: '1rem', padding: '.65em' }}

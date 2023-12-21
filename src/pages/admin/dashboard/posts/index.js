@@ -26,7 +26,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     async function fetchPostContent() {
-      await getContent('/api/content/posts').then(({ data }) =>
+      await getContent('/api/content/posts/table').then(({ data }) =>
         setVisiblePosts(data)
       )
       setIsLoading(false)
