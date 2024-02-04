@@ -16,9 +16,6 @@ export default async function handler(req, res) {
     if (params.estado) {
       queryParams.push(`estado=${params.estado}`)
     }
-    if (params.pais) {
-      // ver como fetchear tours filtrando por pais
-    }
     if (params.destacadohomegrande) {
       queryParams.push('destacadohomegrande=1')
     }
@@ -58,50 +55,107 @@ export default async function handler(req, res) {
   } else if (req.method === 'POST') {
     const { body } = req
     const keys = Object.keys(body)
-    const values = Object.values(body)
-    // let tourCityId = null,
-    //   tourId = null
+    let values = Object.values(body)
 
-    // if (keys.includes('ciudad')) {
-    //   tourCityid = body.ciudad
+    const indexPais = keys.indexOf('pais')
+    const indexCiudad = keys.indexOf('ciudad')
 
-    //   new Promise((resolve, reject) => {
-    //     db.query(
-    //       'INSERT INTO ciudades_x_paquete (paquete, ciudad) VALUES',
-    //       [tourId, tourCityId],
-    //       (err, data) => {
-    //         if (err) {
-    //           res
-    //             .status(500)
-    //             .json({ error: err.sqlMessage ?? 'Error al setear ciudad' })
-    //           reject()
-    //         }
-    //         res.status(201).json({
-    //           data,
-    //           message: `Tour "${body?.nombre}" creado exitosamente`,
-    //         })
-    //         resolve()
-    //       }
-    //     )
-    //   })
-    // }
+    const selectedCity = parseInt(values[indexCiudad])
 
-    const queryString = `INSERT INTO paquetes (${keys.join(',')})
-    VALUES (${new Array(values.length).fill('?').join(',')})`
+    keys.splice(indexPais, 2)
+    values.splice(indexPais, 2)
+
+    values = values.map((value) =>
+      !isNaN(parseInt(value)) ? value : `"${value}"`
+    )
 
     return new Promise((resolve, reject) => {
-      db.query(queryString, values, (err, data) => {
-        if (err) {
+      // Start transaction
+      db.query('START TRANSACTION', (startErr, startData) => {
+        if (startErr) {
+          console.log({ startErr })
           res
             .status(500)
-            .json({ error: err.sqlMessage ?? 'Error al crear tour' })
+            .json({ error: startErr.sqlMessage ?? 'Error al crear tour' })
           return resolve()
         }
-        res.status(201).json({
-          data,
-          message: `Tour "${body?.nombre}" creado exitosamente`,
-        })
-        return resolve()
+
+        // Insert into paquetes
+        db.query(
+          `INSERT INTO paquetes (${keys.join(',')}) VALUES (${values.join(
+            ','
+          )})`,
+          (insertPaquetesErr, insertPaquetesData) => {
+            if (insertPaquetesErr) {
+              console.log({ insertPaquetesErr })
+              // Rollback on error
+              db.query('ROLLBACK', (rollbackErr) => {
+                if (rollbackErr) {
+                  console.log({ rollbackErr })
+                }
+                res.status(500).json({
+                  error: insertPaquetesErr.sqlMessage ?? 'Error al crear tour',
+                })
+                return resolve()
+              })
+            } else {
+              // Get last inserted ID
+              db.query(
+                'SELECT LAST_INSERT_ID() as lastId',
+                (lastIdErr, lastIdData) => {
+                  if (lastIdErr) {
+                    console.log({ lastIdErr })
+                    // Rollback on error
+                    db.query('ROLLBACK', (rollbackErr) => {
+                      if (rollbackErr) {
+                        console.log({ rollbackErr })
+                      }
+                      res.status(500).json({
+                        error: lastIdErr.sqlMessage ?? 'Error al crear tour',
+                      })
+                      return resolve()
+                    })
+                  } else {
+                    const lastId = lastIdData[0].lastId
+
+                    // Insert into ciudades_x_paquete
+                    db.query(
+                      `INSERT INTO ciudades_x_paquete (paquete, ciudad) VALUES (${lastId}, ${selectedCity})`,
+                      (insertCiudadesErr, insertCiudadesData) => {
+                        if (insertCiudadesErr) {
+                          console.log({ insertCiudadesErr })
+                          // Rollback on error
+                          db.query('ROLLBACK', (rollbackErr) => {
+                            if (rollbackErr) {
+                              console.log({ rollbackErr })
+                            }
+                            res.status(500).json({
+                              error:
+                                insertCiudadesErr.sqlMessage ??
+                                'Error al crear tour',
+                            })
+                            return resolve()
+                          })
+                        } else {
+                          // Commit the transaction
+                          db.query('COMMIT', (commitErr) => {
+                            if (commitErr) {
+                              console.log({ commitErr })
+                            }
+                            res.status(201).json({
+                              message: `Tour "${body?.nombre}" creado exitosamente`,
+                            })
+                            return resolve()
+                          })
+                        }
+                      }
+                    )
+                  }
+                }
+              )
+            }
+          }
+        )
       })
     })
   } else {

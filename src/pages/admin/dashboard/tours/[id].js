@@ -19,9 +19,12 @@ import {
 import styles from '@/styles/Dashboard.module.css'
 
 function TourForm({ tour, data }) {
+  const [selectedCountry, setSelectedCountry] = useState(tour.pais || null)
   const [errorMessage, setErrorMessage] = useState('')
   const [infoMessage, setInfoMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+
+  console.log(data)
 
   const handleSubmit = async (ev) => {
     ev.preventDefault()
@@ -132,6 +135,22 @@ function TourForm({ tour, data }) {
         {tour.imagen3 && <p>Imagen3 actual: {tour.imagen3}</p>}
         <InputImage label="Imagen4" name="imagen4" />
         {tour.imagen4 && <p>Imagen4 actual: {tour.imagen4}</p>}
+
+        <Select
+          label="Pais"
+          name="pais"
+          options={data.countries}
+          required
+          defaultValue={tour.pais}
+          attrs={{ onChange: (ev) => setSelectedCountry(ev.target.value) }}
+        />
+        <Select
+          label="Ciudad"
+          name="ciudad"
+          required
+          defaultValue={tour.ciudad}
+          options={data?.cities?.filter((city) => city.pais == selectedCountry)}
+        />
 
         <div style={{ display: 'flex', gap: '1rem' }}>
           <div className={styles.formCreate}>
@@ -250,18 +269,25 @@ export default function TourEditor() {
     async function fetchData() {
       const { data: tour, error: tourError } = await getUniqueContent(
         '/api/content/tours',
-        router.query.id
+        router.query.id + '?includeCity=true'
       )
       const { data: posts, error: postsError } = await getContent(
         '/api/content/posts'
       )
+      const { data: countries, error: countriesError } = await getContent(
+        '/api/content/countries'
+      )
+      const { data: cities, error: citiesError } = await getContent(
+        '/api/content/cities'
+      )
       setIsLoading(false)
-      if (postsError || tourError) {
+      if (postsError || tourError || countriesError || citiesError) {
         setErrorMessage('Error al cargar datos iniciales')
         return
       }
       setTour(tour)
-      setData((prev) => ({ ...prev, posts: posts }))
+      console.log({ tour })
+      setData({ posts, countries, cities })
     }
     setIsLoading(true)
     if (router.isReady) fetchData()

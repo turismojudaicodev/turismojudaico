@@ -19,9 +19,12 @@ import Link from 'next/link'
 import styles from '@/styles/Dashboard.module.css'
 
 function TourForm({ data }) {
+  const [selectedCountry, setSelectedCountry] = useState(null)
   const [errorMessage, setErrorMessage] = useState('')
   const [infoMessage, setInfoMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+
+  console.log(data)
 
   const handleSubmit = async (ev) => {
     ev.preventDefault()
@@ -91,6 +94,20 @@ function TourForm({ data }) {
         <InputImage label="Imagen3" name="imagen3" />
         <InputImage label="Imagen4" name="imagen4" />
 
+        <Select
+          label="Pais"
+          name="pais"
+          options={data.countries}
+          required
+          attrs={{ onChange: (ev) => setSelectedCountry(ev.target.value) }}
+        />
+        <Select
+          label="Ciudad"
+          name="ciudad"
+          required
+          options={data?.cities?.filter((city) => city.pais == selectedCountry)}
+        />
+
         <div style={{ display: 'flex', gap: '1rem' }}>
           <div className={styles.formCreate}>
             <Select label="Atraccion1" name="atraccion1" options={data.posts} />
@@ -136,7 +153,7 @@ function TourForm({ data }) {
 }
 
 export default function TourCreator() {
-  const [data, setData] = useState({ posts: [] })
+  const [data, setData] = useState({ posts: [], countries: [], cities: [] })
   const [errorMessage, setErrorMessage] = useState('')
   const [infoMessage, setInfoMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -146,12 +163,18 @@ export default function TourCreator() {
       const { data: posts, error: postsError } = await getContent(
         '/api/content/posts'
       )
+      const { data: countries, error: countriesError } = await getContent(
+        '/api/content/countries'
+      )
+      const { data: cities, error: citiesError } = await getContent(
+        '/api/content/cities'
+      )
       setIsLoading(false)
-      if (postsError) {
-        setErrorMessage(postsError)
+      if (postsError || countriesError || citiesError) {
+        setErrorMessage(`${postsError} ${countriesError} ${citiesError}`)
         return
       }
-      setData((prev) => ({ ...prev, posts: posts }))
+      setData({ posts, countries, cities })
     }
     setIsLoading(true)
     fetchData()

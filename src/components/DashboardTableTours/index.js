@@ -1,5 +1,5 @@
 // NPM
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 // Local
 import { deleteContent } from 'lib/api'
 import DeleteIcon from 'public/icons/delete.svg'
@@ -52,8 +52,18 @@ export default function DashboardTableTours({ table, setVisibleTable = null }) {
             <th>id</th>
             <th>nombre</th>
             <th>nombre_en</th>
-            <th>dest.homegrande</th>
-            <th>dest.homechico</th>
+            <th>pais</th>
+            <th>ciudad</th>
+            <th>
+              home
+              <br />
+              grande
+            </th>
+            <th>
+              home
+              <br />
+              chico
+            </th>
             <th>orden</th>
             <th>activo</th>
             <th>fecha</th>
@@ -66,8 +76,14 @@ export default function DashboardTableTours({ table, setVisibleTable = null }) {
               <td>{row.codigo}</td>
               <td className={styles.colTitle}>{row.nombre}</td>
               <td className={styles.colTitle}>{row.nombre_en}</td>
-              <td style={{ textAlign: 'center' }}>{row.destacadohomegrande}</td>
-              <td style={{ textAlign: 'center' }}>{row.destacadohomechico}</td>
+              <td style={{ maxWidth: '16ch' }}>{row.pais}</td>
+              <td style={{ maxWidth: '20ch' }}>{row.ciudad}</td>
+              <td style={{ textAlign: 'center' }}>
+                {row.destacadohomegrande == 1 ? 'si' : ''}
+              </td>
+              <td style={{ textAlign: 'center' }}>
+                {row.destacadohomechico == 1 ? 'si' : ''}
+              </td>
               <td style={{ textAlign: 'center' }}>{row.orden}</td>
               <td
                 style={{

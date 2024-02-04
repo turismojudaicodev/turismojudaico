@@ -48,8 +48,9 @@ export default function Dashboard() {
   useEffect(() => {
     async function fetchData() {
       const { data: tours, error: toursError } = await getContent(
-        '/api/content/tours'
+        '/api/content/tours/table'
       )
+      console.log({ tours })
       setIsLoading(false)
       if (toursError) {
         setErrorMessage('Error al cargar tours')

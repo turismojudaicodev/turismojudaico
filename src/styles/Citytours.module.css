@@ -17,6 +17,17 @@
   }
 }
 
+@media (min-width: 768px) {
+  .tourForm {
+    width: 80%;
+  }
+
+  .tourForm > form, 
+  .tourFor > form > * {
+    width: 100%;
+  }
+}
+
 .toursContainer {
   width: 100%;
 }
