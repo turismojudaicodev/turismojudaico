@@ -101,6 +101,7 @@ function PostForm({ data }) {
           <InputText label="Dirección" name="direccion" />
           <InputText label="Localidad" name="localidad" />
         </div>
+        <InputText label="Teléfono" name="telefono" />
         <InputText label="Link" name="link" />
         <InputText label="Mail" name="mail" />
         <InputNumber label="Orden" name="orden" min={0} required />

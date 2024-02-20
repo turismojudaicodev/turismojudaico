@@ -65,7 +65,7 @@ function PostForm({ post, data }) {
       {infoMessage && (
         <Notification
           notification={infoMessage}
-          setInfoMessage={setInfoMessage}
+          setNotification={setInfoMessage}
         />
       )}
       <div>
@@ -134,11 +134,16 @@ function PostForm({ post, data }) {
             defaultValue={post.localidad}
           />
         </div>
-        <Select
+        {/* <Select
           label="Categoría"
           name="categoria"
           options={data.categories}
           defaultValue={post.categoria}
+        /> */}
+        <InputText
+          label="Teléfono"
+          name="telefono"
+          defaultValue={post.telefono}
         />
         <InputText label="Link" name="link" defaultValue={post.link} />
         <InputText label="Mail" name="mail" defaultValue={post.mail} />
