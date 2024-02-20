@@ -62,12 +62,14 @@ export default async function handler(req, res) {
         if (err) {
           res
             .status(500)
-            .json({ error: err.sqlMessage ?? 'Error al borrar post' })
+            .json({ error: err.sqlMessage ?? 'Error al editar la atracción' })
           return resolve()
         }
         res
           .status(200)
-          .json({ message: `Post con id "${postId} borrado exitosamente"` })
+          .json({
+            message: `Atracción con id "${postId} editado exitosamente"`,
+          })
         return resolve()
       })
     })
