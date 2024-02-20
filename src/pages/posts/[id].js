@@ -74,6 +74,34 @@ export default function Post() {
               <h2 className={utils.bigTitle} style={{ marginBottom: '1rem' }}>
                 {router.locale === 'es' ? post.nombre : post.nombre_en}
               </h2>
+              <div className={styles.moreInfoContainer}>
+                {(post.direccion || post.localidad) && (
+                  <div className={styles.moreInfoContainer__data}>
+                    <img src="/icons/location.svg" alt="" />
+                    <p>
+                      {post.direccion}, {post.localidad}
+                    </p>
+                  </div>
+                )}
+                {post.telefono && (
+                  <div className={styles.moreInfoContainer__data}>
+                    <img src="/icons/telephone.svg" alt="" />
+                    <p>{post.telefono}</p>
+                  </div>
+                )}
+                {post.link && (
+                  <div className={styles.moreInfoContainer__data}>
+                    <img src="/icons/web.svg" alt="" />
+                    <a href={post.link}>{post.link}</a>
+                  </div>
+                )}
+                {post.mail && (
+                  <div className={styles.moreInfoContainer__data}>
+                    <img src="/icons/mail.svg" alt="" />
+                    <a href={`mailto:${post.mail}`}>{post.mail}</a>
+                  </div>
+                )}
+              </div>
               <div style={{ borderBottom: '4px solid var(--clr-green)' }}>
                 <Carousel
                   autoPlay

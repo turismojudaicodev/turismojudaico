@@ -40,3 +40,31 @@
 .content * {
   width: 100%;
 }
+
+.moreInfoContainer {
+  border: 1px solid lightgray;
+  border-radius: 5px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  margin-bottom: 1rem;
+}
+
+.moreInfoContainer__data {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.moreInfoContainer img {
+  width: 1.5rem;
+}
+
+.moreInfoContainer a {
+  color: dodgerblue;
+}
+
+.moreInfoContainer a:hover {
+  text-decoration: underline;
+}
