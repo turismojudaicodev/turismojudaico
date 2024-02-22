@@ -7,8 +7,8 @@ export default function RichText({
   initialContent = undefined,
 }) {
   useEffect(() => {
-    if (initialContent) quill.root.innerHTML = initialContent
-  }, [initialContent])
+    if (initialContent && quill?.root) quill.root.innerHTML = initialContent
+  }, [initialContent, quill])
 
   return (
     <div style={{ maxWidth: '500px', marginBottom: '6rem' }}>

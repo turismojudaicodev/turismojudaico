@@ -1,5 +1,6 @@
 // NPM
 import { useEffect, useState } from 'react'
+import { useQuill } from 'react-quilljs'
 // Local
 import { getContent, postContent } from 'lib/api'
 import { handleCloudinaryUpload } from 'helpers'
@@ -15,6 +16,7 @@ import {
   Textarea,
 } from '@/components/DashboardComponents'
 import Link from 'next/link'
+import RichText from '@/components/RichText'
 // Styles
 import styles from '@/styles/Dashboard.module.css'
 
@@ -24,7 +26,8 @@ function TourForm({ data }) {
   const [infoMessage, setInfoMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
-  console.log(data)
+  const { quill: quillSpanish, quillRef: quillRefSpanish } = useQuill()
+  const { quill: quillEnglish, quillRef: quillRefEnglish } = useQuill()
 
   const handleSubmit = async (ev) => {
     ev.preventDefault()
@@ -37,6 +40,9 @@ function TourForm({ data }) {
     formData.imagen4 = await handleCloudinaryUpload(formData.imagen4)
     formData.destacadohomegrande = '0'
     formData.destacadohomechico = '0'
+
+    formData.descripcion = quillSpanish.root.innerHTML
+    formData.descripcion_en = quillEnglish.root.innerHTML
 
     const response = await postContent('/api/content/tours', formData)
     const { message, error } = response
@@ -69,14 +75,16 @@ function TourForm({ data }) {
         <div style={{ display: 'flex', gap: '1rem' }}>
           <div className={styles.formCreate}>
             <InputText label="Nombre" name="nombre" required />
-            <Textarea label="Descripción" name="descripcion" />
+            <RichText quill={quillSpanish} quillRef={quillRefSpanish} />
+            {/* <Textarea label="Descripción" name="descripcion" /> */}
             <Textarea label="Descripción corta" name="descripcioncorta" />
             <InputText label="Headkeyword" name="headkeyword" />
             <InputText label="Head descripción" name="headdescripcion" />
           </div>
           <div className={styles.formCreate}>
             <InputText label="Nombre en inglés" name="nombre_en" required />
-            <Textarea label="Descripción en inglés" name="descripcion_en" />
+            <RichText quill={quillEnglish} quillRef={quillRefEnglish} />
+            {/* <Textarea label="Descripción en inglés" name="descripcion_en" /> */}
             <Textarea
               label="Descripción corta en inglés"
               name="descripcioncorta_en"

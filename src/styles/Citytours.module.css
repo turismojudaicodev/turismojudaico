@@ -36,6 +36,20 @@
   width: 100%;
 }
 
+.content * iframe {
+  aspect-ratio: 16/9;
+}
+
+.content * ul,
+.content * ol {
+  padding-left: 2rem;
+}
+
+.content * a {
+  color: #4586e1;
+  text-decoration: underline;
+}
+
 .filterLink {
   border: none;
   background-color: transparent;

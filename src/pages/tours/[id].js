@@ -63,6 +63,7 @@ export default function CityTour() {
       )
       setI18n(translation)
     }
+    alert('change locale')
     fetchLocale()
   }, [router.locale])
 
@@ -79,6 +80,27 @@ export default function CityTour() {
     setIsLoading(true)
     if (router.isReady) fetchData()
   }, [router.isReady])
+
+  useEffect(() => {
+    const browserLanguage = window.navigator.language.slice(0, 2)
+
+    const shouldChangeLocale =
+      router.isReady && // and here I use it
+      router.locale !== browserLanguage &&
+      router.locale === router.defaultLocale &&
+      router.locales.includes(browserLanguage)
+
+    if (shouldChangeLocale) {
+      router.push(
+        {
+          pathname,
+          query,
+        },
+        asPath,
+        { locale: browserLanguage }
+      )
+    }
+  }, [router])
 
   const handleSubmit = async (ev) => {
     ev.preventDefault()
