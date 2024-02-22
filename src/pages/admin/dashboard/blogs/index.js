@@ -1,5 +1,6 @@
 // NPM
 import { useEffect, useState } from 'react'
+import { useQuill } from 'react-quilljs'
 // Local
 import { getContent, postContent } from 'lib/api'
 import { uploadCloudinaryImage } from 'helpers'
@@ -11,13 +12,14 @@ import Notification, { NotificationLoading } from '@/components/Notification'
 import Message from '@/components/Message'
 import {
   InputImage,
-  Textarea,
   InputText,
   InputNumber,
 } from '@/components/DashboardComponents'
+import RichText from '@/components/RichText'
 // Styles
 import utils from '@/styles/utils.module.css'
 import styles from '@/styles/Dashboard.module.css'
+
 function ExistingBlogs({ blogs, setVisisbleBlogs }) {
   return (
     <>
@@ -31,33 +33,13 @@ function ExistingBlogs({ blogs, setVisisbleBlogs }) {
   )
 }
 
-function BlogForm() {
-  return (
-    <div style={{ marginBottom: '1rem' }}>
-      <h3 className={styles.languageTitle} style={{ marginTop: '1rem' }}>
-        Crear blog
-      </h3>
-      <div style={{ display: 'flex', gap: '1rem' }}>
-        <div className={styles.formCreate}>
-          <InputText label="Nombre en español" name="nombre" required />
-          <Textarea label="Texto en español" name="texto" required />
-          <InputImage label="Imagen en español" name="imagen" />
-        </div>
-        <div className={styles.formCreate}>
-          <InputText label="Nombre en inglés" name="nombre_en" required />
-          <Textarea label="Texto en inglés" name="texto_en" required />
-          <InputImage label="Imagen en inglés" name="imagen_en" />
-        </div>
-      </div>
-      <InputNumber label="Estado" name="estado" />
-    </div>
-  )
-}
-
 function BlogCreator({ setVisisbleBlogs }) {
   const [errorMessage, setErrorMessage] = useState('')
   const [infoMessage, setInfoMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+
+  const { quill: quillSpanish, quillRef: quillRefSpanish } = useQuill()
+  const { quill: quillEnglish, quillRef: quillRefEnglish } = useQuill()
 
   const handleSubmit = async (ev) => {
     ev.preventDefault()
@@ -80,6 +62,9 @@ function BlogCreator({ setVisisbleBlogs }) {
     } else {
       formData.imagen_en = ''
     }
+
+    formData.texto = quillSpanish.root.innerHTML
+    formData.texto_en = quillEnglish.root.innerHTML
 
     const response = await postContent('/api/content/blogs', formData)
     setIsLoading(false)
@@ -113,7 +98,26 @@ function BlogCreator({ setVisisbleBlogs }) {
           type="error"
         />
       )}
-      <BlogForm />
+      <div style={{ marginBottom: '1rem' }}>
+        <h3 className={styles.languageTitle} style={{ marginTop: '1rem' }}>
+          Crear blog
+        </h3>
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <div className={styles.formCreate}>
+            <InputText label="Nombre en español" name="nombre" required />
+            <RichText quill={quillSpanish} quillRef={quillRefSpanish} />
+            {/* <Textarea label="Texto en español" name="texto" required /> */}
+            <InputImage label="Imagen en español" name="imagen" />
+          </div>
+          <div className={styles.formCreate}>
+            <InputText label="Nombre en inglés" name="nombre_en" required />
+            <RichText quill={quillEnglish} quillRef={quillRefEnglish} />
+            {/* <Textarea label="Texto en inglés" name="texto_en" required /> */}
+            <InputImage label="Imagen en inglés" name="imagen_en" />
+          </div>
+        </div>
+        <InputNumber label="Estado" name="estado" />
+      </div>
       <AdminButtonLoader attrs={{ type: 'submit' }} isLoading={isLoading}>
         Crear blog
       </AdminButtonLoader>

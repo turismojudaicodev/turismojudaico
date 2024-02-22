@@ -63,16 +63,19 @@ export default function Blog() {
               />
               <div className={styles.content}>
                 {router.locale === 'es'
-                  ? blog?.texto?.split('\n\r').map((text, i) => (
-                      <div style={{ marginBlock: '1.5em' }} key={i}>
-                        {text.split('\n').map((text, i) => (
-                          <p
-                            key={i}
-                            dangerouslySetInnerHTML={{ __html: text }}
-                          />
-                        ))}
-                      </div>
-                    ))
+                  ? // ? blog?.texto?.split('\n\r').map((text, i) => (
+                    //     <div style={{ marginBlock: '1.5em' }} key={i}>
+                    //       {text.split('\n').map((text, i) => (
+                    //         <p
+                    //           key={i}
+                    //           dangerouslySetInnerHTML={{ __html: text }}
+                    //         />
+                    //       ))}
+                    //     </div>
+                    //   ))
+                    blog?.texto && (
+                      <div dangerouslySetInnerHTML={{ __html: blog.texto }} />
+                    )
                   : blog?.texto_en?.split('\n\r').map((text, i) => (
                       <div style={{ marginBlock: '1.5em' }} key={i}>
                         {text.split('\n').map((text, i) => (

@@ -1,6 +1,7 @@
 // NPM
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
+import { useQuill } from 'react-quilljs'
 // Local
 import { getUniqueContent, updateUniqueContent } from 'lib/api'
 import { handleCloudinaryUpload } from 'helpers'
@@ -14,54 +15,9 @@ import {
   InputText,
   Textarea,
 } from '@/components/DashboardComponents'
+import RichText from '@/components/RichText'
 // Styles
 import styles from '@/styles/Dashboard.module.css'
-
-function BlogForm({ blog }) {
-  return (
-    <div style={{ marginBottom: '1rem' }}>
-      <h3 className={styles.languageTitle}>Editar blog {blog?.codigo}</h3>
-      <div style={{ display: 'flex', gap: '1rem' }}>
-        <div className={styles.formCreate}>
-          <InputText
-            label="Nombre en español"
-            name="nombre"
-            defaultValue={blog?.nombre}
-            required
-          />
-          <Textarea
-            label="Texto en español"
-            name="texto"
-            defaultValue={blog?.texto}
-          />
-          <InputImage label="Imagen en español" name="imagen" />
-          {blog?.imagen && <p>Imagen actual: {blog?.imagen}</p>}
-        </div>
-        <div className={styles.formCreate}>
-          <InputText
-            label="Nombre en inglés"
-            name="nombre_en"
-            defaultValue={blog?.nombre_en}
-            required
-          />
-          <Textarea
-            label="Texto en inglés"
-            name="texto_en"
-            defaultValue={blog?.texto_en}
-          />
-          <InputImage label="Imagen en inglés" name="imagen_en" />
-          {blog?.imagen_en && <p>Imagen actual: {blog?.imagen_en}</p>}
-        </div>
-      </div>
-      <InputNumber
-        label="Estado"
-        name="estado"
-        defaultValue={blog?.estado}
-        required
-      />
-    </div>
-  )
-}
 
 export default function Blog() {
   const router = useRouter()
@@ -69,7 +25,10 @@ export default function Blog() {
   const [errorMessage, setErrorMessage] = useState('')
   const [blog, setBlog] = useState({})
   const [infoMessage, setInfoMessage] = useState('')
-  const [isDataLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+
+  const { quill: quillSpanish, quillRef: quillRefSpanish } = useQuill()
+  const { quill: quillEnglish, quillRef: quillRefEnglish } = useQuill()
 
   useEffect(() => {
     async function fetchBlog() {
@@ -95,6 +54,9 @@ export default function Blog() {
 
     formData.imagen = await handleCloudinaryUpload(formData.imagen)
     formData.imagen_en = await handleCloudinaryUpload(formData.imagen_en)
+
+    formData.texto = quillSpanish.root.innerHTML
+    formData.texto_en = quillEnglish.root.innerHTML
 
     const res = await updateUniqueContent(
       '/api/content/blogs',
@@ -127,12 +89,60 @@ export default function Blog() {
           setNotification={setInfoMessage}
         />
       )}
-      {isDataLoading && <NotificationLoading />}
+      {isLoading && <NotificationLoading />}
       <form onSubmit={handleUpdate}>
-        <BlogForm blog={blog} />
-        <AdminButtonLoader isLoading={isDataLoading}>
-          Confirmar
-        </AdminButtonLoader>
+        <div style={{ marginBottom: '1rem' }}>
+          <h3 className={styles.languageTitle}>Editar blog {blog?.codigo}</h3>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <div className={styles.formCreate}>
+              <InputText
+                label="Nombre en español"
+                name="nombre"
+                defaultValue={blog?.nombre}
+                required
+              />
+              <RichText
+                quill={quillSpanish}
+                quillRef={quillRefSpanish}
+                initialContent={blog?.texto}
+              />
+              {/* <Textarea
+            label="Texto en español"
+            name="texto"
+            defaultValue={blog?.texto}
+          /> */}
+              <InputImage label="Imagen en español" name="imagen" />
+              {blog?.imagen && <p>Imagen actual: {blog?.imagen}</p>}
+            </div>
+            <div className={styles.formCreate}>
+              <InputText
+                label="Nombre en inglés"
+                name="nombre_en"
+                defaultValue={blog?.nombre_en}
+                required
+              />
+              <RichText
+                quill={quillEnglish}
+                quillRef={quillRefEnglish}
+                initialContent={blog?.texto_en}
+              />
+              {/* <Textarea
+            label="Texto en inglés"
+            name="texto_en"
+            defaultValue={blog?.texto_en}
+          /> */}
+              <InputImage label="Imagen en inglés" name="imagen_en" />
+              {blog?.imagen_en && <p>Imagen actual: {blog?.imagen_en}</p>}
+            </div>
+          </div>
+          <InputNumber
+            label="Estado"
+            name="estado"
+            defaultValue={blog?.estado}
+            required
+          />
+        </div>
+        <AdminButtonLoader isLoading={isLoading}>Confirmar</AdminButtonLoader>
       </form>
     </AdminLayout>
   )
