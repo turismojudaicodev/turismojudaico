@@ -1,6 +1,7 @@
 // NPM
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
+import { useQuill } from 'react-quilljs'
 // Local
 import { getContent, getUniqueContent, updateUniqueContent } from 'lib/api'
 import { handleCloudinaryUpload } from 'helpers'
@@ -19,12 +20,16 @@ import Message from '@/components/Message'
 // Styles
 import utils from '@/styles/utils.module.css'
 import styles from '@/styles/Dashboard.module.css'
+import RichText from '@/components/RichText'
 
 function PostForm({ post, data }) {
   const [errorMessage, setErrorMessage] = useState('')
   const [infoMessage, setInfoMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [selectedCountry, setSelectedCountry] = useState(post.pais || null)
+
+  const { quill: quillSpanish, quillRef: quillRefSpanish } = useQuill()
+  const { quill: quillEnglish, quillRef: quillRefEnglish } = useQuill()
 
   const handleSubmit = async (ev) => {
     ev.preventDefault()
@@ -37,6 +42,9 @@ function PostForm({ post, data }) {
     formData.imagen3 = await handleCloudinaryUpload(formData.imagen3)
     formData.imagen4 = await handleCloudinaryUpload(formData.imagen4)
     formData.imagen5 = await handleCloudinaryUpload(formData.imagen5)
+
+    formData.texto = quillSpanish.root.innerHTML
+    formData.texto_en = quillEnglish.root.innerHTML
 
     const response = await updateUniqueContent(
       '/api/content/posts',
@@ -76,11 +84,16 @@ function PostForm({ post, data }) {
               name="nombre"
               defaultValue={post.nombre}
             />
-            <Textarea
+            <RichText
+              quill={quillSpanish}
+              quillRef={quillRefSpanish}
+              initialContent={post?.texto}
+            />
+            {/* <Textarea
               label="Texto en español"
               name="texto"
               defaultValue={post.texto}
-            />
+            /> */}
           </div>
           <div className={styles.formCreate}>
             <InputText
@@ -88,11 +101,16 @@ function PostForm({ post, data }) {
               name="nombre_en"
               defaultValue={post.nombre_en}
             />
-            <Textarea
+            <RichText
+              quill={quillEnglish}
+              quillRef={quillRefEnglish}
+              initialContent={post?.texto_en}
+            />
+            {/* <Textarea
               label="Texto en inglés"
               name="texto_en"
               defaultValue={post.texto_en}
-            />
+            /> */}
           </div>
         </div>
         <InputImage label="Imagen1" name="imagen1" />

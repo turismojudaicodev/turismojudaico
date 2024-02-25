@@ -1,5 +1,6 @@
 // NPM
 import { useEffect, useState } from 'react'
+import { useQuill } from 'react-quilljs'
 // Local
 import { getContent, postContent } from 'lib/api'
 import { handleCloudinaryUpload } from 'helpers'
@@ -15,6 +16,7 @@ import {
   Textarea,
 } from '@/components/DashboardComponents'
 import Message from '@/components/Message'
+import RichText from '@/components/RichText'
 import Link from 'next/link'
 // Styles
 import utils from '@/styles/utils.module.css'
@@ -25,6 +27,8 @@ function PostForm({ data }) {
   const [infoMessage, setInfoMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [selectedCountry, setSelectedCountry] = useState(null)
+  const { quill: quillSpanish, quillRef: quillRefSpanish } = useQuill()
+  const { quill: quillEnglish, quillRef: quillRefEnglish } = useQuill()
 
   const handleSubmit = async (ev) => {
     ev.preventDefault()
@@ -37,6 +41,9 @@ function PostForm({ data }) {
     formData.imagen3 = await handleCloudinaryUpload(formData.imagen3)
     formData.imagen4 = await handleCloudinaryUpload(formData.imagen4)
     formData.imagen5 = await handleCloudinaryUpload(formData.imagen5)
+
+    formData.texto = quillSpanish.root.innerHTML
+    formData.texto_en = quillEnglish.root.innerHTML
 
     const response = await postContent('/api/content/posts', formData)
     const { message, error } = response
@@ -66,13 +73,15 @@ function PostForm({ data }) {
       )}
       <div>
         <div style={{ display: 'flex', gap: '1rem' }}>
-          <div className={styles.formCreate}>
+          <div className={styles.formCreate} style={{ marginBottom: '5rem' }}>
             <InputText label="Nombre en español" name="nombre" required />
-            <Textarea label="Texto en español" name="texto" />
+            {/* <Textarea label="Texto en español" name="texto" /> */}
+            <RichText quill={quillSpanish} quillRef={quillRefSpanish} />
           </div>
           <div className={styles.formCreate}>
             <InputText label="Nombre en inglés" name="nombre_en" required />
-            <Textarea label="Texto en inglés" name="texto_en" />
+            <RichText quill={quillEnglish} quillRef={quillRefEnglish} />
+            {/* <Textarea label="Texto en inglés" name="texto_en" /> */}
           </div>
         </div>
         <InputImage label="Imagen1" name="imagen1" />

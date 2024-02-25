@@ -168,7 +168,11 @@ export default function Post() {
               <div className={styles.content}>
                 {router.locale === 'es'
                   ? post?.texto?.split('\n\r').map((text, i) => (
-                      <div style={{ marginBlock: '1.5em' }} key={i}>
+                      <div
+                        style={{ marginBlock: '1.5em' }}
+                        key={i}
+                        className={styles.postTextContainer}
+                      >
                         {text.split('\n').map((text, i) => (
                           <p
                             key={i}
@@ -178,7 +182,11 @@ export default function Post() {
                       </div>
                     ))
                   : post?.texto_en?.split('\n\r').map((text, i) => (
-                      <div style={{ marginBlock: '1.5em' }} key={i}>
+                      <div
+                        style={{ marginBlock: '1.5em' }}
+                        key={i}
+                        className={styles.postTextContainer}
+                      >
                         {text.split('\n').map((text, i) => (
                           <p
                             key={i}

@@ -39,6 +39,23 @@
 
 .content * {
   width: 100%;
+  max-width: 800px;
+}
+
+.content * iframe {
+  aspect-ratio: 16/9;
+  width: 100%;
+  height: auto;
+}
+
+.content * ul,
+.content * ol {
+  padding-left: 2rem;
+}
+
+.content * a {
+  color: #4586e1;
+  text-decoration: underline;
 }
 
 .moreInfoContainer {
