@@ -22,7 +22,7 @@ import styles from '@/styles/Dashboard.module.css'
 
 export default function TourEditor() {
   const [tour, setTour] = useState({})
-  const [selectedCountry, setSelectedCountry] = useState(tour.pais || null)
+  const [selectedCountry, setSelectedCountry] = useState(tour?.pais || null)
   const [data, setData] = useState({ posts: [] })
   const [errorMessage, setErrorMessage] = useState('')
   const [infoMessage, setInfoMessage] = useState('')
@@ -53,8 +53,9 @@ export default function TourEditor() {
         setErrorMessage('Error al cargar datos iniciales')
         return
       }
-      setTour(tour)
       console.log({ tour })
+      setTour(tour)
+      if (tour?.pais) setSelectedCountry(tour.pais)
       setData({ posts, countries, cities })
     }
     setIsLoading(true)
@@ -213,14 +214,14 @@ export default function TourEditor() {
             name="pais"
             options={data.countries}
             required
-            defaultValue={tour.pais}
+            defaultValue={tour?.pais}
             attrs={{ onChange: (ev) => setSelectedCountry(ev.target.value) }}
           />
           <Select
             label="Ciudad"
             name="ciudad"
             required
-            defaultValue={tour.ciudad}
+            defaultValue={tour?.ciudad}
             options={data?.cities?.filter(
               (city) => city.pais == selectedCountry
             )}

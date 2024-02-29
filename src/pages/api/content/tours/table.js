@@ -15,9 +15,9 @@ export default async function handler(req, res) {
       p.nombre AS pais, 
       c.nombre AS ciudad 
     FROM paquetes t 
-    INNER JOIN ciudades_x_paquete cxp ON t.codigo = cxp.paquete 
-    INNER JOIN ciudades c ON cxp.ciudad = c.codigo 
-    INNER JOIN paises p ON c.pais = p.codigo 
+    LEFT JOIN ciudades_x_paquete cxp ON t.codigo = cxp.paquete 
+    LEFT JOIN ciudades c ON cxp.ciudad = c.codigo 
+    LEFT JOIN paises p ON c.pais = p.codigo 
     GROUP BY t.codigo
     ORDER BY t.orden`
 
