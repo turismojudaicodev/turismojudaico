@@ -1,0 +1,50 @@
+.table {
+  border: none;
+  border-spacing: 0;
+  width: 75vw;
+  overflow-x: scroll;
+  position: relative;
+  text-align: left;
+  display: block;
+}
+
+.table th {
+  background-color: rgb(218, 233, 239);
+}
+
+.table tr:nth-child(2n) {
+  background-color: rgb(245, 245, 245);
+}
+
+.table tr:hover {
+  background-color: rgb(215, 220, 222);
+  /* box-shadow: inset 0px 0px 10px -8px black; */
+}
+
+.table th,
+.table td {
+  font-size: .8rem;
+  padding: 1em;
+}
+
+/* .table th, */
+.table td {
+  font-size: .8rem;
+  padding: 1em;
+  position: relative;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.colTitle {
+  max-width: 25ch;
+}
+
+.colDescription {
+  max-width: 35ch;
+}
+
+.colImage {
+  max-width: 30ch;
+}

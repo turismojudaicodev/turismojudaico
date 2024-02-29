@@ -8,12 +8,12 @@ export default async function handler(req, res) {
     if (query.reduced == 1 && query.active == 1) {
       sqlQuery = 'SELECT codigo, nombre, pais FROM ciudades WHERE estado=1'
     }
-    // if (query.populate === 'pais') {
-    //   sqlQuery = `
-    //   SELECT c.codigo, c.nombre, c.estado, p.codigo as pais, p.nombre as nombre_pais
-    //   FROM ciudades c INNER JOIN paises p ON c.pais = p.codigo
-    //   `
-    // }
+    if (query.populate === 'pais') {
+      sqlQuery = `
+      SELECT c.codigo, c.nombre, c.estado, p.codigo as pais, p.nombre as nombre_pais
+      FROM ciudades c INNER JOIN paises p ON c.pais = p.codigo
+      `
+    }
 
     return new Promise((resolve, reject) => {
       db.query(sqlQuery, (err, data) => {

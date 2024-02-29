@@ -10,8 +10,11 @@ export default async function handler(req, res) {
       ct.orden, 
       ct.estado, 
       p.nombre AS pais, 
-      c.nombre AS ciudad 
+      c.nombre AS ciudad,
+      cat.nombre AS categoria
     FROM contenidos ct
+    INNER JOIN contenidos_x_categoria cxc ON cxc.contenido = ct.codigo
+    INNER JOIN categorias cat ON cat.codigo = cxc.categoria
     INNER JOIN ciudades c ON ct.ciudad = c.codigo 
     INNER JOIN paises p ON ct.pais = p.codigo 
     GROUP BY ct.codigo
