@@ -92,7 +92,13 @@ export default function Post() {
                 {post.link && (
                   <div className={styles.moreInfoContainer__data}>
                     <img src="/icons/web.svg" alt="" />
-                    <a href={post.link}>{post.link}</a>
+                    <a
+                      href={`http://${post.link}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {post.link}
+                    </a>
                   </div>
                 )}
                 {post.mail && (
