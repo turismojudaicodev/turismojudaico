@@ -21,7 +21,7 @@ export function BlogCard({ blog, locale = 'es' }) {
         <Link href={`/blogs/${blog.codigo}`}>
           <h3>{locale === 'es' ? blog.nombre : blog.nombre_en}</h3>
         </Link>
-        <p>{locale === 'es' ? blog.texto : blog.texto_en}</p>
+        <p>{locale === 'es' ? blog.descripcion : blog.descripcion_en}</p>
       </div>
     </div>
   )

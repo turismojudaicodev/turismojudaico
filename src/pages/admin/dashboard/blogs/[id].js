@@ -53,7 +53,9 @@ export default function Blog() {
     const formData = Object.fromEntries(new FormData(ev.target))
 
     formData.imagen = await handleCloudinaryUpload(formData.imagen)
+    if (!formData.imagen) delete formData.imagen
     formData.imagen_en = await handleCloudinaryUpload(formData.imagen_en)
+    if (!formData.imagen_en) delete formData.imagen_en
 
     formData.texto = quillSpanish.root.innerHTML
     formData.texto_en = quillEnglish.root.innerHTML
@@ -106,11 +108,11 @@ export default function Blog() {
                 quillRef={quillRefSpanish}
                 initialContent={blog?.texto}
               />
-              {/* <Textarea
-            label="Texto en español"
-            name="texto"
-            defaultValue={blog?.texto}
-          /> */}
+              <Textarea
+                label="Descripción en español"
+                name="descripcion"
+                defaultValue={blog?.descripcion}
+              />
               <InputImage label="Imagen en español" name="imagen" />
               {blog?.imagen && <p>Imagen actual: {blog?.imagen}</p>}
             </div>
@@ -126,11 +128,11 @@ export default function Blog() {
                 quillRef={quillRefEnglish}
                 initialContent={blog?.texto_en}
               />
-              {/* <Textarea
-            label="Texto en inglés"
-            name="texto_en"
-            defaultValue={blog?.texto_en}
-          /> */}
+              <Textarea
+                label="Descripción en inglés"
+                name="descripcion_en"
+                defaultValue={blog?.descripcion_en}
+              />
               <InputImage label="Imagen en inglés" name="imagen_en" />
               {blog?.imagen_en && <p>Imagen actual: {blog?.imagen_en}</p>}
             </div>

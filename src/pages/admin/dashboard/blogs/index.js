@@ -14,6 +14,7 @@ import {
   InputImage,
   InputText,
   InputNumber,
+  Textarea,
 } from '@/components/DashboardComponents'
 import RichText from '@/components/RichText'
 // Styles
@@ -106,13 +107,21 @@ function BlogCreator({ setVisisbleBlogs }) {
           <div className={styles.formCreate}>
             <InputText label="Nombre en español" name="nombre" required />
             <RichText quill={quillSpanish} quillRef={quillRefSpanish} />
-            {/* <Textarea label="Texto en español" name="texto" required /> */}
+            <Textarea
+              label="Descripción en español"
+              name="descripcion"
+              required
+            />
             <InputImage label="Imagen en español" name="imagen" />
           </div>
           <div className={styles.formCreate}>
             <InputText label="Nombre en inglés" name="nombre_en" required />
             <RichText quill={quillEnglish} quillRef={quillRefEnglish} />
-            {/* <Textarea label="Texto en inglés" name="texto_en" required /> */}
+            <Textarea
+              label="Descripción en inglés"
+              name="descripcion_en"
+              required
+            />
             <InputImage label="Imagen en inglés" name="imagen_en" />
           </div>
         </div>
