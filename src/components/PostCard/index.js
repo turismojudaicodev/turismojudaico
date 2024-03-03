@@ -17,7 +17,7 @@ export function PostCard({ post, locale = 'es' }) {
         <Link href={`/posts/${post.codigo}`}>
           <h3>{locale === 'es' ? post.nombre : post.nombre_en}</h3>
         </Link>
-        <p>{locale === 'es' ? post.texto : post.texto_en}</p>
+        <p>{locale === 'es' ? post.descripcion : post.descripcion_en}</p>
       </div>
     </div>
   )

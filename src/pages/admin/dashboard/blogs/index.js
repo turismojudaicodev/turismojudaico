@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { useQuill } from 'react-quilljs'
 // Local
 import { getContent, postContent } from 'lib/api'
-import { uploadCloudinaryImage } from 'helpers'
+import { handleCloudinaryUpload, uploadCloudinaryImage } from 'helpers'
 // Components
 import AdminButtonLoader from '@/components/AdminButtonLoader'
 import AdminLayout from '@/components/AdminLayout'
@@ -51,18 +51,10 @@ function BlogCreator({ setVisisbleBlogs }) {
     const formData = Object.fromEntries(new FormData(ev.target))
 
     // Agregar las imagenes al objeto
-    if (formData.imagen.size > 0) {
-      const data = await uploadCloudinaryImage(formData.imagen)
-      formData.imagen = data.secure_url
-    } else {
-      formData.imagen = ''
-    }
-    if (formData.imagen_en.size > 0) {
-      const data = await uploadCloudinaryImage(formData.imagen_en)
-      formData.imagen_en = data.secure_url
-    } else {
-      formData.imagen_en = ''
-    }
+    formData.imagen = await handleCloudinaryUpload(formData.imagen)
+    if (!formData.imagen) delete formData.imagen
+    formData.imagen_en = await handleCloudinaryUpload(formData.imagen_en)
+    if (!formData.imagen_en) delete formData.imagen_en
 
     formData.texto = quillSpanish.root.innerHTML
     formData.texto_en = quillEnglish.root.innerHTML

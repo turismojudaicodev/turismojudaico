@@ -37,10 +37,15 @@ function PostForm({ data }) {
 
     const formData = Object.fromEntries(new FormData(ev.target))
     formData.imagen1 = await handleCloudinaryUpload(formData.imagen1)
+    if (!formData.imagen1) delete formData.imagen1
     formData.imagen2 = await handleCloudinaryUpload(formData.imagen2)
+    if (!formData.imagen2) delete formData.imagen2
     formData.imagen3 = await handleCloudinaryUpload(formData.imagen3)
+    if (!formData.imagen3) delete formData.imagen3
     formData.imagen4 = await handleCloudinaryUpload(formData.imagen4)
+    if (!formData.imagen4) delete formData.imagen4
     formData.imagen5 = await handleCloudinaryUpload(formData.imagen5)
+    if (!formData.imagen5) delete formData.imagen5
 
     formData.texto = quillSpanish.root.innerHTML
     formData.texto_en = quillEnglish.root.innerHTML
@@ -75,13 +80,21 @@ function PostForm({ data }) {
         <div style={{ display: 'flex', gap: '1rem' }}>
           <div className={styles.formCreate} style={{ marginBottom: '5rem' }}>
             <InputText label="Nombre en español" name="nombre" required />
-            {/* <Textarea label="Texto en español" name="texto" /> */}
             <RichText quill={quillSpanish} quillRef={quillRefSpanish} />
+            <Textarea
+              label="Descripción en español"
+              name="descripcion"
+              required
+            />
           </div>
           <div className={styles.formCreate}>
             <InputText label="Nombre en inglés" name="nombre_en" required />
             <RichText quill={quillEnglish} quillRef={quillRefEnglish} />
-            {/* <Textarea label="Texto en inglés" name="texto_en" /> */}
+            <Textarea
+              label="Descrición en inglés"
+              name="descripcion_en"
+              required
+            />
           </div>
         </div>
         <InputImage label="Imagen1" name="imagen1" />

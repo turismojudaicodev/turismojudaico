@@ -65,11 +65,9 @@ export default async function handler(req, res) {
             .json({ error: err.sqlMessage ?? 'Error al editar la atracción' })
           return resolve()
         }
-        res
-          .status(200)
-          .json({
-            message: `Atracción con id "${postId} editado exitosamente"`,
-          })
+        res.status(200).json({
+          message: `Atracción con id "${postId} editado exitosamente"`,
+        })
         return resolve()
       })
     })

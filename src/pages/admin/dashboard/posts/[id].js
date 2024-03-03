@@ -38,10 +38,15 @@ function PostForm({ post, data }) {
 
     const formData = Object.fromEntries(new FormData(ev.target))
     formData.imagen1 = await handleCloudinaryUpload(formData.imagen1)
+    if (!formData.imagen1) delete formData.imagen1
     formData.imagen2 = await handleCloudinaryUpload(formData.imagen2)
+    if (!formData.imagen2) delete formData.imagen2
     formData.imagen3 = await handleCloudinaryUpload(formData.imagen3)
+    if (!formData.imagen3) delete formData.imagen3
     formData.imagen4 = await handleCloudinaryUpload(formData.imagen4)
+    if (!formData.imagen4) delete formData.imagen4
     formData.imagen5 = await handleCloudinaryUpload(formData.imagen5)
+    if (!formData.imagen5) delete formData.imagen5
 
     formData.texto = quillSpanish.root.innerHTML
     formData.texto_en = quillEnglish.root.innerHTML
@@ -89,11 +94,11 @@ function PostForm({ post, data }) {
               quillRef={quillRefSpanish}
               initialContent={post?.texto}
             />
-            {/* <Textarea
-              label="Texto en español"
-              name="texto"
-              defaultValue={post.texto}
-            /> */}
+            <Textarea
+              label="Descripción en español"
+              name="descripcion"
+              defaultValue={post?.descripcion}
+            />
           </div>
           <div className={styles.formCreate}>
             <InputText
@@ -105,12 +110,14 @@ function PostForm({ post, data }) {
               quill={quillEnglish}
               quillRef={quillRefEnglish}
               initialContent={post?.texto_en}
+              required
             />
-            {/* <Textarea
-              label="Texto en inglés"
-              name="texto_en"
-              defaultValue={post.texto_en}
-            /> */}
+            <Textarea
+              label="Descripción en inglés"
+              name="descripcion_en"
+              defaultValue={post?.descripcion_en}
+              required
+            />
           </div>
         </div>
         <InputImage label="Imagen1" name="imagen1" />
