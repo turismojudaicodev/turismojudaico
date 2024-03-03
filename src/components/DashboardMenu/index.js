@@ -40,6 +40,10 @@ const DASHBOARD_SECTIONS = [
     url: '/newsletter',
   },
   {
+    name: 'Quienes Somos',
+    url: '/about',
+  },
+  {
     name: 'Ajustes',
     url: '/settings',
   },
