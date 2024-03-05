@@ -132,7 +132,7 @@ export default async function handler(req, res) {
         return // Para evitar setear en string vacio imagenes no cambiadas
       colsToUpdate += `${key}=?`
       if (i !== entries.length - 1) colsToUpdate += ', '
-      colsValues.push(!isNaN(parseInt(value)) ? value : `"${value}"`)
+      colsValues.push(!isNaN(parseInt(value)) ? parseInt(value) : `${value}`)
     })
 
     const queryString = `UPDATE paquetes SET ${colsToUpdate} WHERE codigo=${tourId}`
