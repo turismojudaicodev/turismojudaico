@@ -4,7 +4,6 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     const params = req.query
     let queryParams = []
-    let limit = ''
 
     if (params.estado) {
       queryParams.push(`estado=${params.estado}`)
@@ -37,11 +36,9 @@ export default async function handler(req, res) {
     return new Promise((resolve, reject) => {
       db.query(queryString, values, (err, data) => {
         if (err) {
-          res
-            .status(500)
-            .json({
-              error: err.sqlMessage ?? 'Error al crear nueva descripción',
-            })
+          res.status(500).json({
+            error: err.sqlMessage ?? 'Error al crear nueva descripción',
+          })
           return resolve()
         }
         res

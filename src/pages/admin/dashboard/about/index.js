@@ -109,6 +109,7 @@ export default function About() {
     async function fetchContents() {
       const { data, error } = await getContent('/api/content/about')
       setIsLoading(false)
+      console.log(data)
       if (error) {
         setErrorMessage(error)
         return

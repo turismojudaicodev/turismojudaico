@@ -1,9 +1,11 @@
 // NPM
+import { useEffect, useState } from 'react'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import { useTranslation } from 'next-i18next'
+// Local
+import { getContent } from 'lib/api'
 // Components
 import Head from 'next/head'
-import Link from 'next/link'
 import Layout from '@/components/Layout'
 // Styles
 import styles from '@/styles/About.module.css'
@@ -13,12 +15,28 @@ export async function getStaticProps({ locale }) {
   return {
     props: {
       ...(await serverSideTranslations(locale, ['common', 'about'])),
+      locale,
     },
   }
 }
 
-export default function About() {
+export default function About({ locale }) {
   const { t } = useTranslation(['common', 'about'])
+
+  const [isLoading, setIsLoading] = useState(false)
+  const [content, setContent] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
+
+  useEffect(() => {
+    async function fetchData() {
+      const { data, error } = await getContent('/api/content/about?estado=1')
+      setIsLoading(false)
+      setContent(data[0])
+      if (error) return setErrorMessage(error)
+    }
+    setIsLoading(true)
+    fetchData()
+  }, [])
 
   return (
     <>
@@ -27,51 +45,16 @@ export default function About() {
       </Head>
       <Layout>
         <main className={`${utils.container} ${styles.main}`}>
-          <h1>{t('body.title', { ns: 'about' })}</h1>
-          <h2>{t('body.subTitle', { ns: 'about' })}</h2>
-          <p>{t('body.description', { ns: 'about' })}</p>
-          <div>
-            <h3>{t('body.sections.objectives.title', { ns: 'about' })}</h3>
-            <ul>
-              <li>{t('body.sections.objectives.ul.li1', { ns: 'about' })}</li>
-              <li>{t('body.sections.objectives.ul.li2', { ns: 'about' })}</li>
-              <li>{t('body.sections.objectives.ul.li3', { ns: 'about' })}</li>
-            </ul>
-          </div>
-          <div>
-            <h3>{t('body.sections.how.title', { ns: 'about' })}</h3>
-            <p>{t('body.sections.how.p1', { ns: 'about' })}</p>
-            <p>{t('body.sections.how.p2', { ns: 'about' })}</p>
-            <p>{t('body.sections.how.p3', { ns: 'about' })}</p>
-            <p>{t('body.sections.how.p4', { ns: 'about' })}</p>
-          </div>
-          <div>
-            <h3>{t('body.sections.why.title', { ns: 'about' })}</h3>
-            <p>{t('body.sections.why.p1', { ns: 'about' })}</p>
-            <p>{t('body.sections.why.p2', { ns: 'about' })}</p>
-            <p>{t('body.sections.why.p3', { ns: 'about' })}</p>
-          </div>
-          <div>
-            <h3>{t('body.sections.services.title', { ns: 'about' })}</h3>
-            <p>{t('body.sections.services.p1', { ns: 'about' })}</p>
-            <p>{t('body.sections.services.p2', { ns: 'about' })}</p>
-            <p>{t('body.sections.services.p3', { ns: 'about' })}</p>
-            <ul>
-              <li>{t('body.sections.services.ul.li1', { ns: 'about' })}</li>
-              <li>{t('body.sections.services.ul.li2', { ns: 'about' })}</li>
-              <li>{t('body.sections.services.ul.li3', { ns: 'about' })}</li>
-              <li>{t('body.sections.services.ul.li4', { ns: 'about' })}</li>
-              <li>{t('body.sections.services.ul.li5', { ns: 'about' })}</li>
-            </ul>
-            <p>{t('body.sections.services.p4', { ns: 'about' })}</p>
-            <Link
-              className={utils.button}
-              href="/contact"
-              style={{ textTransform: 'capitalize' }}
-            >
-              {t('links.contact', { ns: 'common' })}
-            </Link>
-          </div>
+          {isLoading ? (
+            <p>Cargando...</p>
+          ) : (
+            <div
+              dangerouslySetInnerHTML={{
+                __html:
+                  locale === 'es' ? content?.contenido : content?.contenido_en,
+              }}
+            ></div>
+          )}
         </main>
       </Layout>
     </>
