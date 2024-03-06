@@ -182,6 +182,7 @@ export default function Content({ locale }) {
                 label={t('body.form.category', { ns: 'posts' })}
                 name="categoria"
                 options={data.categories}
+                locale={locale}
               />
 
               <ButtonLoader

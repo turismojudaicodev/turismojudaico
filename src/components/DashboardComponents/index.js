@@ -6,6 +6,7 @@ export function InputText({
   name,
   required = false,
   defaultValue = undefined,
+  placeholder = '',
   attrs = {},
 }) {
   return (
@@ -19,6 +20,7 @@ export function InputText({
           className={styles.input}
           defaultValue={defaultValue}
           required={required}
+          placeholder={placeholder}
           style={{ maxWidth: '350px' }}
           {...attrs}
         />
@@ -60,6 +62,7 @@ export function Textarea({
   name,
   required = false,
   defaultValue = undefined,
+  large = false,
 }) {
   return (
     <div>
@@ -69,7 +72,7 @@ export function Textarea({
           type="text"
           name={name}
           id={name}
-          className={styles.textareaInput}
+          className={large ? styles.textareaInputLarge : styles.textareaInput}
           defaultValue={defaultValue}
           required={required}
         ></textarea>
@@ -201,6 +204,8 @@ export function Select({
   defaultValue = undefined,
   attrs = {},
   required = false,
+  noEmptyOption = false,
+  locale = 'es',
 }) {
   return (
     <div>
@@ -216,10 +221,10 @@ export function Select({
         defaultValue={defaultValue}
         {...attrs}
       >
-        <option value="0"> </option>
+        {!noEmptyOption && <option value="0"> </option>}
         {options.map((option) => (
           <option value={option.codigo} key={option.codigo}>
-            {option.nombre}
+            {locale === 'es' ? option.nombre : option.nombre_en}
           </option>
         ))}
       </select>
