@@ -26,6 +26,8 @@ export async function getStaticProps({ locale }) {
   }
 }
 
+const LIMIT = 5
+
 export default function Content({ locale }) {
   const [data, setData] = useState({
     countries: [],
@@ -46,7 +48,7 @@ export default function Content({ locale }) {
   useEffect(() => {
     async function fetchData() {
       const { data: postsData, error: postsError } = await getContent(
-        '/api/content/posts?limit=5&offset=0&estado=1'
+        `/api/content/posts?limit=${LIMIT}&offset=0&estado=1`
       )
       setIsLoading(false)
       if (postsError) return setErrorMessage(postsError)
@@ -106,6 +108,15 @@ export default function Content({ locale }) {
   }
 
   const handleLoadMore = async (ev) => {
+    const formData = Object.fromEntries(
+      new FormData(document.getElementById('filter-form'))
+    )
+    console.log({ formData })
+    const params = Object.entries(formData).filter(([key, value]) => {
+      return value !== '' && value !== '0'
+    })
+    const stringParams = new URLSearchParams(params).toString()
+
     setIsLoading(true)
     const { data, error } = await getContent(
       `/api/content/posts?estado=1&limit=5&offset=${offset}`
@@ -143,7 +154,7 @@ export default function Content({ locale }) {
               ) : (
                 <Message type="info" message={t('body.alerts.noContent')} />
               )}
-              {!isLoading && posts.length !== 0 && (
+              {!isLoading && posts.length > LIMIT && (
                 <ButtonLoader
                   isLoading={isLoading}
                   attrs={{ onClick: handleLoadMore }}
@@ -157,7 +168,11 @@ export default function Content({ locale }) {
             <h2 className={utils.bigTitle}>
               {t('body.filter', { ns: 'posts' })}
             </h2>
-            <form onSubmit={handleSubmit} className={utils.form}>
+            <form
+              onSubmit={handleSubmit}
+              className={utils.form}
+              id="filter-form"
+            >
               <InputText
                 label={t('body.form.title', { ns: 'posts' })}
                 name="nombre"
