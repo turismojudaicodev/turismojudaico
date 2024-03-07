@@ -26,7 +26,7 @@ export async function getStaticProps({ locale }) {
   }
 }
 
-const LIMIT = 5
+const LIMIT_INCREASE = 10
 
 export default function Content({ locale }) {
   const [data, setData] = useState({
@@ -36,6 +36,7 @@ export default function Content({ locale }) {
   })
   const [posts, setPosts] = useState([])
   const [offset, setOffset] = useState(0)
+  const [limit, setLimit] = useState(10)
   const [isLoading, setIsLoading] = useState(false)
   const [isFiltersLoading, setIsFiltersLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
@@ -48,14 +49,11 @@ export default function Content({ locale }) {
   useEffect(() => {
     async function fetchData() {
       const { data: postsData, error: postsError } = await getContent(
-        `/api/content/posts?limit=${LIMIT}&offset=0&estado=1`
+        `/api/content/posts?estado=1`
       )
       setIsLoading(false)
       if (postsError) return setErrorMessage(postsError)
       setPosts(postsData)
-      // const { data: postsCount, error: postsCountError } = await getContent(
-      //   '/api/content/posts/count?estado=1'
-      // )
       const { data: countriesData, error: countriesError } = await getContent(
         '/api/content/countries?reduced=1&active=1'
       )
@@ -73,7 +71,7 @@ export default function Content({ locale }) {
           }`
         )
       }
-      setOffset((v) => (v += 5))
+      setLimit((v) => (v += LIMIT_INCREASE))
       setData({
         countries: countriesData,
         cities: citiesData,
@@ -87,44 +85,19 @@ export default function Content({ locale }) {
 
   const handleSubmit = async (ev) => {
     ev.preventDefault()
-    setIsLoading(true)
-
+    setLimit(LIMIT_INCREASE)
     const formData = Object.fromEntries(new FormData(ev.target))
-    try {
-      const params = Object.entries(formData).filter(([key, value]) => {
-        return value !== '' && value !== '0'
-      })
-      const stringParams = new URLSearchParams(params).toString()
-
-      const { data, error } = await getContent(
-        `/api/content/posts?estado=1&${stringParams}`
-      )
-      if (error) return setErrorMessage(error)
-      setPosts(data)
-    } catch (error) {
-      setErrorMessage(error.message)
-    }
-    setIsLoading(false)
-  }
-
-  const handleLoadMore = async (ev) => {
-    const formData = Object.fromEntries(
-      new FormData(document.getElementById('filter-form'))
-    )
-    console.log({ formData })
     const params = Object.entries(formData).filter(([key, value]) => {
       return value !== '' && value !== '0'
     })
-    const stringParams = new URLSearchParams(params).toString()
+    const filteredPosts = posts.filter((post) => {
+      return params.every(([key, value]) => post[key] == value)
+    })
+    setPosts(filteredPosts)
+  }
 
-    setIsLoading(true)
-    const { data, error } = await getContent(
-      `/api/content/posts?estado=1&limit=5&offset=${offset}`
-    )
-    setIsLoading(false)
-    if (error) return setErrorMessage(error)
-    setOffset((v) => (v += 5))
-    setPosts(data)
+  const handleLoadMore = async (ev) => {
+    setLimit((v) => (v += LIMIT_INCREASE))
   }
 
   return (
@@ -144,23 +117,30 @@ export default function Content({ locale }) {
               ) : (posts.length === 0 && isLoading) || isLoading ? (
                 <LoadingIndicator />
               ) : posts.length > 0 ? (
-                posts.map((post) => (
-                  <PostCard
-                    post={post}
-                    key={post.codigo}
-                    locale={router.locale}
-                  />
-                ))
+                posts
+                  .slice(0, limit - 1)
+                  .map((post) => (
+                    <PostCard
+                      post={post}
+                      key={post.codigo}
+                      locale={router.locale}
+                    />
+                  ))
               ) : (
                 <Message type="info" message={t('body.alerts.noContent')} />
               )}
-              {!isLoading && posts.length > LIMIT && (
-                <ButtonLoader
-                  isLoading={isLoading}
-                  attrs={{ onClick: handleLoadMore }}
-                >
-                  {router.locale === 'es' ? 'Cargar otros' : 'Load more'}
-                </ButtonLoader>
+              {!isLoading && posts.length > limit && (
+                <>
+                  <p style={{ marginBlock: '.5rem' }}>
+                    {limit} / {posts.length}
+                  </p>
+                  <ButtonLoader
+                    isLoading={isLoading}
+                    attrs={{ onClick: handleLoadMore }}
+                  >
+                    {router.locale === 'es' ? 'Cargar otros' : 'Load more'}
+                  </ButtonLoader>
+                </>
               )}
             </div>
           </div>
