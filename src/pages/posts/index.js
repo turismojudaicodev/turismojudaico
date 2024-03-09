@@ -35,6 +35,7 @@ export default function Content({ locale }) {
     categories: [],
   })
   const [posts, setPosts] = useState([])
+  const [filteredPosts, setIsFilteredPosts] = useState([])
   const [offset, setOffset] = useState(0)
   const [limit, setLimit] = useState(10)
   const [isLoading, setIsLoading] = useState(false)
@@ -49,11 +50,13 @@ export default function Content({ locale }) {
   useEffect(() => {
     async function fetchData() {
       const { data: postsData, error: postsError } = await getContent(
-        `/api/content/posts?estado=1`
+        `/api/content/posts?estado=1&joinCategories=1`
       )
+      console.log(postsData.slice(0, 5))
       setIsLoading(false)
       if (postsError) return setErrorMessage(postsError)
       setPosts(postsData)
+      setIsFilteredPosts(postsData)
       const { data: countriesData, error: countriesError } = await getContent(
         '/api/content/countries?reduced=1&active=1'
       )
@@ -90,10 +93,11 @@ export default function Content({ locale }) {
     const params = Object.entries(formData).filter(([key, value]) => {
       return value !== '' && value !== '0'
     })
+    console.log(params)
     const filteredPosts = posts.filter((post) => {
       return params.every(([key, value]) => post[key] == value)
     })
-    setPosts(filteredPosts)
+    setIsFilteredPosts(filteredPosts)
   }
 
   const handleLoadMore = async (ev) => {
@@ -117,7 +121,7 @@ export default function Content({ locale }) {
               ) : (posts.length === 0 && isLoading) || isLoading ? (
                 <LoadingIndicator />
               ) : posts.length > 0 ? (
-                posts
+                filteredPosts
                   .slice(0, limit - 1)
                   .map((post) => (
                     <PostCard
@@ -129,10 +133,10 @@ export default function Content({ locale }) {
               ) : (
                 <Message type="info" message={t('body.alerts.noContent')} />
               )}
-              {!isLoading && posts.length > limit && (
+              {!isLoading && filteredPosts.length > limit && (
                 <>
                   <p style={{ marginBlock: '.5rem' }}>
-                    {limit} / {posts.length}
+                    {limit} / {filteredPosts.length}
                   </p>
                   <ButtonLoader
                     isLoading={isLoading}
