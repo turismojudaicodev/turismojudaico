@@ -36,7 +36,7 @@ export default async function handler(req, res) {
     const queryString = `SELECT * FROM contenidos ${joinCategories} ${
       queryParams.length > 0 ? 'WHERE ' + queryParams.join(' AND ') : ''
     } ${
-      joinCategories.length > 0 && 'GROUP BY contenidos.codigo'
+      joinCategories.length > 0 ? 'GROUP BY contenidos.codigo' : ''
     } ORDER BY contenidos.orden ${limit}`
 
     console.log(queryString)
