@@ -32,9 +32,11 @@ function Header() {
   }, [router.locale])
 
   const changeLang = (lang) => {
-    router.push(router.pathname, router.pathname, {
-      locale: lang,
-    })
+    // router.push(router.pathname, router.pathname, {
+    //   locale: lang,
+    // })
+    const { pathname, asPath, query } = router
+    router.push({ pathname, query }, asPath, { locale: lang })
   }
 
   const toggleNav = () => {
