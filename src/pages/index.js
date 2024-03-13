@@ -68,7 +68,7 @@ export default function Home({ locale }) {
   // tours, staticImages,
   const [toursSmall, setToursSmall] = useState([])
   const [toursBig, setToursBig] = useState([])
-  const [sponsors, setSponsors] = useState([])
+  const [logos, setLogos] = useState([])
   const [errorMessage, setErrorMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
@@ -82,13 +82,19 @@ export default function Home({ locale }) {
       const { data: toursGrande, error: toursGrandeError } = await getContent(
         '/api/content/tours?destacadohomegrande=1'
       )
+      const { data: logos, error: logosError } = await getContent(
+        '/api/content/logos?estado=1'
+      )
       setIsLoading(false)
-      if (toursChicoError || toursGrandeError)
+      if (toursChicoError || toursGrandeError || logosError)
         return setErrorMessage(
-          `${toursChicoError ?? ''} ${toursGrandeError ?? ''}`
+          `${toursChicoError ?? ''} ${toursGrandeError ?? ''} ${
+            logosError ?? ''
+          }`
         )
       setToursSmall(toursChico)
       setToursBig(toursGrande)
+      setLogos(logos)
     }
     setIsLoading(true)
     fetchData()
@@ -179,15 +185,30 @@ export default function Home({ locale }) {
               : 'THEY ACCOMPANY US AND TRUST US:'}
           </h2>
           <div className={styles.supporters}>
-            {SUPPORTERS.map((supporter, index) => (
-              <Image
-                key={index}
-                src={supporter.image}
-                alt={supporter.image}
-                width={75}
-                height={75}
-              />
-            ))}
+            {isLoading ? (
+              <LoadingIndicator />
+            ) : logos.length > 0 ? (
+              logos.map((logo, index) => (
+                <Image
+                  key={index}
+                  src={logo.imagen}
+                  alt={logo.nombre}
+                  width={75}
+                  height={75}
+                  style={{ objectFit: 'contain' }}
+                />
+              ))
+            ) : (
+              SUPPORTERS.map((supporter, index) => (
+                <Image
+                  key={index}
+                  src={supporter.image}
+                  alt={supporter.image}
+                  width={75}
+                  height={75}
+                />
+              ))
+            )}
           </div>
         </main>
       </Layout>

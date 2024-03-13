@@ -32,16 +32,20 @@ const DASHBOARD_SECTIONS = [
     url: '/tours',
   },
   {
+    name: 'Quienes Somos',
+    url: '/about',
+  },
+  {
+    name: 'Logos',
+    url: '/logos',
+  },
+  {
     name: 'Reservas',
     url: '/bookings',
   },
   {
     name: 'Newsletter',
     url: '/newsletter',
-  },
-  {
-    name: 'Quienes Somos',
-    url: '/about',
   },
   {
     name: 'Ajustes',
