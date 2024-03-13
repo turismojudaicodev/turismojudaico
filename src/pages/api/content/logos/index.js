@@ -12,7 +12,7 @@ export default async function handler(req, res) {
 
     const queryString = `SELECT * FROM logos ${
       queryParams.length > 0 ? 'WHERE ' + queryParams.join(' AND ') : ''
-    } ORDER BY orden DESC`
+    } ORDER BY orden ASC`
 
     return new Promise((resolve, reject) => {
       db.query(queryString, (err, data) => {
