@@ -5,7 +5,7 @@ import { getContent } from 'lib/api'
 // Components
 import DashboardTableNewsletter from '@/components/DashboardTableNewsletter'
 import AdminLayout from '@/components/AdminLayout'
-import { NotificationLoading } from '@/components/Notification'
+import Notification, { NotificationLoading } from '@/components/Notification'
 import AdminButtonLoader from '@/components/AdminButtonLoader'
 // Styles
 import utils from '@/styles/utils.module.css'
@@ -21,6 +21,8 @@ function Newsletter({ content, setContent }) {
 }
 
 export default function Dashboard() {
+  const [errorMessage, setErrorMessage] = useState('')
+  const [loadingMessage, setLoadingMessage] = useState('')
   const [content, setContent] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [limit, setLimit] = useState(50)
@@ -34,6 +36,7 @@ export default function Dashboard() {
       setIsLoading(false)
     }
     setIsLoading(true)
+    setLoadingMessage('')
     fetchPostContent()
   }, [])
 
@@ -51,17 +54,68 @@ export default function Dashboard() {
     setOffset((v) => v - limit)
   }
 
+  const handleDownloadSheet = async () => {
+    setIsLoading(true)
+    setLoadingMessage('Descargando archivo')
+    try {
+      const response = await fetch('/api/newsletter/exportData')
+      const blob = await response.blob()
+      console.log(response)
+      console.log(blob)
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'newsletter.xlsx'
+      document.body.appendChild(a)
+      a.click()
+      // Cleanup
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+      if (response.error) {
+        console.log('error de la api,', response.error)
+        setErrorMessage(response.error)
+      }
+    } catch (error) {
+      console.log(error)
+      setErrorMessage(error.message)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   if (isLoading)
     return (
       <AdminLayout>
         <h1 className={utils.bigTitle}>Newsletter</h1>
-        <NotificationLoading message="Cargando suscriptores" />
+        <NotificationLoading
+          message={
+            loadingMessage.length > 0 ? loadingMessage : 'Cargando suscriptores'
+          }
+        />
       </AdminLayout>
     )
 
   return (
     <AdminLayout>
+      {errorMessage && (
+        <Notification
+          type="error"
+          notification={errorMessage}
+          setNotification={setErrorMessage}
+        />
+      )}
       <h1 className={utils.bigTitle}>Newsletter</h1>
+
+      <div style={{ marginBottom: '1rem' }}>
+        <button
+          type="button"
+          className={styles.submitButton}
+          onClick={handleDownloadSheet}
+        >
+          Descargar plantilla
+        </button>
+      </div>
+
       {offset >= limit && (
         <AdminButtonLoader
           isLoading={isLoading}

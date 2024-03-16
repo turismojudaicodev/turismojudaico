@@ -19,7 +19,6 @@ export default async function handler(req, res) {
         'SELECT * FROM newsletter ORDER BY codigo DESC LIMIT ?, ?',
         [Number(params.offset) || 0, Number(params.limit) || 5],
         (err, data) => {
-          console.log(data)
           if (err) {
             console.log(err)
             res
@@ -58,8 +57,6 @@ export default async function handler(req, res) {
         return resolve()
       })
     })
-  } else if (req.method === 'DELETE') {
-    return res.status(500).json({ error: 'Error del servidor' })
   } else {
     return res.status(403).json({ error: 'Method not allowed' })
   }
