@@ -29,6 +29,30 @@
   z-index: 100;
 }
 
+.editableItem {
+  background-color: #f1f1f1;
+  padding: .25em .5em;
+  border-radius: 5px;
+  border: 1px solid gray;
+  width: fit-content;
+  font-size: .75rem;
+}
+
+.editableItem > * {
+  font-size: inherit;
+}
+
+.editableItem > button {
+  border: none;
+  background-color: #ddd;
+  margin-left: .25rem;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 999px;
+  font-size: .8em;
+  cursor: pointer;
+}
+
 /* forms */
 .form {
   display: flex;

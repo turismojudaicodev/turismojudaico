@@ -58,22 +58,106 @@ export default async function handler(req, res) {
     const keys = Object.keys(body)
     const values = Object.values(body)
 
+    const indexCategorias = keys.indexOf('categorias')
+
+    const selectedCategories = values[indexCategorias]
+
+    keys.splice(indexCategorias, 1)
+    values.splice(indexCategorias, 1)
+
     const queryString = `INSERT INTO contenidos (${keys.join(',')})
     VALUES (${new Array(values.length).fill('?').join(',')})`
 
+    console.log(queryString)
+
     return new Promise((resolve, reject) => {
-      db.query(queryString, values, (err, data) => {
-        if (err) {
+      // Start transaction
+      db.query('START TRANSACTION', (startErr, startData) => {
+        if (startErr) {
+          console.log({ startErr })
           res
             .status(500)
-            .json({ error: err.sqlMessage ?? 'Error al crear post' })
+            .json({ error: startErr.sqlMessage ?? 'Error al crear el post' })
           return resolve()
         }
-        res.status(201).json({
-          data,
-          message: `Post "${body?.nombre}" creado correctamente`,
-        })
-        return resolve()
+
+        // Insert into paquetes
+        db.query(
+          queryString,
+          values,
+          (insertPaquetesErr, insertPaquetesData) => {
+            if (insertPaquetesErr) {
+              console.log({ insertPaquetesErr })
+              // Rollback on error
+              db.query('ROLLBACK', (rollbackErr) => {
+                if (rollbackErr) {
+                  console.log({ rollbackErr })
+                }
+                res.status(500).json({
+                  error: insertPaquetesErr.sqlMessage ?? 'Error al crear post',
+                })
+                return resolve()
+              })
+            } else {
+              // Get last inserted ID
+              db.query(
+                'SELECT LAST_INSERT_ID() as lastId',
+                (lastIdErr, lastIdData) => {
+                  if (lastIdErr) {
+                    console.log({ lastIdErr })
+                    // Rollback on error
+                    db.query('ROLLBACK', (rollbackErr) => {
+                      if (rollbackErr) {
+                        console.log({ rollbackErr })
+                      }
+                      res.status(500).json({
+                        error: lastIdErr.sqlMessage ?? 'Error al crear post',
+                      })
+                      return resolve()
+                    })
+                  } else {
+                    const lastId = lastIdData[0].lastId
+
+                    // Insert into ciudades_x_paquete
+                    db.query(
+                      `INSERT INTO contenidos_x_categoria (contenido, categoria) VALUES ${selectedCategories
+                        .map((category) => `(${lastId}, ${category.codigo})`)
+                        .join(',')}`,
+                      (insertCiudadesErr, insertCiudadesData) => {
+                        if (insertCiudadesErr) {
+                          console.log({ insertCiudadesErr })
+                          // Rollback on error
+                          db.query('ROLLBACK', (rollbackErr) => {
+                            if (rollbackErr) {
+                              console.log({ rollbackErr })
+                            }
+                            res.status(500).json({
+                              error:
+                                insertCiudadesErr.sqlMessage ??
+                                'Error al crear post',
+                            })
+                            return resolve()
+                          })
+                        } else {
+                          // Commit the transaction
+                          db.query('COMMIT', (commitErr) => {
+                            if (commitErr) {
+                              console.log({ commitErr })
+                            }
+                            res.status(201).json({
+                              message: `Post "${body?.nombre}" creado exitosamente`,
+                            })
+                            return resolve()
+                          })
+                        }
+                      }
+                    )
+                  }
+                }
+              )
+            }
+          }
+        )
       })
     })
   } else {

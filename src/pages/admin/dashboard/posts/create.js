@@ -27,8 +27,22 @@ function PostForm({ data }) {
   const [infoMessage, setInfoMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [selectedCountry, setSelectedCountry] = useState(null)
+  const [selectedCategories, setSelectedCategories] = useState([])
   const { quill: quillSpanish, quillRef: quillRefSpanish } = useQuill()
   const { quill: quillEnglish, quillRef: quillRefEnglish } = useQuill()
+
+  const handleDeleteCategory = async (category) => {
+    if (
+      !confirm(
+        `¿Desea quitar la categoría "${category.nombre}" a la atracción?`
+      )
+    )
+      return
+
+    setSelectedCategories((prev) =>
+      prev.filter((cat) => cat.codigo !== category.codigo)
+    )
+  }
 
   const handleSubmit = async (ev) => {
     ev.preventDefault()
@@ -49,6 +63,8 @@ function PostForm({ data }) {
 
     formData.texto = quillSpanish.root.innerHTML
     formData.texto_en = quillEnglish.root.innerHTML
+
+    formData.categorias = selectedCategories
 
     const response = await postContent('/api/content/posts', formData)
     const { message, error } = response
@@ -119,6 +135,45 @@ function PostForm({ data }) {
             required
           />
         </div>
+        <Select
+          label="Categoría"
+          options={data.categories}
+          attrs={{
+            onChange: (ev) => {
+              const categoryId = parseInt(ev.target.value)
+              const category = data.categories.find(
+                (category) => category.codigo === categoryId
+              )
+              if (!category) return
+              if (
+                selectedCategories.some(
+                  (category) => category.codigo === categoryId
+                )
+              )
+                return alert('ya existe')
+              setSelectedCategories((prev) => [...prev, category])
+            },
+          }}
+        />
+        <ul
+          style={{
+            paddingLeft: '2rem',
+            marginBottom: '1rem',
+            marginTop: '.25rem',
+          }}
+        >
+          {selectedCategories.map((category) => (
+            <li key={category.codigo} className={utils.editableItem}>
+              <span>{category.nombre}</span>
+              <button
+                type="button"
+                onClick={() => handleDeleteCategory(category)}
+              >
+                X
+              </button>
+            </li>
+          ))}
+        </ul>
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
           <InputText label="Dirección" name="direccion" />
           <InputText label="Localidad" name="localidad" />
@@ -143,6 +198,9 @@ export default function PostCreator() {
 
   useEffect(() => {
     async function fetchData() {
+      const { data: categories, error: categoriesError } = await getContent(
+        '/api/content/categories?reduced=1&active=1'
+      )
       const { data: countries, error: countriesError } = await getContent(
         '/api/content/countries?reduced=1&active=1'
       )
@@ -150,15 +208,18 @@ export default function PostCreator() {
         '/api/content/cities?reduced=1&active=1'
       )
       setIsLoading(false)
-      if (countriesError || citiesError) {
+      if (countriesError || citiesError || categoriesError) {
         setErrorMessage(
-          `Error del servidor: ${countriesError ?? ''} ${citiesError ?? ''}`
+          `Error del servidor: ${countriesError ?? ''} ${citiesError ?? ''} ${
+            categoriesError ?? ''
+          }`
         )
         return
       }
       setData({
         countries,
         cities,
+        categories,
       })
     }
     setIsLoading(true)

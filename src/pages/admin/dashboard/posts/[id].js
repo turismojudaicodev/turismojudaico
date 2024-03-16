@@ -3,7 +3,12 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { useQuill } from 'react-quilljs'
 // Local
-import { getContent, getUniqueContent, updateUniqueContent } from 'lib/api'
+import {
+  deleteContent,
+  getContent,
+  getUniqueContent,
+  updateUniqueContent,
+} from 'lib/api'
 import { handleCloudinaryUpload } from 'helpers'
 // Components
 import AdminLayout from '@/components/AdminLayout'
@@ -16,17 +21,20 @@ import {
   Select,
   Textarea,
 } from '@/components/DashboardComponents'
+import RichText from '@/components/RichText'
 import Message from '@/components/Message'
 // Styles
 import utils from '@/styles/utils.module.css'
 import styles from '@/styles/Dashboard.module.css'
-import RichText from '@/components/RichText'
 
 function PostForm({ post, data }) {
   const [errorMessage, setErrorMessage] = useState('')
   const [infoMessage, setInfoMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [selectedCountry, setSelectedCountry] = useState(post.pais || null)
+  const [selectedCategories, setSelectedCategories] = useState(
+    data.selectedCategories || []
+  )
 
   const { quill: quillSpanish, quillRef: quillRefSpanish } = useQuill()
   const { quill: quillEnglish, quillRef: quillRefEnglish } = useQuill()
@@ -51,6 +59,13 @@ function PostForm({ post, data }) {
     formData.texto = quillSpanish.root.innerHTML
     formData.texto_en = quillEnglish.root.innerHTML
 
+    const categoriesToAdd = selectedCategories.filter((category) => {
+      return !data.selectedCategories.some(
+        (prevCategory) => prevCategory.codigo === category.codigo
+      )
+    })
+    formData.categorias = categoriesToAdd
+
     const response = await updateUniqueContent(
       '/api/content/posts',
       post.codigo,
@@ -64,6 +79,35 @@ function PostForm({ post, data }) {
     }
 
     setInfoMessage(message)
+  }
+
+  const handleDeleteCategory = async (category) => {
+    if (
+      !confirm(
+        `¿Desea quitar la categoría "${category.nombre}" a la atracción?`
+      )
+    )
+      return
+
+    if (data.selectedCategories.some((cat) => cat.codigo === category.codigo)) {
+      setIsLoading(true)
+      const response = await deleteContent(
+        `/api/content/posts/${post.codigo}/deleteCategory`,
+        category.codigo
+      )
+      const { message, error } = response
+      setIsLoading(false)
+
+      if (error) {
+        setErrorMessage(error)
+        return
+      }
+      setInfoMessage(message)
+    }
+
+    setSelectedCategories((prev) =>
+      prev.filter((cat) => cat.codigo !== category.codigo)
+    )
   }
 
   return (
@@ -147,6 +191,47 @@ function PostForm({ post, data }) {
             )}
           />
         </div>
+        <Select
+          // se borra el atributo name para que no se mande al back
+          label="Categoría"
+          options={data.categories}
+          attrs={{
+            onChange: (ev) => {
+              const categoryId = parseInt(ev.target.value)
+              const category = data.categories.find(
+                (category) => category.codigo === categoryId
+              )
+              if (!category) return
+              if (
+                selectedCategories.some(
+                  (category) => category.codigo === categoryId
+                )
+              )
+                return alert('Esta categoría ya se encuentra asignada')
+              setSelectedCategories((prev) => [...prev, category])
+            },
+          }}
+        />
+        <p>Categorías actuales</p>
+        <ul
+          style={{
+            paddingLeft: '2rem',
+            marginBottom: '1rem',
+            marginTop: '.25rem',
+          }}
+        >
+          {selectedCategories.map((category) => (
+            <li key={category.codigo} className={utils.editableItem}>
+              <span>{category.nombre}</span>
+              <button
+                type="button"
+                onClick={() => handleDeleteCategory(category)}
+              >
+                X
+              </button>
+            </li>
+          ))}
+        </ul>
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
           <InputText
             label="Dirección"
@@ -216,12 +301,20 @@ export default function PostEditor() {
       const { data: categories, error: categoriesError } = await getContent(
         '/api/content/categories?reduced=1&active=1'
       )
+      const { data: selectedCategories, error: errorSelectedCategories } =
+        await getContent(`/api/content/posts/${router.query.id}/categories`)
       setIsLoading(false)
-      if (countriesError || citiesError || categoriesError || postError) {
+      if (
+        countriesError ||
+        citiesError ||
+        categoriesError ||
+        postError ||
+        errorSelectedCategories
+      ) {
         setErrorMessage(
           `Error del servidor: ${countriesError ?? ''} ${citiesError ?? ''} ${
             categoriesError ?? ''
-          } ${postError ?? ''}`
+          } ${postError ?? ''} ${errorSelectedCategories ?? ''}`
         )
         return
       }
@@ -230,6 +323,7 @@ export default function PostEditor() {
         countries,
         categories,
         cities,
+        selectedCategories,
       })
     }
     setIsLoading(true)
