@@ -67,6 +67,11 @@ const nextConfig = {
       },
     ]
   },
+  experimental: {
+    outputFileTracingIncludes: {
+      '/api/newsletter/exportData': ['./public/tmp/*'],
+    },
+  },
   i18n,
 }
 
