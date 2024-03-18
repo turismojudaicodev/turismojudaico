@@ -40,9 +40,9 @@ export default async function handler(req, res) {
           worksheet['!cols'] = [{ wch: max_width }]
 
           /* create an XLSX file and try to save to Presidents.xlsx */
-          XLSX.writeFile(workbook, 'tmp/newsletter.xlsx')
+          XLSX.writeFile(workbook, 'public/tmp/newsletter.xlsx')
 
-          const filePath = path.resolve('.', 'tmp/newsletter.xlsx')
+          const filePath = path.resolve('.', 'public/tmp/newsletter.xlsx')
 
           fs.readFile(filePath, (err, data) => {
             if (err) console.error('ERROR:', err)
