@@ -57,7 +57,7 @@ export default async function handler(req, res) {
             }
             return acc
           }, {})
-          res.status(200).json({ data: Object.values(posts), pp: posts })
+          res.status(200).json({ data: Object.values(posts) })
           return resolve()
         }
         res.status(200).json({ data })

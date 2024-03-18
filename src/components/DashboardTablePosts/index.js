@@ -70,7 +70,7 @@ export default function DashboardTablePosts({ table, setVisibleTable = null }) {
       if (selectedCity && selectedCity != '0')
         table = table.filter((row) => row.ciudad == selectedCity)
       if (selectedCategory && selectedCategory != '0')
-        table = table.filter((row) => row.categoria == selectedCategory)
+        table = table.filter((row) => row.categorias.includes(selectedCategory))
       return table
     })
   }
@@ -165,7 +165,7 @@ export default function DashboardTablePosts({ table, setVisibleTable = null }) {
             <th>Nombre_en</th>
             <th>País</th>
             <th>Ciudad</th>
-            <th>Categoría</th>
+            <th>Categorías</th>
             <th>Orden</th>
             <th>Activo</th>
             <th>Acciones</th>
@@ -180,7 +180,21 @@ export default function DashboardTablePosts({ table, setVisibleTable = null }) {
                 <td className={styles.colTitle}>{row.nombre_en}</td>
                 <td>{row.pais}</td>
                 <td>{row.ciudad}</td>
-                <td>{row.categoria}</td>
+                <td style={{ display: 'flex', flexDirection: 'column' }}>
+                  {row.categorias.slice(0, 5).map((cat, i) => (
+                    <span
+                      style={{ fontSize: '.75rem' }}
+                      key={`${row.codigo}-${i}-${cat}`}
+                    >
+                      {cat}
+                    </span>
+                  ))}
+                  {row.categorias.length > 5 && (
+                    <span style={{ fontSize: '.75rem' }}>
+                      +{row.categorias.length - 5} categorías
+                    </span>
+                  )}
+                </td>
                 <td style={{ textAlign: 'center' }}>{row.orden}</td>
                 <td
                   style={{

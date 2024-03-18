@@ -17,7 +17,6 @@ export default async function handler(req, res) {
     LEFT JOIN categorias cat ON cat.codigo = cxc.categoria
     LEFT JOIN ciudades c ON ct.ciudad = c.codigo 
     LEFT JOIN paises p ON ct.pais = p.codigo 
-    GROUP BY ct.codigo
     ORDER BY ct.orden`
 
     console.log(queryString)
@@ -31,7 +30,16 @@ export default async function handler(req, res) {
             .json({ error: err.sqlMessage ?? 'Error al cargar posts' })
           return resolve()
         }
-        res.status(200).json({ data })
+        const posts = data.reduce((acc, row) => {
+          const { codigo, categoria } = row
+          if (!acc[codigo]) {
+            acc[codigo] = { ...row, categorias: [categoria] }
+          } else {
+            acc[codigo].categorias.push(categoria)
+          }
+          return acc
+        }, {})
+        res.status(200).json({ data: Object.values(posts) })
         return resolve()
       })
     })
