@@ -52,7 +52,7 @@ export default function Content({ locale }) {
       const { data: postsData, error: postsError } = await getContent(
         `/api/content/posts?estado=1&joinCategories=1`
       )
-      console.log(postsData.slice(0, 5))
+      // console.log(postsData.slice(0, 5))
       setIsLoading(false)
       if (postsError) return setErrorMessage(postsError)
       setPosts(postsData)
@@ -93,9 +93,17 @@ export default function Content({ locale }) {
     const params = Object.entries(formData).filter(([key, value]) => {
       return value !== '' && value !== '0'
     })
-    console.log(params)
+    // console.log(params)
     const filteredPosts = posts.filter((post) => {
-      return params.every(([key, value]) => post[key] == value)
+      return params.every(([key, value]) => {
+        // if (key == 'categoria') console.log(post.codigo, post.categorias, value)
+        return (
+          post[key] == value ||
+          (key == 'categoria'
+            ? post.categorias.includes(parseInt(value))
+            : false)
+        )
+      })
     })
     setIsFilteredPosts(filteredPosts)
   }

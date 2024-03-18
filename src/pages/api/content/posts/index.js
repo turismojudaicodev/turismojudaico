@@ -17,7 +17,7 @@ export default async function handler(req, res) {
       }
     }
     if (params.joinCategories) {
-      joinCategories = `LEFT JOIN contenidos_x_categoria cxc ON cxc.contenido = contenidos.codigo`
+      joinCategories = `INNER JOIN contenidos_x_categoria cxc ON cxc.contenido = contenidos.codigo`
     }
     if (params.categoria) {
       queryParams.push(`cxc.categoria=${params.categoria}`)
@@ -35,8 +35,6 @@ export default async function handler(req, res) {
 
     const queryString = `SELECT * FROM contenidos ${joinCategories} ${
       queryParams.length > 0 ? 'WHERE ' + queryParams.join(' AND ') : ''
-    } ${
-      joinCategories.length > 0 ? 'GROUP BY contenidos.codigo' : ''
     } ORDER BY contenidos.orden ${limit}`
 
     console.log(queryString)
@@ -47,6 +45,19 @@ export default async function handler(req, res) {
           res
             .status(500)
             .json({ error: err.sqlMessage ?? 'Error al cargar posts' })
+          return resolve()
+        }
+        if (params.joinCategories) {
+          const posts = data.reduce((acc, row) => {
+            const { codigo, categoria } = row
+            if (!acc[codigo]) {
+              acc[codigo] = { ...row, categorias: [categoria] }
+            } else {
+              acc[codigo].categorias.push(categoria)
+            }
+            return acc
+          }, {})
+          res.status(200).json({ data: Object.values(posts), pp: posts })
           return resolve()
         }
         res.status(200).json({ data })
