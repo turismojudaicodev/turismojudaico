@@ -72,6 +72,7 @@ const nextConfig = {
       '/api/newsletter/exportData': ['./public/tmp/*'],
     },
   },
+  swcMinify: false,
   i18n,
 }
 
