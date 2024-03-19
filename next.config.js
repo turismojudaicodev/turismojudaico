@@ -67,7 +67,6 @@ const nextConfig = {
       },
     ]
   },
-  swcMinify: false,
   i18n,
 }
 

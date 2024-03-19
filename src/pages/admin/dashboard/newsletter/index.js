@@ -65,7 +65,7 @@ export default function Dashboard() {
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = 'newsletter.xlsx'
+      a.download = 'newsletter.json'
       document.body.appendChild(a)
       a.click()
       // Cleanup

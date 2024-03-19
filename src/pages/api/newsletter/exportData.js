@@ -17,51 +17,39 @@ export default async function handler(req, res) {
             return resolve()
           }
 
-          const workbook = XLSX.utils.book_new()
-          const worksheet = XLSX.utils.json_to_sheet(data)
-
-          // Add headers
-          XLSX.utils.sheet_add_aoa(
-            worksheet,
-            [['Codigo', 'Mail', 'Nombre', 'Estado']],
-            {
-              origin: 'A1',
-            }
-          )
-
-          // Set column width
-          const max_width = data.reduce(
-            (w, r) => Math.max(w, r.mail.length),
-            10
-          )
-          worksheet['!cols'] = [{ wch: max_width }]
-
-          // Append the worksheet to the workbook
-          XLSX.utils.book_append_sheet(workbook, worksheet, 'Newsletter')
-
-          // Write the workbook to a file
-          const filePath = path.resolve('.', 'public/tmp/newsletter.xlsx')
-          XLSX.writeFile(workbook, filePath)
-
-          // Send the file to the client
-          fs.readFile(filePath, (err, data) => {
+          // Save the data as a JSON file
+          const jsonData = JSON.stringify(data)
+          const filePath = path.resolve('.', 'public/tmp/newsletter.json')
+          fs.writeFile(filePath, jsonData, (err) => {
             if (err) {
               console.error('ERROR:', err)
               res
                 .status(500)
-                .json({ error: 'Error del servidor al enviar el archivo' })
-            } else {
-              res.setHeader(
-                'Content-Type',
-                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-              )
-              res.setHeader(
-                'Content-Disposition',
-                'attachment; filename=exportedData.xlsx'
-              )
-              res.send(data)
+                .json({
+                  error: 'Error del servidor al guardar el archivo JSON',
+                })
+              return resolve()
             }
-            return resolve()
+
+            // Send the file to the client
+            fs.readFile(filePath, (err, data) => {
+              if (err) {
+                console.error('ERROR:', err)
+                res
+                  .status(500)
+                  .json({
+                    error: 'Error del servidor al enviar el archivo JSON',
+                  })
+              } else {
+                res.setHeader('Content-Type', 'application/json')
+                res.setHeader(
+                  'Content-Disposition',
+                  'attachment; filename=exportedData.json'
+                )
+                res.send(data)
+              }
+              return resolve()
+            })
           })
         }
       )
