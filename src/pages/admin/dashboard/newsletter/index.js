@@ -59,18 +59,15 @@ export default function Dashboard() {
     setLoadingMessage('Descargando archivo')
     try {
       const response = await fetch('/api/newsletter/exportData')
-      const blob = await response.blob()
-      console.log(response)
-      console.log(blob)
-      const url = window.URL.createObjectURL(blob)
+      const jsonUrl = await response.json()
+
       const a = document.createElement('a')
-      a.href = url
-      a.download = 'newsletter.json'
       document.body.appendChild(a)
+      a.href = jsonUrl.data
+      a.setAttribute('download', 'newsletter.json')
       a.click()
-      // Cleanup
-      window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
+
       if (response.error) {
         console.log('error de la api,', response.error)
         setErrorMessage(response.error)
