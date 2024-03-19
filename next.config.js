@@ -67,12 +67,6 @@ const nextConfig = {
       },
     ]
   },
-  experimental: {
-    outputFileTracingIncludes: {
-      '/api/newsletter/exportData': ['./public/tmp/*'],
-    },
-  },
-  swcMinify: false,
   i18n,
 }
 
