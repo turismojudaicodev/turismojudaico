@@ -1,9 +1,7 @@
 import { db } from 'lib/mysql'
 import path from 'path'
 import * as fs from 'fs'
-import * as XLSX from 'xlsx/xlsx.mjs'
-
-XLSX.set_fs(fs)
+import exceljs from 'exceljs'
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
@@ -18,45 +16,63 @@ export default async function handler(req, res) {
               .json({ error: err.sqlMessage ?? 'Error del servidor' })
             return resolve()
           }
-          // const workbook = parse(data)
-          const worksheet = XLSX.utils.json_to_sheet(data)
-          const workbook = XLSX.utils.book_new()
-          XLSX.utils.book_append_sheet(workbook, worksheet, 'Newsletter')
 
-          /* fix headers */
-          XLSX.utils.sheet_add_aoa(
-            worksheet,
-            [['Codigo', 'Mail', 'Nombre', 'Estado']],
-            {
-              origin: 'A1',
-            }
-          )
+          const workbook = new exceljs.Workbook()
+          const worksheet = workbook.addWorksheet('Newsletter')
 
-          /* calculate column width */
-          const max_width = data.reduce(
-            (w, r) => Math.max(w, r.mail.length),
-            10
-          )
-          worksheet['!cols'] = [{ wch: max_width }]
+          // Add headers
+          worksheet.addRow(['Codigo', 'Mail', 'Nombre', 'Estado'])
 
-          /* create an XLSX file and try to save to Presidents.xlsx */
-          XLSX.writeFile(workbook, 'public/tmp/newsletter.xlsx')
-
-          const filePath = path.resolve('.', 'public/tmp/newsletter.xlsx')
-
-          fs.readFile(filePath, (err, data) => {
-            if (err) console.error('ERROR:', err)
-            res.setHeader(
-              'Content-Type',
-              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            )
-            res.setHeader(
-              'Content-Disposition',
-              'attachment; filename=exportedData.xlsx'
-            )
-            res.send(data)
-            return resolve()
+          // Add data
+          data.forEach((row) => {
+            worksheet.addRow([row.codigo, row.mail, row.nombre, row.estado])
           })
+
+          // Set column widths
+          worksheet.columns.forEach((column) => {
+            let maxLength = 0
+            column.eachCell({ includeEmpty: true }, (cell) => {
+              const length = cell.value ? cell.value.toString().length : 10
+              if (length > maxLength) {
+                maxLength = length
+              }
+            })
+            column.width = maxLength < 10 ? 10 : maxLength
+          })
+
+          // Save the workbook to a file
+          const filePath = path.resolve('.', 'public/tmp/newsletter.xlsx')
+          workbook.xlsx
+            .writeFile(filePath)
+            .then(() => {
+              // Send the file to the client
+              fs.readFile(filePath, (err, data) => {
+                if (err) {
+                  console.error('ERROR:', err)
+                  res
+                    .status(500)
+                    .json({ error: 'Error del servidor al enviar el archivo' })
+                } else {
+                  res.setHeader(
+                    'Content-Type',
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                  )
+                  res.setHeader(
+                    'Content-Disposition',
+                    'attachment; filename=exportedData.xlsx'
+                  )
+                  res.send(data)
+                }
+                return resolve()
+              })
+            })
+            .catch((error) => {
+              console.error('ERROR:', error)
+              res
+                .status(500)
+                .json({ error: 'Error del servidor al guardar el archivo' })
+              return resolve()
+            })
         }
       )
     })
