@@ -66,6 +66,8 @@
   flex-direction: column;
   gap: .75rem;
   margin-bottom: 1rem;
+  width: 100%;
+  max-width: 830px;
 }
 
 .moreInfoContainer__data {

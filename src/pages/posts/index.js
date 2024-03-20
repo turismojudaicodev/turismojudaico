@@ -36,7 +36,6 @@ export default function Content({ locale }) {
   })
   const [posts, setPosts] = useState([])
   const [filteredPosts, setIsFilteredPosts] = useState([])
-  const [offset, setOffset] = useState(0)
   const [limit, setLimit] = useState(10)
   const [isLoading, setIsLoading] = useState(false)
   const [isFiltersLoading, setIsFiltersLoading] = useState(false)
@@ -90,11 +89,14 @@ export default function Content({ locale }) {
     ev.preventDefault()
     setLimit(LIMIT_INCREASE)
     const formData = Object.fromEntries(new FormData(ev.target))
+    const filteredName = formData.nombre
+    delete formData.nombre
+
     const params = Object.entries(formData).filter(([key, value]) => {
       return value !== '' && value !== '0'
     })
-    // console.log(params)
-    const filteredPosts = posts.filter((post) => {
+
+    let filteredPosts = posts.filter((post) => {
       return params.every(([key, value]) => {
         // if (key == 'categoria') console.log(post.codigo, post.categorias, value)
         return (
@@ -105,6 +107,41 @@ export default function Content({ locale }) {
         )
       })
     })
+
+    if (filteredName.length > 0) {
+      const words = filteredName.split(/\s+/)
+      console.log(words)
+      let flag = false
+      filteredPosts = filteredPosts.filter((post) => {
+        words.forEach((word) => {
+          if (locale === 'es') {
+            if (
+              post.nombre.toLowerCase().includes(word.trim().toLowerCase()) ||
+              post.descripcion.toLowerCase().includes(word.trim().toLowerCase())
+            ) {
+              flag = true
+            }
+          } else {
+            if (
+              post.nombre_en
+                .toLowerCase()
+                .includes(word.trim().toLowerCase()) ||
+              post.descripcion_en
+                .toLowerCase()
+                .includes(word.trim().toLowerCase())
+            ) {
+              flag = true
+            }
+          }
+        })
+        if (flag) {
+          flag = false
+          return true
+        }
+        return false
+      })
+    }
+
     setIsFilteredPosts(filteredPosts)
   }
 

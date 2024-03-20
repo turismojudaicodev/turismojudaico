@@ -20,7 +20,7 @@ function SliderImage({ imgSrc, alt }) {
   return (
     <div
       style={{
-        aspectRatio: '5/3',
+        aspectRatio: '16/9',
         position: 'relative',
         border: '1px solid lightgray',
       }}
@@ -29,7 +29,9 @@ function SliderImage({ imgSrc, alt }) {
         alt={alt || 'Sin Imagen'}
         src={imgSrc}
         fill
-        style={{ objectFit: 'contain' }}
+        style={{
+          objectFit: 'cover',
+        }}
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
       />
     </div>
@@ -89,7 +91,7 @@ export default function Post() {
                     <p>{post.telefono}</p>
                   </div>
                 )}
-                {post.link && (
+                {post.link && post.link.trim().length > 0 && (
                   <div className={styles.moreInfoContainer__data}>
                     <img src="/icons/web.svg" alt="" />
                     <a
@@ -101,14 +103,20 @@ export default function Post() {
                     </a>
                   </div>
                 )}
-                {post.mail && (
+                {post.mail && post.mail.trim().length > 0 && (
                   <div className={styles.moreInfoContainer__data}>
                     <img src="/icons/mail.svg" alt="" />
                     <a href={`mailto:${post.mail}`}>{post.mail}</a>
                   </div>
                 )}
               </div>
-              <div style={{ borderBottom: '4px solid var(--clr-green)' }}>
+              <div
+                style={{
+                  width: '100%',
+                  maxWidth: '830px',
+                  borderBottom: '4px solid var(--clr-green)',
+                }}
+              >
                 <Carousel
                   autoPlay
                   infiniteLoop
@@ -149,28 +157,6 @@ export default function Post() {
                   )}
                 </Carousel>
               </div>
-              {/* <div>
-                <div>
-                  <h3>Localidad</h3>
-                  <p>{post.localidad || 'No especifado'}</p>
-                </div>
-                <div>
-                  <h3>Dirección</h3>
-                  <p>{post.direccion || 'No especificado'}</p>
-                </div>
-                <div>
-                  <h3>Teléfono</h3>
-                  <p>{post.telefono || 'No especificado'}</p>
-                </div>
-                <div>
-                  <h3>Mail</h3>
-                  <p>{post.mail || 'No especificado'}</p>
-                </div>
-                <div>
-                  <h3>Link</h3>
-                  <p>{post.link || 'No especificado'}</p>
-                </div>
-              </div> */}
               <div className={styles.content}>
                 {router.locale === 'es'
                   ? post?.texto?.split('\n\r').map((text, i) => (
