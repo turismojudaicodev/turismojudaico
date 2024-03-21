@@ -8,7 +8,7 @@
     },
     "filter": "Filter",
     "form": {
-      "title": "Title",
+      "title": "Search any word",
       "placeholder": "Search...",
       "country": "Country",
       "city": "City",
