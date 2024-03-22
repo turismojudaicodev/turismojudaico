@@ -48,19 +48,30 @@ export default function Blog() {
             <Message type="error" message={errorMessage} />
           ) : (
             <div className={styles.blogInfo}>
-              <h2 className={utils.bigTitle}>
+              <h1 className={utils.bigTitle} style={{ textAlign: 'center' }}>
                 {router.locale === 'es' ? blog.nombre : blog.nombre_en}
-              </h2>
-              <Image
-                src={
-                  router.locale === 'es'
-                    ? setImageSrc(blog.imagen, 'noticias')
-                    : setImageSrc(blog.imagen_en, 'noticias')
-                }
-                height={300}
-                width={425}
-                alt="Blog main image"
-              />
+              </h1>
+              <div
+                style={{
+                  aspectRatio: '16/9',
+                  position: 'relative',
+                  border: '1px solid lightgray',
+                }}
+              >
+                <Image
+                  src={
+                    router.locale === 'es'
+                      ? setImageSrc(blog.imagen, 'noticias')
+                      : setImageSrc(blog.imagen_en, 'noticias')
+                  }
+                  fill
+                  style={{
+                    objectFit: 'cover',
+                  }}
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  alt="Blog main image"
+                />
+              </div>
               <div className={styles.content}>
                 {router.locale === 'es'
                   ? blog?.texto && (

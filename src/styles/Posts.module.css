@@ -37,9 +37,13 @@
   margin-right: 2rem;
 }
 
+.content {
+  width: 100%;
+  max-width: 830px;
+}
+
 .content * {
   width: 100%;
-  max-width: 800px;
 }
 
 .content * iframe {
@@ -68,6 +72,7 @@
   margin-bottom: 1rem;
   width: 100%;
   max-width: 830px;
+  margin-inline: auto;
 }
 
 .moreInfoContainer__data {

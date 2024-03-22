@@ -8,6 +8,12 @@
 
 /* [id].js */
 
+.blogInfo {
+  width: 100%;
+  max-width: 830px;
+  margin-inline: auto;
+}
+
 .blogInfo > *:not(:last-child) {
   margin-bottom: 1rem;
 }

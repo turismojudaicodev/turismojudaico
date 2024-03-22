@@ -55,6 +55,10 @@ export default function Post() {
       if (error) return setErrorMessage(error)
       setPost(data)
       console.log({ data })
+      // const newUrl = `/posts/${router.query.id}/${encodeURIComponent(
+      //   router.locale === 'es' ? data.nombre : data.nombre_en
+      // )}`
+      // window.history.pushState({ path: newUrl }, '', newUrl)
     }
     setIsLoading(true)
     if (router.isReady) fetchData()
@@ -67,129 +71,138 @@ export default function Post() {
       </Head>
       <Layout>
         <main className={`${utils.container} ${utils.marginBlock}`}>
-          {errorMessage ? (
-            <Message type="error" message={errorMessage} />
-          ) : (!post && !isLoading) || isLoading ? (
-            <LoadingIndicator />
-          ) : (
-            <>
-              <h2 className={utils.bigTitle} style={{ marginBottom: '1rem' }}>
-                {router.locale === 'es' ? post.nombre : post.nombre_en}
-              </h2>
-              <div className={styles.moreInfoContainer}>
-                {(post.direccion || post.localidad) && (
-                  <div className={styles.moreInfoContainer__data}>
-                    <img src="/icons/location.svg" alt="" />
-                    <p>
-                      {post.direccion}, {post.localidad}
-                    </p>
-                  </div>
-                )}
-                {post.telefono && (
-                  <div className={styles.moreInfoContainer__data}>
-                    <img src="/icons/telephone.svg" alt="" />
-                    <p>{post.telefono}</p>
-                  </div>
-                )}
-                {post.link && post.link.trim().length > 0 && (
-                  <div className={styles.moreInfoContainer__data}>
-                    <img src="/icons/web.svg" alt="" />
-                    <a
-                      href={`http://${post.link}`}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      {post.link}
-                    </a>
-                  </div>
-                )}
-                {post.mail && post.mail.trim().length > 0 && (
-                  <div className={styles.moreInfoContainer__data}>
-                    <img src="/icons/mail.svg" alt="" />
-                    <a href={`mailto:${post.mail}`}>{post.mail}</a>
-                  </div>
-                )}
-              </div>
-              <div
-                style={{
-                  width: '100%',
-                  maxWidth: '830px',
-                  borderBottom: '4px solid var(--clr-green)',
-                }}
-              >
-                <Carousel
-                  autoPlay
-                  infiniteLoop
-                  showStatus={false}
-                  showThumbs={false}
-                  dynamicHeight
-                  width="100%"
+          <div className={utils.centeredContainer}>
+            {errorMessage ? (
+              <Message type="error" message={errorMessage} />
+            ) : (!post && !isLoading) || isLoading ? (
+              <LoadingIndicator />
+            ) : (
+              <div>
+                <h2
+                  className={utils.bigTitle}
+                  style={{ marginBottom: '1rem', textAlign: 'center' }}
                 >
-                  {post.imagen1 && (
-                    <SliderImage
-                      imgSrc={setImageSrc(post?.imagen1, 'contenidos')}
-                      alt={post.imagen1}
-                    />
+                  {router.locale === 'es' ? post.nombre : post.nombre_en}
+                </h2>
+                <div className={styles.moreInfoContainer}>
+                  {(post.direccion || post.localidad) && (
+                    <div className={styles.moreInfoContainer__data}>
+                      <img src="/icons/location.svg" alt="" />
+                      <p>
+                        {post.direccion}, {post.localidad}
+                      </p>
+                    </div>
                   )}
-                  {post.imagen2 && (
-                    <SliderImage
-                      imgSrc={setImageSrc(post?.imagen2, 'contenidos')}
-                      alt={post.imagen2}
-                    />
+                  {post.telefono && (
+                    <div className={styles.moreInfoContainer__data}>
+                      <img src="/icons/telephone.svg" alt="" />
+                      <p>{post.telefono}</p>
+                    </div>
                   )}
-                  {post.imagen3 && (
-                    <SliderImage
-                      imgSrc={setImageSrc(post?.imagen3, 'contenidos')}
-                      alt={post.imagen3}
-                    />
-                  )}
-                  {post.imagen4 && (
-                    <SliderImage
-                      imgSrc={setImageSrc(post?.imagen4, 'contenidos')}
-                      alt={post.imagen4}
-                    />
-                  )}
-                  {post.imagen5 && (
-                    <SliderImage
-                      imgSrc={setImageSrc(post?.imagen5, 'contenidos')}
-                      alt={post.imagen5}
-                    />
-                  )}
-                </Carousel>
-              </div>
-              <div className={styles.content}>
-                {router.locale === 'es'
-                  ? post?.texto?.split('\n\r').map((text, i) => (
-                      <div
-                        style={{ marginBlock: '1.5em' }}
-                        key={i}
-                        className={styles.postTextContainer}
+                  {post.link && post.link.trim().length > 0 && (
+                    <div className={styles.moreInfoContainer__data}>
+                      <img src="/icons/web.svg" alt="" />
+                      <a
+                        href={`http://${post.link}`}
+                        target="_blank"
+                        rel="noreferrer"
                       >
-                        {text.split('\n').map((text, i) => (
-                          <p
-                            key={i}
-                            dangerouslySetInnerHTML={{ __html: text }}
-                          />
-                        ))}
-                      </div>
-                    ))
-                  : post?.texto_en?.split('\n\r').map((text, i) => (
-                      <div
-                        style={{ marginBlock: '1.5em' }}
-                        key={i}
-                        className={styles.postTextContainer}
-                      >
-                        {text.split('\n').map((text, i) => (
-                          <p
-                            key={i}
-                            dangerouslySetInnerHTML={{ __html: text }}
-                          />
-                        ))}
-                      </div>
-                    ))}
+                        {post.link}
+                      </a>
+                    </div>
+                  )}
+                  {post.mail && post.mail.trim().length > 0 && (
+                    <div className={styles.moreInfoContainer__data}>
+                      <img src="/icons/mail.svg" alt="" />
+                      <a href={`mailto:${post.mail}`}>{post.mail}</a>
+                    </div>
+                  )}
+                </div>
+                <div
+                  style={{
+                    width: '100%',
+                    maxWidth: '830px',
+                    borderBottom: '4px solid var(--clr-green)',
+                    marginInline: 'auto',
+                  }}
+                >
+                  <Carousel
+                    autoPlay
+                    infiniteLoop
+                    showStatus={false}
+                    showThumbs={false}
+                    dynamicHeight
+                    width="100%"
+                  >
+                    {post.imagen1 && (
+                      <SliderImage
+                        imgSrc={setImageSrc(post?.imagen1, 'contenidos')}
+                        alt={post.imagen1}
+                      />
+                    )}
+                    {post.imagen2 && (
+                      <SliderImage
+                        imgSrc={setImageSrc(post?.imagen2, 'contenidos')}
+                        alt={post.imagen2}
+                      />
+                    )}
+                    {post.imagen3 && (
+                      <SliderImage
+                        imgSrc={setImageSrc(post?.imagen3, 'contenidos')}
+                        alt={post.imagen3}
+                      />
+                    )}
+                    {post.imagen4 && (
+                      <SliderImage
+                        imgSrc={setImageSrc(post?.imagen4, 'contenidos')}
+                        alt={post.imagen4}
+                      />
+                    )}
+                    {post.imagen5 && (
+                      <SliderImage
+                        imgSrc={setImageSrc(post?.imagen5, 'contenidos')}
+                        alt={post.imagen5}
+                      />
+                    )}
+                  </Carousel>
+                </div>
+                <div
+                  className={styles.content}
+                  style={{ marginInline: 'auto' }}
+                >
+                  {router.locale === 'es'
+                    ? post?.texto?.split('\n\r').map((text, i) => (
+                        <div
+                          style={{ marginBlock: '1.5em' }}
+                          key={i}
+                          className={styles.postTextContainer}
+                        >
+                          {text.split('\n').map((text, i) => (
+                            <p
+                              key={i}
+                              dangerouslySetInnerHTML={{ __html: text }}
+                            />
+                          ))}
+                        </div>
+                      ))
+                    : post?.texto_en?.split('\n\r').map((text, i) => (
+                        <div
+                          style={{ marginBlock: '1.5em' }}
+                          key={i}
+                          className={styles.postTextContainer}
+                        >
+                          {text.split('\n').map((text, i) => (
+                            <p
+                              key={i}
+                              dangerouslySetInnerHTML={{ __html: text }}
+                            />
+                          ))}
+                        </div>
+                      ))}
+                </div>
               </div>
-            </>
-          )}
+            )}
+          </div>
         </main>
       </Layout>
     </>
