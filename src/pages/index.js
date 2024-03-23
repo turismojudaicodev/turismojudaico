@@ -123,8 +123,16 @@ export default function Home({ locale }) {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Layout>
-        <main className={`${styles.main} ${utils.container}`}>
-          <h1 className={utils.bigTitle}>{t('body.title', { ns: 'index' })}</h1>
+        <main
+          className={`${styles.main} ${utils.container}`}
+          style={{
+            maxWidth: '870px',
+            marginInline: 'auto',
+          }}
+        >
+          <h1 className={utils.bigTitle} style={{ textAlign: 'center' }}>
+            {t('body.title', { ns: 'index' })}
+          </h1>
           <div className={styles.carouselContainer}>
             <Carousel
               autoPlay
@@ -165,9 +173,13 @@ export default function Home({ locale }) {
             </Carousel>
           </div>
           <div className={styles.postsContainer}>
-            <h2 className={utils.mediumTitle}>{t('body.featuredTours')}</h2>
+            <h2 className={utils.mediumTitle} style={{ textAlign: 'center' }}>
+              {t('body.featuredTours')}
+            </h2>
             {isLoading ? (
-              <LoadingIndicator />
+              <div className={utils.centeredContainer}>
+                <LoadingIndicator />
+              </div>
             ) : toursSmall.length > 0 ? (
               <div className={styles.featuredToursContainer}>
                 {toursSmall.map((tour) => (
@@ -189,14 +201,16 @@ export default function Home({ locale }) {
               />
             )}
           </div>
-          <h2>
+          <h2 style={{ textAlign: 'center' }}>
             {locale === 'es'
               ? 'NOS ACOMPAÑAN Y CONFÍAN EN NOSOTROS'
               : 'THEY ACCOMPANY US AND TRUST US:'}
           </h2>
           <div className={styles.supporters}>
             {isLoading ? (
-              <LoadingIndicator />
+              <div className={utils.centeredContainer}>
+                <LoadingIndicator />
+              </div>
             ) : logos.length > 0 ? (
               logos.map((logo, index) => (
                 <Image

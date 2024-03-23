@@ -17,12 +17,13 @@
   flex-wrap: wrap;
   gap: 1rem;
   justify-content: space-evenly ;
-  max-width: 700px;
+  max-width: 830px;
+  margin-inline: auto;
 }
 
 .carouselContainer {
   border-bottom: 4px solid var(--clr-green);
-  width: 80%;
+  width: 100%;
 }
 
 .featuredToursContainer {
