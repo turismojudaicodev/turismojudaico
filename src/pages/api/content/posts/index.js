@@ -57,7 +57,10 @@ export default async function handler(req, res) {
             }
             return acc
           }, {})
-          res.status(200).json({ data: Object.values(posts) })
+          const postsOrderedByOrder = Object.values(posts).sort(
+            (a, b) => a.orden - b.orden
+          )
+          res.status(200).json({ data: postsOrderedByOrder })
           return resolve()
         }
         res.status(200).json({ data })
