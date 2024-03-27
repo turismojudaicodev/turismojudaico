@@ -87,6 +87,7 @@
 
 .moreInfoContainer a {
   color: dodgerblue;
+  word-break: break-all;
 }
 
 .moreInfoContainer a:hover {
