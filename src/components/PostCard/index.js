@@ -1,12 +1,17 @@
 import Link from 'next/link'
 import styles from './PostCard.module.css'
 import Image from 'next/image'
-import { setImageSrc } from 'helpers'
+import { fixUrl, setImageSrc } from 'helpers'
 
 export function PostCard({ post, locale = 'es' }) {
   return (
     <div className={styles.card}>
-      <Link href={`/posts/${post.codigo}`} className={styles.imgContainer}>
+      <Link
+        href={`/posts/${post.codigo}/${
+          locale === 'es' ? fixUrl(post.nombre) : fixUrl(post.nombre_en)
+        }`}
+        className={styles.imgContainer}
+      >
         <Image
           src={setImageSrc(post.imagen1, 'contenidos')}
           alt={post.imagen1 || 'Sin imagen'}
@@ -14,7 +19,11 @@ export function PostCard({ post, locale = 'es' }) {
         />
       </Link>
       <div className={styles.text}>
-        <Link href={`/posts/${post.codigo}`}>
+        <Link
+          href={`/posts/${post.codigo}/${
+            locale === 'es' ? fixUrl(post.nombre) : fixUrl(post.nombre_en)
+          }`}
+        >
           <h3>{locale === 'es' ? post.nombre : post.nombre_en}</h3>
         </Link>
         <p>{locale === 'es' ? post.descripcion : post.descripcion_en}</p>

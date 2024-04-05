@@ -1,4 +1,4 @@
-import { setImageSrc } from 'helpers'
+import { setImageSrc, fixUrl } from 'helpers'
 // components
 import Link from 'next/link'
 import Image from 'next/image'
@@ -8,7 +8,12 @@ import styles from './TourCard.module.css'
 export function TourCard({ tour, locale = 'es' }) {
   return (
     <div className={styles.card}>
-      <Link href={`/tours/${tour.codigo}`} className={styles.imgContainer}>
+      <Link
+        href={`/tours/${tour.codigo}/${
+          locale === 'es' ? fixUrl(tour.nombre) : fixUrl(tour.nombre_en)
+        }`}
+        className={styles.imgContainer}
+      >
         <Image
           src={setImageSrc(tour.imagen1, 'citytours')}
           alt={tour.imagen1}
@@ -17,7 +22,11 @@ export function TourCard({ tour, locale = 'es' }) {
         />
       </Link>
       <div className={styles.text}>
-        <Link href={`/tours/${tour.codigo}`}>
+        <Link
+          href={`/tours/${tour.codigo}/${
+            locale === 'es' ? fixUrl(tour.nombre) : fixUrl(tour.nombre_en)
+          }`}
+        >
           <h3>{locale === 'es' ? tour.nombre : tour.nombre_en}</h3>
         </Link>
         <p>

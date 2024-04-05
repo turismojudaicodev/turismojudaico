@@ -4,7 +4,7 @@ import { useTranslation } from 'next-i18next'
 import { useEffect, useState } from 'react'
 // Local
 import { getContent } from 'lib/api'
-import { setImageSrc } from 'helpers'
+import { fixUrl, setImageSrc } from 'helpers'
 // Components
 import Head from 'next/head'
 import Link from 'next/link'
@@ -145,7 +145,11 @@ export default function Home({ locale }) {
               {toursBig.length > 0 ? (
                 toursBig.map((tour) => (
                   <Link
-                    href={`/tours/${tour.codigo}`}
+                    href={`/tours/${tour.codigo}/${
+                      locale === 'es'
+                        ? fixUrl(tour.nombre)
+                        : fixUrl(tour.nombre_en)
+                    }`}
                     key={tour.codigo}
                     target="_blank"
                   >
