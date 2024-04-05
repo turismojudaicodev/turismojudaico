@@ -56,3 +56,8 @@ export function setImageSrc(image, path = undefined) {
   }
   return image
 }
+
+export function fixUrl(url) {
+  const words = url.trim().split(/\s+/)
+  return words.join('-')
+}
