@@ -25,7 +25,7 @@ export default function Blog() {
     if (blog?.nombre && blog?.nombre_en) {
       const encodedBlogTitle =
         router.locale === 'es' ? fixUrl(blog?.nombre) : fixUrl(blog?.nombre_en)
-      const newUrl = `/blogs/${blog?.codigo}/${encodedBlogTitle}`
+      const newUrl = `/blog/${blog?.codigo}/${encodedBlogTitle}`
       window.history.pushState({ path: newUrl }, '', newUrl)
     }
   }, [router.locale, blog])
