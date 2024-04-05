@@ -35,31 +35,31 @@ const nextConfig = {
         destination: '/',
         permanent: true,
       },
-      {
-        source: '/contenidos/:slug*',
-        destination: '/',
-        permanent: true,
-      },
-      {
-        source: '/contenidos',
-        destination: '/',
-        permanent: true,
-      },
-      {
-        source: '/contenido/:slug*',
-        destination: '/',
-        permanent: true,
-      },
-      {
-        source: '/contenido',
-        destination: '/',
-        permanent: true,
-      },
-      {
-        source: '/tour/:slug*',
-        destination: '/tours',
-        permanent: true,
-      },
+      // {
+      //   source: '/contenidos/:slug*',
+      //   destination: '/',
+      //   permanent: true,
+      // },
+      // {
+      //   source: '/contenidos',
+      //   destination: '/',
+      //   permanent: true,
+      // },
+      // {
+      //   source: '/contenido/:slug*',
+      //   destination: '/',
+      //   permanent: true,
+      // },
+      // {
+      //   source: '/contenido',
+      //   destination: '/',
+      //   permanent: true,
+      // },
+      // {
+      //   source: '/tour/:slug*',
+      //   destination: '/tours',
+      //   permanent: true,
+      // },
       {
         source: '/test/:slug*',
         destination: '/',

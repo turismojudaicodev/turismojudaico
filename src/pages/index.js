@@ -145,7 +145,7 @@ export default function Home({ locale }) {
               {toursBig.length > 0 ? (
                 toursBig.map((tour) => (
                   <Link
-                    href={`/tours/${tour.codigo}/${
+                    href={`/tour/${tour.codigo}/${
                       locale === 'es'
                         ? fixUrl(tour.nombre)
                         : fixUrl(tour.nombre_en)

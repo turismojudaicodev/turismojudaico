@@ -7,7 +7,7 @@ export function PostCard({ post, locale = 'es' }) {
   return (
     <div className={styles.card}>
       <Link
-        href={`/posts/${post.codigo}/${
+        href={`/contenido/${post.codigo}/${
           locale === 'es' ? fixUrl(post.nombre) : fixUrl(post.nombre_en)
         }`}
         className={styles.imgContainer}
@@ -20,7 +20,7 @@ export function PostCard({ post, locale = 'es' }) {
       </Link>
       <div className={styles.text}>
         <Link
-          href={`/posts/${post.codigo}/${
+          href={`/contenido/${post.codigo}/${
             locale === 'es' ? fixUrl(post.nombre) : fixUrl(post.nombre_en)
           }`}
         >

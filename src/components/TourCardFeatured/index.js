@@ -10,7 +10,7 @@ export function TourCardFeatured({ tour, locale = 'es' }) {
     <div className={styles.tour}>
       <Link
         className={styles.imgContainer}
-        href={`/tours/${tour.codigo}/${
+        href={`/tour/${tour.codigo}/${
           locale === 'es' ? fixUrl(tour.nombre) : fixUrl(tour.nombre_en)
         }`}
       >
@@ -22,7 +22,7 @@ export function TourCardFeatured({ tour, locale = 'es' }) {
       </Link>
       <div className={styles.infoContainer}>
         <Link
-          href={`/tours/${tour.codigo}/${
+          href={`/tour/${tour.codigo}/${
             locale === 'es' ? fixUrl(tour.nombre) : fixUrl(tour.nombre_en)
           }`}
         >

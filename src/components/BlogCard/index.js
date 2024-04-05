@@ -7,7 +7,7 @@ export function BlogCard({ blog, locale = 'es' }) {
   return (
     <div className={styles.card}>
       <Link
-        href={`/blogs/${blog.codigo}/${
+        href={`/blog/${blog.codigo}/${
           locale === 'es' ? fixUrl(blog.nombre) : fixUrl(blog.nombre_en)
         }`}
         className={styles.imgContainer}
@@ -24,7 +24,7 @@ export function BlogCard({ blog, locale = 'es' }) {
       </Link>
       <div className={styles.text}>
         <Link
-          href={`/blogs/${blog.codigo}/${
+          href={`/blog/${blog.codigo}/${
             locale === 'es' ? fixUrl(blog.nombre) : fixUrl(blog.nombre_en)
           }`}
         >

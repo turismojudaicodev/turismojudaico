@@ -26,7 +26,7 @@ const LINKS = [
   },
   {
     name: 'posts',
-    url: '/posts',
+    url: '/contenidos',
   },
   {
     name: 'contact',

@@ -9,7 +9,7 @@ export function TourCard({ tour, locale = 'es' }) {
   return (
     <div className={styles.card}>
       <Link
-        href={`/tours/${tour.codigo}/${
+        href={`/tour/${tour.codigo}/${
           locale === 'es' ? fixUrl(tour.nombre) : fixUrl(tour.nombre_en)
         }`}
         className={styles.imgContainer}
@@ -23,7 +23,7 @@ export function TourCard({ tour, locale = 'es' }) {
       </Link>
       <div className={styles.text}>
         <Link
-          href={`/tours/${tour.codigo}/${
+          href={`/tour/${tour.codigo}/${
             locale === 'es' ? fixUrl(tour.nombre) : fixUrl(tour.nombre_en)
           }`}
         >
