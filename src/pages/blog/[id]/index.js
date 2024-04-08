@@ -31,6 +31,12 @@ export default function Blog() {
       if (error) return setErrorMessage(error)
       setBlog(data)
     }
+    if (blog?.nombre && blog?.nombre_en) {
+      const encodedBlogTitle =
+        router.locale === 'es' ? fixUrl(blog?.nombre) : fixUrl(blog?.nombre_en)
+      const newUrl = `/blog/${blog?.codigo}/${encodedBlogTitle}`
+      window.history.pushState({ path: newUrl }, '', newUrl)
+    }
     setIsLoading(true)
     if (router.isReady) fetchData()
   }, [router.isReady])

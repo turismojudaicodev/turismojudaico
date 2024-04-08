@@ -66,7 +66,7 @@ export default function CityTour() {
       )
       setI18n(translation)
     }
-    if (tour.nombre && tour.nombre_en) {
+    if (tour?.nombre && tour?.nombre_en) {
       const encodedTourTitle =
         router.locale === 'es' ? fixUrl(tour?.nombre) : fixUrl(tour?.nombre_en)
       const newUrl = `/tour/${tour?.codigo}/${encodedTourTitle}`
@@ -78,7 +78,7 @@ export default function CityTour() {
   useEffect(() => {
     async function fetchData() {
       const { data, error } = await getContent(
-        `/api/content/tours/${router.query.id}/${router.query.title}`
+        `/api/content/tours/${router.query.id}`
       )
       setIsLoading(false)
       if (error) return setBlockingError(error)

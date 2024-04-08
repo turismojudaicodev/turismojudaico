@@ -54,11 +54,14 @@ export default function Post() {
       setIsLoading(false)
       if (error) return setErrorMessage(error)
       setPost(data)
-      console.log({ data })
-      // const newUrl = `/posts/${router.query.id}/${encodeURIComponent(
-      //   router.locale === 'es' ? data.nombre : data.nombre_en
-      // )}`
-      // window.history.pushState({ path: newUrl }, '', newUrl)
+      if (post?.nombre && post?.nombre_en) {
+        const encodedPostTitle =
+          router.locale === 'es'
+            ? fixUrl(post?.nombre)
+            : fixUrl(post?.nombre_en)
+        const newUrl = `/contenido/${post?.codigo}/${encodedPostTitle}`
+        window.history.pushState({ path: newUrl }, '', newUrl)
+      }
     }
     setIsLoading(true)
     if (router.isReady) fetchData()

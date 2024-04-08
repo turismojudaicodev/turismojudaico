@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 // Local
 import { getUniqueContent, postContent } from 'lib/api'
-import { setImageSrc } from 'helpers'
+import { fixUrl, setImageSrc } from 'helpers'
 // Components
 import Layout from '@/components/Layout'
 import LoadingIndicator from '@/components/LoadingIndicator'
@@ -64,8 +64,14 @@ export default function CityTour() {
       setI18n(translation)
     }
     // alert('change locale')
+    if (tour?.nombre && tour?.nombre_en) {
+      const encodedTourTitle =
+        router.locale === 'es' ? fixUrl(tour?.nombre) : fixUrl(tour?.nombre_en)
+      const newUrl = `/tour/${tour?.codigo}/${encodedTourTitle}`
+      window.history.pushState({ path: newUrl }, '', newUrl)
+    }
     fetchLocale()
-  }, [router.locale])
+  }, [router.locale, tour])
 
   useEffect(() => {
     async function fetchData() {

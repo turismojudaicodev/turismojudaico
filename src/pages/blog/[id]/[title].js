@@ -33,7 +33,7 @@ export default function Blog() {
   useEffect(() => {
     async function fetchData() {
       const { data, error } = await getContent(
-        `/api/content/blogs/${router.query.id}/${router.query.title}`
+        `/api/content/blogs/${router.query.id}`
       )
       setIsLoading(false)
       if (error) return setErrorMessage(error)

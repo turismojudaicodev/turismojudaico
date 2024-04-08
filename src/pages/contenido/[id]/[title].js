@@ -57,7 +57,7 @@ export default function Post() {
   useEffect(() => {
     async function fetchData() {
       const { data, error } = await getContent(
-        `/api/content/posts/${router.query.id}/${router.query.title}`
+        `/api/content/posts/${router.query.id}`
       )
       setIsLoading(false)
       if (error) return setErrorMessage(error)

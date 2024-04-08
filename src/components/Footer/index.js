@@ -82,7 +82,8 @@ function Footer(props) {
             <h3>{i18n?.socialMedia?.title || ' a'}</h3>
             <div className={styles.socialLinks}>
               {SOCIAL_LINKS.map((link) => (
-                <Link
+                <a
+                  rel="noreferrer"
                   key={link.url}
                   href={link.url}
                   target="_blank"
@@ -95,7 +96,7 @@ function Footer(props) {
                     height={15}
                   />
                   {link.name}
-                </Link>
+                </a>
               ))}
             </div>
           </div>
