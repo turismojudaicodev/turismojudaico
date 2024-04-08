@@ -110,7 +110,11 @@ export default async function handler(req, res) {
         return // Para evitar setear en string vacio imagenes no cambiadas
       colsToUpdate += `${key}=?`
       if (i !== entries.length - 1) colsToUpdate += ', '
-      colsValues.push(!isNaN(parseInt(value)) ? parseInt(value) : `${value}`)
+      colsValues.push(
+        !isNaN(parseInt(value)) && key !== 'telefono'
+          ? parseInt(value)
+          : `${value}`
+      )
     })
 
     const queryString = `UPDATE contenidos SET ${colsToUpdate} WHERE codigo=${postId}`
