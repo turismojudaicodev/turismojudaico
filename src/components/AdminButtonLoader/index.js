@@ -16,7 +16,11 @@ export default function AdminButtonLoader({
       {isLoading ? (
         <div className={styles.loadingText}>
           <span className={styles.spinner}>
-            <Image src={loadingIcon} fill alt="Loading Icon" />
+            <img
+              src={loadingIcon}
+              style={{ position: 'absolute', width: '100%', height: '100%' }}
+              alt="Loading Icon"
+            />
           </span>
           <span>{loadingMessage}</span>
         </div>

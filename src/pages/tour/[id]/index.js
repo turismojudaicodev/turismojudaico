@@ -16,7 +16,6 @@ import {
   InputText,
   Textarea,
 } from '@/components/DashboardComponents'
-import Image from 'next/image'
 import { Carousel } from 'react-responsive-carousel'
 import Link from 'next/link'
 import Notification from '@/components/Notification'
@@ -34,11 +33,15 @@ function SliderImage({ imgSrc, alt }) {
         border: '1px solid lightgray',
       }}
     >
-      <Image
+      <img
         alt={alt || 'Sin Imagen'}
         src={imgSrc}
-        fill
-        style={{ objectFit: 'cover' }}
+        style={{
+          objectFit: 'cover',
+          position: 'absolute',
+          width: '100%',
+          height: '100%',
+        }}
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
       />
     </div>
@@ -213,16 +216,6 @@ export default function CityTour() {
             >
               {router.locale === 'es' ? 'Reservar' : 'Book'}
             </Link>
-            {/* <div
-              style={{ position: 'relative', width: '250px', height: '250px' }}
-            >
-              <Image
-                src={setImageSrc(tour.imagen1, 'citytours')}
-                alt={tour.imagen1}
-                width={350}
-                height={225}
-              />
-            </div> */}
             <div className={styles.content}>
               {router.locale === 'es'
                 ? tour?.descripcion?.split('\n\r').map((text, i) => (

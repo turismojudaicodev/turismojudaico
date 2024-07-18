@@ -1,7 +1,6 @@
 import { fixUrl, setImageSrc } from 'helpers'
 // components
 import Link from 'next/link'
-import Image from 'next/image'
 // styles
 import styles from './TourCardFeatured.module.css'
 
@@ -14,10 +13,10 @@ export function TourCardFeatured({ tour, locale = 'es' }) {
           locale === 'es' ? fixUrl(tour.nombre) : fixUrl(tour.nombre_en)
         }`}
       >
-        <Image
+        <img
           src={setImageSrc(tour.imagen1, 'citytours')}
           alt={tour.imagen1}
-          fill
+          style={{ position: 'absolute', width: '100%', height: '100%' }}
         />
       </Link>
       <div className={styles.infoContainer}>

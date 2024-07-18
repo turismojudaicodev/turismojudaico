@@ -2,7 +2,6 @@ import styles from './Message.module.css'
 import infoIcon from 'public/icons/info.svg'
 import errorIcon from 'public/icons/error.svg'
 import warningIcon from 'public/icons/warning.svg'
-import Image from 'next/image'
 
 export default function Message({ type, message }) {
   if (type !== 'warning' && type !== 'error' && type !== 'info')
@@ -17,7 +16,7 @@ export default function Message({ type, message }) {
   return (
     <div className={`${styles[type]}`}>
       <p className={styles.message}>
-        <Image
+        <img
           src={icon[type]}
           width={25}
           height={25}

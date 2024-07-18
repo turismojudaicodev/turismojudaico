@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import styles from './PostCard.module.css'
-import Image from 'next/image'
 import { fixUrl, setImageSrc } from 'helpers'
 
 export function PostCard({ post, locale = 'es' }) {
@@ -12,10 +11,10 @@ export function PostCard({ post, locale = 'es' }) {
         }`}
         className={styles.imgContainer}
       >
-        <Image
+        <img
           src={setImageSrc(post.imagen1, 'contenidos')}
           alt={post.imagen1 || 'Sin imagen'}
-          fill
+          style={{ position: 'absolute', width: '100%', height: '100%' }}
         />
       </Link>
       <div className={styles.text}>

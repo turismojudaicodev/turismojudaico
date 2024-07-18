@@ -17,7 +17,6 @@ import {
   InputText,
   Textarea,
 } from '@/components/DashboardComponents'
-import Image from 'next/image'
 import { Carousel } from 'react-responsive-carousel'
 import Link from 'next/link'
 import Notification from '@/components/Notification'
@@ -36,11 +35,12 @@ function SliderImage({ imgSrc, alt }) {
         border: '1px solid lightgray',
       }}
     >
-      <Image
+      <img
         alt={alt || 'Sin Imagen'}
         src={imgSrc}
-        fill
-        style={{ objectFit: 'cover' }}
+        style={{
+          objectFit: 'cover',
+        }}
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
       />
     </div>

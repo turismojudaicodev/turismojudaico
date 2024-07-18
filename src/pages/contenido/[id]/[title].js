@@ -25,10 +25,9 @@ function SliderImage({ imgSrc, alt }) {
         border: '1px solid lightgray',
       }}
     >
-      <Image
+      <img
         alt={alt || 'Sin Imagen'}
         src={imgSrc}
-        fill
         style={{
           objectFit: 'cover',
         }}

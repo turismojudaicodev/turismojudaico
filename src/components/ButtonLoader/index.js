@@ -1,4 +1,3 @@
-import Image from 'next/image'
 import utils from '@/styles/utils.module.css'
 import styles from './ButtonLoader.module.css'
 import loadingIcon from 'public/icons/loading.svg'
@@ -15,7 +14,11 @@ export default function ButtonLoader({
       </span>
       {isLoading && (
         <span className={styles.spinner}>
-          <Image src={loadingIcon} fill alt="Loading Icon" />
+          <img
+            src={loadingIcon}
+            style={{ position: 'absolute', width: '100%', height: '100%' }}
+            alt="Loading Icon"
+          />
         </span>
       )}
     </button>

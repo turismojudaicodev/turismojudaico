@@ -5,7 +5,6 @@ import { deleteContent } from 'lib/api'
 import DeleteIcon from 'public/icons/delete.svg'
 import EditIcon from 'public/icons/edit.svg'
 // Components
-import Image from 'next/image'
 import Link from 'next/link'
 import Notification, { NotificationLoading } from '../Notification'
 // Styles
@@ -103,7 +102,7 @@ export default function DashboardTablePartners({
                       className={dashboardStyles.editButton}
                       replace={false}
                     >
-                      <Image
+                      <img
                         src={EditIcon}
                         alt="Edit Icon"
                         height={12}
@@ -119,7 +118,7 @@ export default function DashboardTablePartners({
                       className={dashboardStyles.deleteButton}
                       onClick={() => handleDelete(row.codigo)}
                     >
-                      <Image
+                      <img
                         src={DeleteIcon}
                         alt="Delete Icon"
                         height={12}
