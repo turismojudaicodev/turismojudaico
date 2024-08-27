@@ -36,7 +36,7 @@ async function generateSitemap() {
       .map(
         (tour) =>
           `<url>
-          <loc>${`https://turismojudaico.com/tours/${tour.codigo}`}</loc>
+          <loc>${`https://turismojudaico.com/tour/${tour.codigo}`}</loc>
           <lastmod>${formatDate(new Date())}</lastmod>
         </url>`
       )
@@ -46,8 +46,8 @@ async function generateSitemap() {
       <lastmod>2023-11-25</lastmod>
     </url>
     <url>
-      <loc>https://turismojudaico.com/posts</loc>
-      <lastmod>2023-11-25</lastmod>
+      <loc>https://turismojudaico.com/contenidos</loc>
+      <lastmod>2024-04-15</lastmod>
     </url>
     <url>
       <loc>https://turismojudaico.com/blogs</loc>
