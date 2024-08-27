@@ -5,7 +5,7 @@ module.exports = {
     localeDetection: false,
     domains: [
       {
-        domain: 'en.turismojudaico.com',
+        domain: 'turismojudaico.com',
         defaultLocale: 'en',
       },
       {
