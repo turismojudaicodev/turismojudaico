@@ -13,22 +13,22 @@ const nextConfig = {
       },
     ],
   },
-  async rewrites() {
-    return {
-      beforeFiles: [
-        {
-          source: '/:path*',
-          has: [
-            {
-              type: 'host',
-              value: 'en.turismojudaico.com',
-            },
-          ],
-          destination: '/en/:path*',
-        },
-      ],
-    }
-  },
+  // async rewrites() {
+  //   return {
+  //     beforeFiles: [
+  //       {
+  //         source: '/:path*',
+  //         has: [
+  //           {
+  //             type: 'host',
+  //             value: 'en.turismojudaico.com',
+  //           },
+  //         ],
+  //         destination: '/en/:path*',
+  //       },
+  //     ],
+  //   }
+  // },
   async redirects() {
     return [
       {
