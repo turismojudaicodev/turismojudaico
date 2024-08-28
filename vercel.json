@@ -1,17 +1,6 @@
 {
   "redirects": [
     {
-      "source": "/(.*)",
-      "has": [
-        {
-          "type": "host",
-          "value": "en.turismojudaico.com"
-        }
-      ],
-      "destination": "/en/$1",
-      "permanent": true
-    },
-    {
       "source": "/contenidos/(.*)",
       "destination": "https://turismojudaico.com/en"
     },
