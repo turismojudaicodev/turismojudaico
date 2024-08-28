@@ -13,68 +13,68 @@ const nextConfig = {
       },
     ],
   },
-  // async rewrites() {
-  //   return {
-  //     beforeFiles: [
-  //       {
-  //         source: '/:path*',
-  //         has: [
-  //           {
-  //             type: 'host',
-  //             value: 'en.turismojudaico.com',
-  //           },
-  //         ],
-  //         destination: '/en/:path*',
-  //       },
-  //     ],
-  //   }
-  // },
-  async redirects() {
-    return [
-      {
-        source: '/paises/:slug*',
-        destination: '/',
-        permanent: true,
-      },
-      {
-        source: '/paises',
-        destination: '/',
-        permanent: true,
-      },
-      {
-        source: '/ciudades/:slug*',
-        destination: '/',
-        permanent: true,
-      },
-      {
-        source: '/ciudades',
-        destination: '/',
-        permanent: true,
-      },
-      {
-        source: '/:path*',
-        has: [
-          {
-            type: 'host',
-            value: 'en.turismojudaico.com',
-          },
-        ],
-        destination: '/en/:path*',
-        permanent: true,
-      },
-      {
-        source: '/',
-        has: [
-          {
-            type: 'host',
-            value: 'judaictourism.com',
-          },
-        ],
-        destination: '/en',
-        permanent: true,
-      },
-    ]
+  async rewrites() {
+    return {
+      beforeFiles: [
+        {
+          source: '/:path*',
+          has: [
+            {
+              type: 'host',
+              value: 'en.turismojudaico.com',
+            },
+          ],
+          destination: '/en/:path*',
+        },
+      ],
+    }
   },
+  // async redirects() {
+  //   return [
+  //     {
+  //       source: '/paises/:slug*',
+  //       destination: '/',
+  //       permanent: true,
+  //     },
+  //     {
+  //       source: '/paises',
+  //       destination: '/',
+  //       permanent: true,
+  //     },
+  //     {
+  //       source: '/ciudades/:slug*',
+  //       destination: '/',
+  //       permanent: true,
+  //     },
+  //     {
+  //       source: '/ciudades',
+  //       destination: '/',
+  //       permanent: true,
+  //     },
+  //     {
+  //       source: '/:path*',
+  //       has: [
+  //         {
+  //           type: 'host',
+  //           value: 'en.turismojudaico.com',
+  //         },
+  //       ],
+  //       destination: '/en/:path*',
+  //       permanent: true,
+  //     },
+  //     {
+  //       source: '/',
+  //       has: [
+  //         {
+  //           type: 'host',
+  //           value: 'judaictourism.com',
+  //         },
+  //       ],
+  //       destination: '/en',
+  //       permanent: true,
+  //     },
+  //   ]
+  // },
   i18n,
 }
 
