@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import styles from './BlogCard.module.css'
-import Image from 'next/image'
 import { setImageSrc, fixUrl } from 'helpers'
 
 export function BlogCard({ blog, locale = 'es' }) {
@@ -12,14 +11,14 @@ export function BlogCard({ blog, locale = 'es' }) {
         }`}
         className={styles.imgContainer}
       >
-        <Image
+        <img
           src={
             locale === 'es'
               ? setImageSrc(blog.imagen, 'noticias')
               : setImageSrc(blog.imagen_en, 'noticias')
           }
           alt={blog.imagen}
-          fill
+          style={{ position: 'absolute', width: '100%', height: '100%' }}
         />
       </Link>
       <div className={styles.text}>

@@ -6,7 +6,6 @@ import DeleteIcon from 'public/icons/delete.svg'
 import EditIcon from 'public/icons/edit.svg'
 import { getContent } from 'lib/api'
 // Components
-import Image from 'next/image'
 import Link from 'next/link'
 import Notification, { NotificationLoading } from '../Notification'
 import { Select } from '../DashboardComponents'
@@ -211,7 +210,7 @@ export default function DashboardTablePosts({ table, setVisibleTable = null }) {
                     className={dashboardStyles.editButton}
                     replace={false}
                   >
-                    <Image
+                    <img
                       src={EditIcon}
                       alt="Edit Icon"
                       height={12}
@@ -223,7 +222,7 @@ export default function DashboardTablePosts({ table, setVisibleTable = null }) {
                     className={dashboardStyles.deleteButton}
                     onClick={() => handleDelete(row.codigo)}
                   >
-                    <Image
+                    <img
                       src={DeleteIcon}
                       alt="Delete Icon"
                       height={12}

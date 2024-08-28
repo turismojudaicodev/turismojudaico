@@ -7,7 +7,6 @@ import facebookIcon from '../../../public/icons/facebook-logo.svg'
 import youtubeIcon from '../../../public/icons/youtube-logo.svg'
 // Components
 import Link from 'next/link'
-import Image from 'next/image'
 // Styles
 import styles from './Footer.module.css'
 import utils from '@/styles/utils.module.css'
@@ -89,7 +88,7 @@ function Footer(props) {
                   target="_blank"
                   className={utils.linkButton}
                 >
-                  <Image
+                  <img
                     src={link.icon}
                     alt={`${link.name} logo`}
                     width={15}

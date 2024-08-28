@@ -11,7 +11,6 @@ import Link from 'next/link'
 import Layout from '@/components/Layout'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import Message from '@/components/Message'
-import Image from 'next/image'
 import { Carousel } from 'react-responsive-carousel'
 import { TourCardFeatured } from '@/components/TourCardFeatured'
 // Styles
@@ -154,10 +153,9 @@ export default function Home({ locale }) {
                     target="_blank"
                   >
                     <div style={{ aspectRatio: '5/3', position: 'relative' }}>
-                      <Image
+                      <img
                         alt={tour.imagen1}
                         src={setImageSrc(tour.imagen1, 'citytours')}
-                        fill
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       />
                     </div>
@@ -165,11 +163,13 @@ export default function Home({ locale }) {
                 ))
               ) : (
                 <div style={{ aspectRatio: '5/3', position: 'relative' }}>
-                  <Image
+                  <img
                     alt="Slider image"
                     src="/images/logo.png"
-                    fill
-                    style={{ objectFit: 'contain', padding: '15%' }}
+                    style={{
+                      objectFit: 'contain',
+                      padding: '15%',
+                    }}
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   />
                 </div>
@@ -217,7 +217,7 @@ export default function Home({ locale }) {
               </div>
             ) : logos.length > 0 ? (
               logos.map((logo, index) => (
-                <Image
+                <img
                   key={index}
                   src={logo.imagen}
                   alt={logo.nombre}
@@ -228,7 +228,7 @@ export default function Home({ locale }) {
               ))
             ) : (
               SUPPORTERS.map((supporter, index) => (
-                <Image
+                <img
                   key={index}
                   src={supporter.image}
                   alt={supporter.image}

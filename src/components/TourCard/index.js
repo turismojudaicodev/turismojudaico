@@ -1,7 +1,6 @@
 import { setImageSrc, fixUrl } from 'helpers'
 // components
 import Link from 'next/link'
-import Image from 'next/image'
 // styles
 import styles from './TourCard.module.css'
 
@@ -14,11 +13,11 @@ export function TourCard({ tour, locale = 'es' }) {
         }`}
         className={styles.imgContainer}
       >
-        <Image
+        <img
           src={setImageSrc(tour.imagen1, 'citytours')}
           alt={tour.imagen1}
           sizes="(max-width: 500px) 100vw, 300px"
-          fill
+          style={{ position: 'absolute', width: '100%', height: '100%' }}
         />
       </Link>
       <div className={styles.text}>

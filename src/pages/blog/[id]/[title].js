@@ -6,7 +6,6 @@ import { getContent } from 'lib/api'
 import { formatDate, setImageSrc, fixUrl } from 'helpers'
 // Components
 import Head from 'next/head'
-import Image from 'next/image'
 import Layout from '@/components/Layout'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import Message from '@/components/Message'
@@ -72,15 +71,17 @@ export default function Blog() {
                   border: '1px solid lightgray',
                 }}
               >
-                <Image
+                <img
                   src={
                     router.locale === 'es'
                       ? setImageSrc(blog.imagen, 'noticias')
                       : setImageSrc(blog.imagen_en, 'noticias')
                   }
-                  fill
                   style={{
                     objectFit: 'cover',
+                    position: 'absolute',
+                    width: '100%',
+                    height: '100%',
                   }}
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   alt="Blog main image"

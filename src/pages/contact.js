@@ -8,7 +8,6 @@ import { postContent } from 'lib/api'
 // Components
 import Head from 'next/head'
 import Link from 'next/link'
-import Image from 'next/image'
 import Layout from '@/components/Layout'
 import Message from '@/components/Message'
 import Notification from '@/components/Notification'
@@ -164,7 +163,7 @@ export default function Contact() {
                       className={`${styles.emailLink} ${utils.underlinedButton}`}
                       href={'mailto:info@turismojudaico.com'}
                     >
-                      <Image
+                      <img
                         src={emailIcon}
                         width={25}
                         height={25}

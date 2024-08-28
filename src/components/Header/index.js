@@ -3,10 +3,8 @@ import { useRouter, withRouter } from 'next/router'
 import { useState, useEffect } from 'react'
 // Local
 import useWidowSize from 'hooks/useWindowSize'
-import imgLogoSrc from '../../../public/images/logo.png'
 // Components
 import Link from 'next/link'
-import Image from 'next/image'
 import NavMenu from '@/components/NavMenu'
 // Styles
 import styles from './Header.module.css'
@@ -32,9 +30,6 @@ function Header() {
   }, [router.locale])
 
   const changeLang = (lang) => {
-    // router.push(router.pathname, router.pathname, {
-    //   locale: lang,
-    // })
     const { pathname, asPath, query } = router
     router.push({ pathname, query }, asPath, { locale: lang })
   }
@@ -49,7 +44,11 @@ function Header() {
         <div className={styles.logoContainer}>
           <Link href="/">
             <div className={styles.logoImgContainer}>
-              <Image src={imgLogoSrc} alt="Our logo" fill />
+              <img
+                src={'/images/logo.png'}
+                alt="Our logo"
+                style={{ position: 'absolute', width: '100%', height: '100%' }}
+              />
             </div>
           </Link>
           <p className={styles.logoContainerText}>
