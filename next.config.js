@@ -43,12 +43,18 @@ const nextConfig = {
             value: 'en.turismojudaico.com',
           },
         ],
-        destination: 'https://domain.com/en/:path*',
+        destination: 'https://turismojudaico.com/en/:path*',
         permanent: true,
       },
       {
-        source: '/test/:slug*',
-        destination: '/',
+        source: '/',
+        has: [
+          {
+            type: 'host',
+            value: 'judaictourism.com',
+          },
+        ],
+        destination: 'https://turismojudaico.com/en',
         permanent: true,
       },
     ]
