@@ -9,7 +9,7 @@ module.exports = {
         defaultLocale: 'en',
       },
       {
-        domain: 'es.turismojudaico.com',
+        domain: 'turismojudaico.com',
         defaultLocale: 'es',
       },
     ],
