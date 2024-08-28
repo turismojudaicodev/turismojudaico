@@ -43,7 +43,7 @@ const nextConfig = {
             value: 'en.turismojudaico.com',
           },
         ],
-        destination: '/en/:path*',
+        destination: 'https://domain.com/en/:path*',
         permanent: true,
       },
       {
