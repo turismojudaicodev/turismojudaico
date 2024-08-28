@@ -13,6 +13,22 @@ const nextConfig = {
       },
     ],
   },
+  async rewrites() {
+    return {
+      beforeFiles: [
+        {
+          source: '/:path*',
+          has: [
+            {
+              type: 'host',
+              value: 'en.turismojudaico.com',
+            },
+          ],
+          destination: '/en/:path*',
+        },
+      ],
+    }
+  },
   async redirects() {
     return [
       {
@@ -43,7 +59,7 @@ const nextConfig = {
             value: 'en.turismojudaico.com',
           },
         ],
-        destination: 'https://turismojudaico.com/en/:path*',
+        destination: '/en/:path*',
         permanent: true,
       },
       {
@@ -54,7 +70,7 @@ const nextConfig = {
             value: 'judaictourism.com',
           },
         ],
-        destination: 'https://turismojudaico.com/en',
+        destination: '/en',
         permanent: true,
       },
     ]
