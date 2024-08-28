@@ -40,8 +40,8 @@ const nextConfig = {
         has: [
           {
             type: 'host',
-            value: 'en.dominio.com'
-          }
+            value: 'en.turismojudaico.com',
+          },
         ],
         destination: '/en/:path*',
         permanent: true,
