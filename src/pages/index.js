@@ -74,6 +74,10 @@ export default function Home({ locale }) {
   const { t } = useTranslation(['index', 'common'])
 
   useEffect(() => {
+    console.log('a', window.location.origin)
+  }, [])
+
+  useEffect(() => {
     async function fetchData() {
       const { data: toursChico, error: toursChicoError } = await getContent(
         '/api/content/tours?destacadohomechico=1'

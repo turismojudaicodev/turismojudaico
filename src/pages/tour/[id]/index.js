@@ -70,7 +70,9 @@ export default function CityTour() {
     if (tour?.nombre && tour?.nombre_en) {
       const encodedTourTitle =
         router.locale === 'es' ? fixUrl(tour?.nombre) : fixUrl(tour?.nombre_en)
-      const newUrl = `/tour/${tour?.codigo}/${encodedTourTitle}`
+      const newUrl = `${router.locale === 'en' ? '/en' : ''}/tour/${
+        tour?.codigo
+      }/${encodedTourTitle}`
       window.history.pushState({ path: newUrl }, '', newUrl)
     }
     fetchLocale()

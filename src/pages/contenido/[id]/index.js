@@ -61,7 +61,9 @@ export default function Post() {
           router.locale === 'es'
             ? fixUrl(post?.nombre)
             : fixUrl(post?.nombre_en)
-        const newUrl = `/contenido/${post?.codigo}/${encodedPostTitle}`
+        const newUrl = `${router.locale === 'en' ? '/en' : ''}/contenido/${
+          post?.codigo
+        }/${encodedPostTitle}`
         window.history.pushState({ path: newUrl }, '', newUrl)
       }
     }

@@ -4,9 +4,9 @@ import Footer from '../Footer'
 export default function Layout(props) {
   return (
     <>
-    <Header />
-    {props.children}
-    <Footer />
+      <Header />
+      <div style={{ minHeight: '50vh' }}>{props.children}</div>
+      <Footer />
     </>
   )
 }
