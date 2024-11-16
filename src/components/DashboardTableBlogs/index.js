@@ -3,8 +3,6 @@ import { useState } from 'react'
 import { useRouter } from 'next/router'
 // Local
 import { deleteContent } from 'lib/api'
-import DeleteIcon from 'public/icons/delete.svg'
-import EditIcon from 'public/icons/edit.svg'
 // Components
 import Link from 'next/link'
 import Notification, { NotificationLoading } from '@/components/Notification'
@@ -84,7 +82,12 @@ export default function DashboardTable({ table, setVisibleTable = null }) {
                   className={dashboardStyles.editButton}
                   replace={false}
                 >
-                  <img src={EditIcon} alt="Edit Icon" height={12} width={12} />
+                  <img
+                    src="/icons/edit.svg"
+                    alt="Edit Icon"
+                    height={12}
+                    width={12}
+                  />
                 </Link>
                 <button
                   style={{ height: '1rem', width: '1rem', padding: '.65em' }}
@@ -92,7 +95,7 @@ export default function DashboardTable({ table, setVisibleTable = null }) {
                   onClick={() => handleDelete(row.codigo)}
                 >
                   <img
-                    src={DeleteIcon}
+                    src="/icons/delete.svg"
                     alt="Delete Icon"
                     height={12}
                     width={12}

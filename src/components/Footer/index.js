@@ -1,10 +1,6 @@
 // NPM
 import { useState, useEffect } from 'react'
 import { useRouter, withRouter } from 'next/router'
-// Local
-import instagramIcon from '../../../public/icons/instagram-icon.png'
-import facebookIcon from '../../../public/icons/facebook-logo.svg'
-import youtubeIcon from '../../../public/icons/youtube-logo.svg'
 // Components
 import Link from 'next/link'
 // Styles
@@ -15,17 +11,17 @@ const SOCIAL_LINKS = [
   {
     name: 'Facebook',
     url: 'https://www.facebook.com/TurismoJudaico',
-    icon: facebookIcon,
+    icon: '/icons/facebook-logo.svg',
   },
   {
     name: 'YouTube',
     url: 'https://www.youtube.com/user/TurismoJudaico',
-    icon: youtubeIcon,
+    icon: '/icons/youtube-logo.svg',
   },
   {
     name: 'Instagram',
     url: 'https://www.instagram.com/turismojudaico',
-    icon: instagramIcon,
+    icon: '/icons/instagram-icon.png',
   },
 ]
 
