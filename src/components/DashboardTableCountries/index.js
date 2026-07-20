@@ -81,7 +81,7 @@ export default function DashboardTableCountries({
                   className={dashboardStyles.editButton}
                   replace={false}
                 >
-                  <img src={EditIcon} alt="Edit Icon" height={12} width={12} />
+                  <img src={EditIcon.src} alt="Edit Icon" height={12} width={12} />
                 </Link>
                 <button
                   style={{ height: '1rem', width: '1rem', padding: '.65em' }}
@@ -89,7 +89,7 @@ export default function DashboardTableCountries({
                   onClick={() => handleDelete(row.codigo)}
                 >
                   <img
-                    src={DeleteIcon}
+                    src={DeleteIcon.src}
                     alt="Delete Icon"
                     height={12}
                     width={12}

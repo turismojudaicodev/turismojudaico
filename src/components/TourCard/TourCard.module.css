@@ -1,65 +1,83 @@
 .card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  overflow: hidden; /* Esencial para que la imagen respete los bordes redondeados */
   display: flex;
-  gap: 1rem;
-  margin-block: 1rem;
+  flex-direction: column;
+  height: 100%; /* Asegura que todas las tarjetas midan lo mismo en la grilla */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.imgContainer {
-  position: relative;
-  width: 180px;
-  height: 120px;
-  border-bottom: 4px solid var(--clr-green);
+.card:hover {
+  transform: translateY(-4px); /* Pequeño salto al pasar el mouse */
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
-@media (max-width: 475px) {
-  .imgContainer {
-    width: 100%;
-    height: 50vw;
-  }  
-}
-
-.imgContainer img {
-  object-fit: contain;
-}
-
-.text {
-  width: 60%;
-  font-size: 1em;
-}
-
-.text h3 {
-  color: var(--clr-bg-2);
-  margin-bottom: .25em;
-}
-
-.text p {
-  display: -webkit-box;
+.imageContainer {
+  width: 100%;
+  aspect-ratio: 16 / 10; /* Estandariza el tamaño de la imagen */
   overflow: hidden;
-  text-overflow: ellipsis;
-  -webkit-line-clamp: 3;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Evita que la imagen se estire o deforme */
+  display: block;
+}
+
+.content {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1; /* Empuja el footer siempre hacia abajo */
+}
+
+.title {
+  color: #1a365d; /* Azul oscuro elegante */
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 0.75rem 0;
+  font-family: Georgia, serif; /* Tipografía estilo serif como en tu imagen */
+}
+
+.description {
+  color: #666666;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  margin: 0 0 1.5rem 0;
+  
+  /* Truco CSS para cortar el texto a un máximo de 3 líneas y poner "..." */
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex-grow: 1; 
 }
 
-@media (max-width: 768px) {
-  .card {
-    flex-direction: column;
-  }
-
-  .text {
-    width: 100%;
-    font-size: .85rem;
-  }
-
-  .text h3 {
-    display: -webkit-box;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-  }
-
-  .text p {
-    font-size: .8rem;
-  }
+.footer {
+  display: flex;
+  justify-content: flex-end; /* Alinea el botón a la derecha al no haber precio */
+  align-items: center;
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid #eeeeee; /* Línea separadora sutil */
 }
 
+.button {
+  background-color: #1a365d;
+  color: #ffffff;
+  padding: 0.5rem 1.5rem;
+  border-radius: 20px; /* Botón estilo píldora */
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.button:hover {
+  background-color: #2a4a7f;
+}

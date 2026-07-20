@@ -74,7 +74,7 @@ export default function DashboardTableNewsletter({
                   onClick={() => handleDelete(row.codigo)}
                 >
                   <img
-                    src={DeleteIcon}
+                    src={DeleteIcon.src}
                     alt="Delete Icon"
                     height={12}
                     width={12}

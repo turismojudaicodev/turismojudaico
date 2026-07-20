@@ -9,7 +9,7 @@ import Head from 'next/head'
 import Layout from '@/components/Layout'
 import Message from '@/components/Message'
 import LoadingIndicator from '@/components/LoadingIndicator'
-import { TourCard } from '@/components/TourCard'
+import TourCard from '@/components/TourCard'
 import { InputText } from '@/components/DashboardComponents'
 import ButtonLoader from '@/components/ButtonLoader'
 // Styles
@@ -26,7 +26,7 @@ export async function getStaticProps({ locale }) {
 }
 
 export default function Citytours({ locale }) {
-  const TOUR_LIMIT = 5
+  const TOUR_LIMIT = 9
 
   const [tours, setTours] = useState([])
   const [limit, setLimit] = useState(TOUR_LIMIT * 2)
@@ -175,9 +175,11 @@ export default function Citytours({ locale }) {
             ) : (tours.length === 0 && isLoading) || isLoading ? (
               <LoadingIndicator />
             ) : tours.length > 0 ? (
-              tours.map((tour) => (
-                <TourCard tour={tour} locale={locale} key={tour.codigo} />
-              ))
+              <div className={styles.toursGrid}>
+                {tours.map((tour) => (
+                  <TourCard tour={tour} locale={locale} key={tour.codigo} />
+                ))}
+              </div>
             ) : (
               <Message
                 type="info"

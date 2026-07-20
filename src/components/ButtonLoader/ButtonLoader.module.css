@@ -5,19 +5,20 @@
 .spinner {
   animation: 1s linear infinite running rotate;
   height: 1.2rem;
-  left: 50%;
-  position: absolute;
-  top: 50%;
-  translate: -50% -50%;
   width: 1.2rem;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  /* Centramos usando el transform clásico */
+  transform: translate(-50%, -50%);
 }
 
 @keyframes rotate {
   from {
-    rotate: 0deg;
+    transform: translate(-50%, -50%) rotate(0deg);
   }
   to {
-    rotate: 360deg;
+    transform: translate(-50%, -50%) rotate(360deg);
   }
 }
 

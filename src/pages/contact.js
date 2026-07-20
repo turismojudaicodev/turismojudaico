@@ -164,7 +164,7 @@ export default function Contact() {
                       href={'mailto:info@turismojudaico.com'}
                     >
                       <img
-                        src={emailIcon}
+                        src={emailIcon.src}
                         width={25}
                         height={25}
                         alt="email icon"

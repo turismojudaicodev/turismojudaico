@@ -1,6 +1,6 @@
 import utils from '@/styles/utils.module.css'
 import styles from './ButtonLoader.module.css'
-import loadingIcon from 'public/icons/loading.svg'
+import loadingIcon from '/public/icons/loading.svg'
 
 export default function ButtonLoader({
   children,
@@ -15,8 +15,8 @@ export default function ButtonLoader({
       {isLoading && (
         <span className={styles.spinner}>
           <img
-            src={loadingIcon}
-            style={{ position: 'absolute', width: '100%', height: '100%' }}
+            src={loadingIcon.src}
+           style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
             alt="Loading Icon"
           />
         </span>

@@ -71,3 +71,20 @@
   }
 }
 
+.toursGrid {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: 1fr; /* 1 columna en celulares */
+}
+
+@media (min-width: 768px) {
+  .toursGrid {
+    grid-template-columns: repeat(2, 1fr); /* 2 columnas en tablets */
+  }
+}
+
+@media (min-width: 1024px) {
+  .toursGrid {
+    grid-template-columns: repeat(3, 1fr); /* 3 columnas en PC */
+  }
+}

@@ -103,7 +103,7 @@ export default function DashboardTablePartners({
                       replace={false}
                     >
                       <img
-                        src={EditIcon}
+                        src={EditIcon.src}
                         alt="Edit Icon"
                         height={12}
                         width={12}
@@ -119,7 +119,7 @@ export default function DashboardTablePartners({
                       onClick={() => handleDelete(row.codigo)}
                     >
                       <img
-                        src={DeleteIcon}
+                        src={DeleteIcon.src}
                         alt="Delete Icon"
                         height={12}
                         width={12}
