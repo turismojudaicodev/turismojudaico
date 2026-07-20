@@ -32,7 +32,7 @@ export default function TourCard({ tour, locale }) {
       <div className={styles.content}>
         <h3 className={styles.title}>{title}</h3>
         <p className={styles.description}>{cleanDescription}</p>
-        
+      
         <div className={styles.footer}>
           <Link href={`/tour/${id}`} className={styles.button}>
             {locale === 'en' ? 'Book now' : 'Reservar'}
