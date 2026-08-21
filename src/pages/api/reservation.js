@@ -51,12 +51,17 @@ export default async function handler(req, res) {
 
     const policy = destConfig.length > 0 ? destConfig[0].security_policy_type : 'GUIDE_VETTED'
 
-    // Guardar en la NUEVA tabla
+    const hasMessage = message && message.trim().length > 0;
+    
+    // Si hay mensaje, entra a "Por Responder" (Draft). Si no, salta a "Seguridad" (o la siguiente que aplique).
+    const initialStatus = hasMessage ? 'INQUIRY_RECEIVED' : 'PENDING_SECURITY_VETTING';
+
+    // 4A. Guardar en la NUEVA tabla bookings_pipeline
     await query(`
       INSERT INTO bookings_pipeline 
       (booking_uuid, client_name, hometown, pax_adults, client_email, client_phone, tour_date, walking_difficulties, destination_name, security_policy_applied, status) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'INQUIRY_RECEIVED')
-    `, [uuid, fullName, hometown, passengers, email, telephone, desiredDate, message, destination, policy])
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [uuid, fullName, hometown, passengers, email, telephone, desiredDate, message, destination, policy, initialStatus])
 
     // Guardar en la VIEJA tabla (Mantenemos tu panel actual)
     const keys = Object.keys(data)
@@ -106,7 +111,6 @@ export default async function handler(req, res) {
     // LÓGICA DE ENVÍO: DRAFT vs DIRECTO (USANDO GMAIL API)
     // ====================================================================
     const mailSubject = `${destination} City Tour ${desiredDate}`;
-    const hasMessage = message && message.trim().length > 0;
 
     if (hasMessage) {
       // 🟡 DRAFT REAL EN GMAIL: El "To:" ya es el cliente, se guarda en "Borradores" de info@turismojudaico.com

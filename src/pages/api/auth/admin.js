@@ -11,7 +11,7 @@ export default async function handler(req, res) {
         [username, password],
         (err, data) => {
           if (err) {
-            console.log('error', error)
+            console.log('error', err)
             res.status(500).json({ error: 'Error interno del servidor' })
             return resolve()
           }
