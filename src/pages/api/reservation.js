@@ -1,143 +1,114 @@
 import { db } from '../../../lib/mysql'
-import { sendDirectEmail, createDraftEmail } from '../../../lib/gmail' // <-- Cambiamos nodemailer por gmail
+import { sendDirectEmail, createDraftEmail } from '../../../lib/gmail'
 import crypto from 'crypto'
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST')
-    return res.status(403).json({ error: 'Method not allowed' })
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
-  const data = req.body
+  const data = req.body;
+  
+  // 1. Extracción con los nombres EXACTOS del formulario
+  const fullName = data.contacto_nombre || 'Sin Nombre';
+  const email = data.contacto_mail; 
+  const telephone = data.contacto_telefono || '';
+  const hometown = data.contacto_ciudad_origen || '';
+  const passengers = data.contacto_pasajeros || 1;
+  const desiredDate = data.contacto_fecha || new Date().toISOString().split('T')[0];
+  const message = data.contacto_mensaje || '';
+  const destination = data.citytour_nombre || 'Ciudad General';
 
-  if (!data.citytour_nombre)
-    return res.status(500).json({ error: 'No se pudo obtener el nombre del tour' })
+  if (!email) {
+    return res.status(400).json({ error: 'El campo email es obligatorio para procesar la reserva.' });
+  }
 
-  if (
-    !data.contacto_nombre ||
-    !data.contacto_mail ||
-    !data.contacto_pasajeros ||
-    !data.contacto_telefono ||
-    !data.contacto_fecha
-  )
-    return res.status(400).json({ error: 'Faltan cargar datos obligatorios' })
+  const uuid = crypto.randomUUID()
 
   const query = (sql, params) => new Promise((resolve, reject) => {
     db.query(sql, params, (err, results) => err ? reject(err) : resolve(results))
   })
 
   try {
+    // 🧹 DEFINIMOS destLower PARA QUE FUNCIONE TODO EL CÓDIGO
+    const destLower = destination.toLowerCase();
 
-    const destination = data.citytour_nombre
-    const fullName = data.contacto_nombre
-    /* ... (resto de tus variables) ... */
-    const uuid = crypto.randomUUID()
-
-    // 🟢 NUEVA LÍNEA: Si el destino no existe en config, lo creamos automáticamente
-    await query(
-      'INSERT IGNORE INTO destinations_config (destination_name, security_policy_type) VALUES (?, ?)',
-      [destination, 'GUIDE_VETTED']
-    )
-
-    // 3. Buscar política de seguridad en MySQL para este destino
-    const destConfig = await query(
-      'SELECT security_policy_type, external_form_url FROM destinations_config WHERE destination_name = ?',
-      [destination]
-    )
-    const email = data.contacto_mail
-    const telephone = data.contacto_telefono
-    const hometown = data.contacto_ciudad_origen || ''
-    const passengers = parseInt(data.contacto_pasajeros) || 1
-    const desiredDate = data.contacto_fecha
-    const message = data.contacto_mensaje || ''
-
-    const policy = destConfig.length > 0 ? destConfig[0].security_policy_type : 'GUIDE_VETTED'
+    // 2. DEFINIR POLÍTICA Y ESTADO
+    let policy = 'GUIDE_VETTED';
+    if (destLower.includes('panama') || destLower.includes('panamá')) {
+        policy = 'EXTERNAL_FORM';
+    }
 
     const hasMessage = message && message.trim().length > 0;
-    
-    // Si hay mensaje, entra a "Por Responder" (Draft). Si no, salta a "Seguridad" (o la siguiente que aplique).
     const initialStatus = hasMessage ? 'INQUIRY_RECEIVED' : 'PENDING_SECURITY_VETTING';
 
-    // 4A. Guardar en la NUEVA tabla bookings_pipeline
+    // 🛡️ 3. AUTO-REGISTRO DE DESTINOS (INSERT IGNORE)
+    await query(`
+      INSERT IGNORE INTO destinations_config (destination_name, security_policy_type) 
+      VALUES (?, ?)
+    `, [destination, policy]);
+
+    // 💾 4. GUARDAR LA RESERVA
     await query(`
       INSERT INTO bookings_pipeline 
       (booking_uuid, client_name, hometown, pax_adults, client_email, client_phone, tour_date, walking_difficulties, destination_name, security_policy_applied, status) 
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [uuid, fullName, hometown, passengers, email, telephone, desiredDate, message, destination, policy, initialStatus])
 
-    // Guardar en la VIEJA tabla (Mantenemos tu panel actual)
-    const keys = Object.keys(data)
-    const values = Object.values(data)
-    const queryString = `INSERT INTO reservas (${keys.join(',')}) VALUES (${new Array(values.length).fill('?').join(',')})`
-    await query(queryString, values)
-
-    // ====================================================================
-    // CONSTRUCCIÓN DE LA PLANTILLA
-    // ====================================================================
-    const introHtml = `
-      <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
-        <p>Thank you for getting in contact with Judaic Tourism! <br>
-        <i>(Sorry for the long email, but has lot of information about your request)</i></p>
-        
-        <p>We take the opportunity to introduce about us:<br>
-        <b>JUDAIC TOURISM</b> is a social company, which offers cultural and educational services for Jewish travelers...</p>
-        
-        <p>We need to check with our team of guides to see if we still have availability for the requested day: <b>${desiredDate}</b>. In the meantime, I'm sending all the details and prices, so you can confirm your interest.</p>
-    `;
-
-    let cityHtml = '';
-    const destLower = destination.toLowerCase();
-
-    if (destLower.includes('buenos aires')) {
-        cityHtml = `<h3>Here is all the information about the Jewish Tour in Buenos Aires</h3><p>We offer different options in Buenos Aires...</p>`;
-    } else if (destLower.includes('panama') || destLower.includes('panamá')) {
-        cityHtml = `<h3>Here is all the information about the Jewish Tour in Panama</h3><p>Please complete their security form at this link: <a href="https://visitors.centraldsi.com/">https://visitors.centraldsi.com/</a></p>`;
-    } else {
-        cityHtml = `<h3>Here is all the information about the Jewish Tour in ${destination}</h3><p>Our local coordinator is checking the best options for your group.</p>`;
-    }
-
-    let securityHtml = '';
-    if (!destLower.includes('panama') && !destLower.includes('panamá')) {
-      securityHtml = `<p>Please complete the security form and send your passports via WhatsApp.</p>`;
-    }
-
-    const footerHtml = `
-        <p>We await your answer to book the day of the guide.</p>
-        <p>Best regards,<br><br><b>Melina</b><br>on behalf of Judaic Tourism Team<br>info@turismojudaico.com</p>
+    // 📧 5. AUTO-RESPUESTA INMEDIATA (Se envía siempre directo)
+    const autoReplySubject = `Judaic Tourism - We received your inquiry for ${destination}`;
+    const autoReplyHtml = `
+      <div style="font-family: Arial, sans-serif; color: #333;">
+        <p>Dear <b>${fullName}</b>,</p>
+        <p>Thank you for getting in contact with Judaic Tourism! We have successfully received your inquiry for a Jewish Tour in <b>${destination}</b> on <b>${desiredDate}</b>.</p>
+        <p>Our team is currently reviewing your request and checking availability with our local coordinators.</p>
+        <p>We will get back to you very shortly with more details.</p>
+        <p>Best regards,<br><b>Judaic Tourism Team</b></p>
       </div>
     `;
+    await sendDirectEmail(email, autoReplySubject, autoReplyHtml);
 
-    const finalHtml = introHtml + cityHtml + securityHtml + footerHtml;
+    // 🏗️ 6. CONSTRUCTOR DE PLANTILLAS POR CIUDAD
+    let cityHtml = '';
+    let securityHtml = '';
 
-    // ====================================================================
-    // LÓGICA DE ENVÍO: DRAFT vs DIRECTO (USANDO GMAIL API)
-    // ====================================================================
-    const mailSubject = `${destination} City Tour ${desiredDate}`;
+    switch (true) {
+      case destLower.includes('buenos aires'):
+        cityHtml = `<h3>[MOCKUP - BUENOS AIRES] Información del tour</h3><p>Recorrido por Once, AMIA, etc.</p>`;
+        securityHtml = `<p>[MOCKUP - SEGURIDAD BA] Por favor, envíanos las fotos de los pasaportes respondiendo a este correo.</p>`;
+        break;
 
-    if (hasMessage) {
-      // 🟡 DRAFT REAL EN GMAIL: El "To:" ya es el cliente, se guarda en "Borradores" de info@turismojudaico.com
-      const draftContent = `
-        <div style="background-color: #fff3cd; padding: 15px; border-left: 5px solid #ffc107; margin-bottom: 20px; font-family: Arial, sans-serif;">
-          <h4 style="margin-top: 0; color: #d39e00;">⚠️ EL PASAJERO ESCRIBIÓ ESTA DUDA:</h4>
-          <p style="font-size: 16px;"><i>"${message}"</i></p>
-          <hr style="border: 1px solid #ffeeba;">
-          <p style="margin-bottom: 0; font-size: 12px; color: #856404;">
-            👉 <b>Instrucción:</b> Responde su duda, borra este recuadro amarillo y dale a enviar.
-          </p>
-        </div>
-        ${finalHtml}
-      `;
-      
-      await createDraftEmail(email, mailSubject, draftContent);
-      return res.status(200).json({ message: 'Reserva guardada. Se generó un Borrador Real en Gmail.' });
-      
-    } else {
-      // 🟢 ENVÍO DIRECTO: Sale automático de info@turismojudaico.com
-      const bcc = 'turismojudaicodev@gmail.com'; 
-      await sendDirectEmail(email, mailSubject, finalHtml, bcc);
-      return res.status(200).json({ message: 'Reserva guardada y correo enviado automáticamente.' });
+      case destLower.includes('panama') || destLower.includes('panamá'):
+        cityHtml = `<h3>[MOCKUP - PANAMÁ] Información del tour</h3><p>Detalles específicos de las sinagogas de Panamá.</p>`;
+        securityHtml = `<p>[MOCKUP - SEGURIDAD PANAMÁ] Por razones estrictas de seguridad, completa este formulario: <a href="https://visitors.centraldsi.com/">Link Comunidad Panamá</a></p>`;
+        break;
+
+      case destLower.includes('lima'):
+        cityHtml = `<h3>[MOCKUP - LIMA] Información del tour</h3><p>Detalles del recorrido en Lima.</p>`;
+        securityHtml = `<p>[MOCKUP - SEGURIDAD LIMA] Instrucciones específicas para entrar a la sinagoga 1870.</p>`;
+        break;
+
+      default:
+        cityHtml = `<h3>Tour en ${destination}</h3><p>Estamos validando las opciones con nuestro equipo local.</p>`;
+        securityHtml = `<p>Solicitaremos copias de los pasaportes para el ingreso a las instituciones.</p>`;
+        break;
     }
 
+    const introHtml = `<div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;"><p>Hello ${fullName},</p>`;
+    const footerHtml = `<p>We await your confirmation!</p><p>Best regards,<br><b>Melina</b><br>Judaic Tourism</p></div>`;
+    const finalHtml = introHtml + cityHtml + securityHtml + footerHtml;
+
+    const infoSubject = `${destination} City Tour Details - ${desiredDate}`;
+
+    // 🔀 7. BIFURCACIÓN INTELIGENTE (Borrador vs Envío Directo)
+    if (hasMessage) {
+        const draftId = await createDraftEmail(email, infoSubject, finalHtml);
+        await query(`UPDATE bookings_pipeline SET gmail_draft_id = ? WHERE booking_uuid = ?`, [draftId, uuid]);
+    } else {
+        await sendDirectEmail(email, infoSubject, finalHtml);
+    }
+
+    return res.status(200).json({ success: true })
   } catch (error) {
-    console.error('Error procesando reserva:', error)
-    return res.status(500).json({ error: error.message })
+    console.error(error)
+    return res.status(500).json({ error: 'Server error' })
   }
 }

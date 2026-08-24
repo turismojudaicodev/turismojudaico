@@ -29,14 +29,14 @@ export default function Dashboard() {
   if (isLoading)
     return (
       <AdminLayout>
-        <h1 className={utils.bigTitle}>Gestión de Reservas (Pipeline)</h1>
+        <h1 className={utils.bigTitle}>Gestión de Reservas</h1>
         <NotificationLoading message="Cargando reservas operativas..." />
       </AdminLayout>
     )
 
   return (
     <AdminLayout>
-      <h1 className={utils.bigTitle}>Gestión de Reservas (Pipeline)</h1>
+      <h1 className={utils.bigTitle}>Gestión de Reservas</h1>
       
       <DashboardTable bookings={content} />
     </AdminLayout>

@@ -4,52 +4,90 @@ export default function DashboardTableBookings({ bookings: initialBookings }) {
   const [activeTab, setActiveTab] = useState('INQUIRY_RECEIVED')
   const [bookings, setBookings] = useState(initialBookings)
   const [sortConfig, setSortConfig] = useState({ key: 'created_at', direction: 'desc' })
+  
+  // Estados para el Modal de Edición
+  const [editingBooking, setEditingBooking] = useState(null)
+  const [formData, setFormData] = useState({})
 
   // 1. LÓGICA DE ORDENAMIENTO (SORT)
   const handleSort = (key) => {
     let direction = 'asc'
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc'
-    }
+    if (sortConfig.key === key && sortConfig.direction === 'asc') direction = 'desc'
     setSortConfig({ key, direction })
   }
 
-  // 2. FUNCIÓN PARA AVANZAR ESTADO
-  const handleNextStage = async (id, currentStatus) => {
-    // Definimos el flujo lógico (Pipeline)
-    const flow = {
-      'INQUIRY_RECEIVED': 'PENDING_SECURITY_VETTING',
-      'PENDING_SECURITY_VETTING': 'PENDING_DEPOSIT',
-      'PENDING_DEPOSIT': 'CONFIRMED_ASSIGNED'
-    }
+  const handleNextStage = async (booking) => {
+    if (booking.status === 'INQUIRY_RECEIVED') {
+      // Avanza a Seguridad normal
+      await fetch('/api/admin/bookings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: booking.id, status: 'PENDING_SECURITY_VETTING' })
+      })
+      setBookings(bookings.map(b => b.id === booking.id ? { ...b, status: 'PENDING_SECURITY_VETTING' } : b))
     
-    const nextStatus = flow[currentStatus]
-    if (!nextStatus) return
+    } else if (booking.status === 'PENDING_SECURITY_VETTING') {
+      // Llama a nuestro nuevo Endpoint: Avanza a Pago y genera el Borrador
+      await fetch('/api/admin/send-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: booking.id, email: booking.client_email, name: booking.client_name, destination: booking.destination_name })
+      })
+      setBookings(bookings.map(b => b.id === booking.id ? { ...b, status: 'PENDING_DEPOSIT' } : b))
+    
+    } else if (booking.status === 'PENDING_DEPOSIT') {
+      await fetch('/api/admin/send-voucher', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: booking.id, email: booking.client_email, name: booking.client_name, destination: booking.destination_name })
+      })
+      setBookings(bookings.map(b => b.id === booking.id ? { ...b, status: 'CONFIRMED_ASSIGNED' } : b))
+    }
+  }
 
-    // Actualizamos en Base de datos
+  const handleDelete = async (id) => {
+    const isConfirmed = window.confirm('¿Estás seguro de que quieres borrar esta reserva de forma permanente?')
+    if (!isConfirmed) return
+
+    await fetch('/api/admin/bookings', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id })
+    })
+    
+    // Lo quitamos de la pantalla al instante
+    setBookings(bookings.filter(b => b.id !== id))
+  }
+
+  // 3. FUNCIONES DEL MODAL DE EDICIÓN
+  const openEditModal = (booking) => {
+    // Formateamos la fecha para que el input type="date" la lea bien
+    const formattedDate = new Date(booking.tour_date).toISOString().split('T')[0]
+    setEditingBooking(booking.id)
+    setFormData({ ...booking, tour_date: formattedDate })
+  }
+
+  const handleSaveEdit = async (e) => {
+    e.preventDefault()
     await fetch('/api/admin/bookings', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, status: nextStatus })
+      body: JSON.stringify(formData)
     })
-
-    // Actualizamos la vista local para no tener que recargar la página
-    setBookings(bookings.map(b => b.id === id ? { ...b, status: nextStatus } : b))
+    // Actualizamos la tabla local
+    setBookings(bookings.map(b => b.id === formData.id ? { ...b, ...formData } : b))
+    setEditingBooking(null) // Cerramos el modal
   }
 
-  // Ordenamos y filtramos
+  // Filtrado y Ordenamiento
   const sortedBookings = [...bookings].sort((a, b) => {
     if (a[sortConfig.key] < b[sortConfig.key]) return sortConfig.direction === 'asc' ? -1 : 1
     if (a[sortConfig.key] > b[sortConfig.key]) return sortConfig.direction === 'asc' ? 1 : -1
     return 0
   })
 
-  const filteredBookings = sortedBookings.filter(booking => {
-    if (activeTab === 'ALL') return true
-    return booking.status === activeTab
-  })
+  const filteredBookings = sortedBookings.filter(b => activeTab === 'ALL' || b.status === activeTab)
 
-  // Estilos
   const tabStyle = (tabName) => ({
     padding: '10px 20px', cursor: 'pointer', border: 'none',
     borderBottom: activeTab === tabName ? '3px solid #0056b3' : '3px solid transparent',
@@ -60,7 +98,7 @@ export default function DashboardTableBookings({ bookings: initialBookings }) {
   return (
     <div>
       {/* PESTAÑAS */}
-      <div style={{ display: 'flex', borderBottom: '1px solid #ddd', marginBottom: '20px', gap: '10px' }}>
+      <div style={{ display: 'flex', borderBottom: '1px solid #ddd', marginBottom: '20px', gap: '10px', flexWrap: 'wrap' }}>
         <button style={tabStyle('INQUIRY_RECEIVED')} onClick={() => setActiveTab('INQUIRY_RECEIVED')}>📥 1. Por Responder</button>
         <button style={tabStyle('PENDING_SECURITY_VETTING')} onClick={() => setActiveTab('PENDING_SECURITY_VETTING')}>🛡️ 2. Seguridad</button>
         <button style={tabStyle('PENDING_DEPOSIT')} onClick={() => setActiveTab('PENDING_DEPOSIT')}>💳 3. Esperando Pago</button>
@@ -76,47 +114,60 @@ export default function DashboardTableBookings({ bookings: initialBookings }) {
               <th onClick={() => handleSort('created_at')} style={{ padding: '12px', cursor: 'pointer' }}>Fecha ↕️</th>
               <th onClick={() => handleSort('client_name')} style={{ padding: '12px', cursor: 'pointer' }}>Cliente ↕️</th>
               <th onClick={() => handleSort('destination_name')} style={{ padding: '12px', cursor: 'pointer' }}>Destino ↕️</th>
+              <th onClick={() => handleSort('tour_date')} style={{ padding: '12px', cursor: 'pointer' }}>Fecha Tour ↕️</th>
               <th style={{ padding: '12px' }}>Pax</th>
               <th style={{ padding: '12px' }}>Acciones Operativas</th>
             </tr>
           </thead>
           <tbody>
             {filteredBookings.length === 0 ? (
-              <tr><td colSpan="5" style={{ padding: '20px', textAlign: 'center' }}>No hay reservas en esta vista.</td></tr>
+              <tr><td colSpan="6" style={{ padding: '20px', textAlign: 'center' }}>No hay reservas en esta vista.</td></tr>
             ) : (
               filteredBookings.map((b) => (
                 <tr key={b.id} style={{ borderBottom: '1px solid #eee' }}>
                   <td style={{ padding: '12px' }}>{new Date(b.created_at).toLocaleDateString()}</td>
                   <td style={{ padding: '12px' }}><strong>{b.client_name}</strong><br/><small>{b.client_email}</small></td>
                   <td style={{ padding: '12px' }}>{b.destination_name}</td>
+                  <td style={{ padding: '12px' }}>{new Date(b.tour_date).toLocaleDateString()}</td>
                   <td style={{ padding: '12px' }}>{b.pax_adults}</td>
-                  <td style={{ padding: '12px', display: 'flex', gap: '8px' }}>
+                  <td style={{ padding: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                     
-                    {/* Botón de Borrador Exclusivo para la primera etapa */}
-                    {b.status === 'INQUIRY_RECEIVED' && (
-                      <a 
-                        href="https://mail.google.com/mail/u/info@turismojudaico.com/#drafts" 
+                   {(b.status === 'INQUIRY_RECEIVED' || b.status === 'PENDING_SECURITY_VETTING' || b.status === 'PENDING_DEPOSIT') && b.gmail_draft_id && (
+                      <a href={`https://mail.google.com/mail/u/?authuser=info@turismojudaico.com#drafts?compose=${b.gmail_draft_id}`} 
                         target="_blank" 
-                        rel="noreferrer"
+                        rel="noreferrer" 
                         style={{ padding: '6px 10px', backgroundColor: '#ffc107', color: '#000', textDecoration: 'none', borderRadius: '4px', fontSize: '12px' }}
                       >
                         ✍️ Abrir Borrador
                       </a>
                     )}
 
-                    {/* Botón de Avanzar (si no está ya en el final) */}
-                    {b.status !== 'CONFIRMED_ASSIGNED' && (
-                      <button 
-                        onClick={() => handleNextStage(b.id, b.status)}
-                        style={{ padding: '6px 10px', backgroundColor: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
-                      >
-                        ✅ Avanzar 
+                    {/* Botones Dinámicos de Avance */}
+                    {b.status === 'INQUIRY_RECEIVED' && (
+                      <button onClick={() => handleNextStage(b)} style={{ padding: '6px 10px', backgroundColor: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>
+                        ✅ Pasar a Seguridad 
+                      </button>
+                    )}
+                    {b.status === 'PENDING_SECURITY_VETTING' && (
+                      <button onClick={() => handleNextStage(b)} style={{ padding: '6px 10px', backgroundColor: '#17a2b8', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>
+                        💳 Armar Cobro 
+                      </button>
+                    )}
+                    {b.status === 'PENDING_DEPOSIT' && (
+                      <button onClick={() => handleNextStage(b)} style={{ padding: '6px 10px', backgroundColor: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>
+                        🚀 Confirmar Pago 
                       </button>
                     )}
 
-                    {/* Botón Editar Básico */}
-                    <button style={{ padding: '6px 10px', backgroundColor: '#007bff', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>
+                    <button onClick={() => openEditModal(b)} style={{ padding: '6px 10px', backgroundColor: '#007bff', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>
                       ✏️ Editar
+                    </button>
+
+                    <button 
+                      onClick={() => handleDelete(b.id)} 
+                      style={{ padding: '6px 10px', backgroundColor: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+                    >
+                      🗑️ Borrar
                     </button>
                   </td>
                 </tr>
@@ -125,6 +176,52 @@ export default function DashboardTableBookings({ bookings: initialBookings }) {
           </tbody>
         </table>
       </div>
+
+      {/* VENTANA EMERGENTE (MODAL) DE EDICIÓN */}
+      {editingBooking && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
+          <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '8px', width: '400px', maxWidth: '90%' }}>
+            <h3 style={{ marginTop: 0 }}>Editar Reserva</h3>
+            <form onSubmit={handleSaveEdit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              
+              <label>Nombre del Cliente:
+                <input type="text" value={formData.client_name} onChange={e => setFormData({...formData, client_name: e.target.value})} style={{ width: '100%', padding: '8px', marginTop: '4px' }} required />
+              </label>
+              
+              <label>Email:
+                <input type="email" value={formData.client_email} onChange={e => setFormData({...formData, client_email: e.target.value})} style={{ width: '100%', padding: '8px', marginTop: '4px' }} required />
+              </label>
+              
+              <label>Destino:
+                <input type="text" value={formData.destination_name} onChange={e => setFormData({...formData, destination_name: e.target.value})} style={{ width: '100%', padding: '8px', marginTop: '4px' }} required />
+              </label>
+              
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <label style={{ flex: 1 }}>Fecha Tour:
+                  <input type="date" value={formData.tour_date} onChange={e => setFormData({...formData, tour_date: e.target.value})} style={{ width: '100%', padding: '8px', marginTop: '4px' }} required />
+                </label>
+                <label style={{ width: '80px' }}>Pax:
+                  <input type="number" min="1" value={formData.pax_adults} onChange={e => setFormData({...formData, pax_adults: e.target.value})} style={{ width: '100%', padding: '8px', marginTop: '4px' }} required />
+                </label>
+              </div>
+
+              <label>Estado:
+                <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} style={{ width: '100%', padding: '8px', marginTop: '4px' }}>
+                  <option value="INQUIRY_RECEIVED">Por Responder</option>
+                  <option value="PENDING_SECURITY_VETTING">Seguridad Pendiente</option>
+                  <option value="PENDING_DEPOSIT">Esperando Pago</option>
+                  <option value="CONFIRMED_ASSIGNED">Confirmado</option>
+                </select>
+              </label>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '15px' }}>
+                <button type="button" onClick={() => setEditingBooking(null)} style={{ padding: '8px 15px', border: '1px solid #ccc', backgroundColor: '#fff', cursor: 'pointer', borderRadius: '4px' }}>Cancelar</button>
+                <button type="submit" style={{ padding: '8px 15px', backgroundColor: '#007bff', color: '#fff', border: 'none', cursor: 'pointer', borderRadius: '4px' }}>Guardar Cambios</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
