@@ -5,11 +5,9 @@ export default function DashboardTableBookings({ bookings: initialBookings }) {
   const [bookings, setBookings] = useState(initialBookings)
   const [sortConfig, setSortConfig] = useState({ key: 'created_at', direction: 'desc' })
   
-  // Estados para el Modal de Edición
   const [editingBooking, setEditingBooking] = useState(null)
   const [formData, setFormData] = useState({})
 
-  // 1. LÓGICA DE ORDENAMIENTO (SORT)
   const handleSort = (key) => {
     let direction = 'asc'
     if (sortConfig.key === key && sortConfig.direction === 'asc') direction = 'desc'
@@ -18,8 +16,7 @@ export default function DashboardTableBookings({ bookings: initialBookings }) {
 
   const handleNextStage = async (booking) => {
     if (booking.status === 'INQUIRY_RECEIVED') {
-      // Avanza a Seguridad normal
-      await fetch('/api/admin/bookings', {
+      await fetch('/api/admin/booking', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: booking.id, status: 'PENDING_SECURITY_VETTING' })
@@ -27,7 +24,6 @@ export default function DashboardTableBookings({ bookings: initialBookings }) {
       setBookings(bookings.map(b => b.id === booking.id ? { ...b, status: 'PENDING_SECURITY_VETTING' } : b))
     
     } else if (booking.status === 'PENDING_SECURITY_VETTING') {
-      // Llama a nuestro nuevo Endpoint: Avanza a Pago y genera el Borrador
       await fetch('/api/admin/send-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -45,23 +41,29 @@ export default function DashboardTableBookings({ bookings: initialBookings }) {
     }
   }
 
-  const handleDelete = async (id) => {
+ const handleDelete = async (id) => {
     const isConfirmed = window.confirm('¿Estás seguro de que quieres borrar esta reserva de forma permanente?')
     if (!isConfirmed) return
 
-    await fetch('/api/admin/bookings', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id })
-    })
-    
-    // Lo quitamos de la pantalla al instante
-    setBookings(bookings.filter(b => b.id !== id))
+    try {
+      const response = await fetch('/api/admin/booking', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
+
+      if (response.ok) {
+        setBookings(bookings.filter(b => b.id !== id));
+      } else {
+        const errorData = await response.json();
+        alert(`Fallo en el servidor: ${errorData.error}`);
+      }
+    } catch (error) {
+      console.error("Error en la petición de borrado:", error);
+    }
   }
 
-  // 3. FUNCIONES DEL MODAL DE EDICIÓN
   const openEditModal = (booking) => {
-    // Formateamos la fecha para que el input type="date" la lea bien
     const formattedDate = new Date(booking.tour_date).toISOString().split('T')[0]
     setEditingBooking(booking.id)
     setFormData({ ...booking, tour_date: formattedDate })
@@ -69,17 +71,40 @@ export default function DashboardTableBookings({ bookings: initialBookings }) {
 
   const handleSaveEdit = async (e) => {
     e.preventDefault()
-    await fetch('/api/admin/bookings', {
+    await fetch('/api/admin/booking', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData)
     })
-    // Actualizamos la tabla local
     setBookings(bookings.map(b => b.id === formData.id ? { ...b, ...formData } : b))
-    setEditingBooking(null) // Cerramos el modal
+    setEditingBooking(null)
   }
 
-  // Filtrado y Ordenamiento
+  const triggerPayment = async (uuid, mode) => {
+  const confirmMsg = mode === 'direct' 
+    ? '¿Estás seguro de enviar el correo de pago DIRECTAMENTE al cliente ahora?' 
+    : '¿Quieres crear un borrador de pago en Gmail?';
+    
+  if (!window.confirm(confirmMsg)) return;
+
+  try {
+    const res = await fetch('/api/admin/payments/trigger', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uuid, mode })
+    });
+
+    if (res.ok) {
+      alert(mode === 'direct' ? '✅ Correo enviado con éxito.' : '✅ Borrador creado. Revisa tu Gmail.');
+    } else {
+      alert('❌ Hubo un error al procesar el pago.');
+    }
+  } catch (error) {
+    console.error(error);
+    alert('❌ Error de red.');
+  }
+};
+
   const sortedBookings = [...bookings].sort((a, b) => {
     if (a[sortConfig.key] < b[sortConfig.key]) return sortConfig.direction === 'asc' ? -1 : 1
     if (a[sortConfig.key] > b[sortConfig.key]) return sortConfig.direction === 'asc' ? 1 : -1
@@ -97,7 +122,6 @@ export default function DashboardTableBookings({ bookings: initialBookings }) {
 
   return (
     <div>
-      {/* PESTAÑAS */}
       <div style={{ display: 'flex', borderBottom: '1px solid #ddd', marginBottom: '20px', gap: '10px', flexWrap: 'wrap' }}>
         <button style={tabStyle('INQUIRY_RECEIVED')} onClick={() => setActiveTab('INQUIRY_RECEIVED')}>📥 1. Por Responder</button>
         <button style={tabStyle('PENDING_SECURITY_VETTING')} onClick={() => setActiveTab('PENDING_SECURITY_VETTING')}>🛡️ 2. Seguridad</button>
@@ -106,7 +130,6 @@ export default function DashboardTableBookings({ bookings: initialBookings }) {
         <button style={tabStyle('ALL')} onClick={() => setActiveTab('ALL')}>🗄️ Todas</button>
       </div>
 
-      {/* TABLA */}
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead>
@@ -132,16 +155,48 @@ export default function DashboardTableBookings({ bookings: initialBookings }) {
                   <td style={{ padding: '12px' }}>{b.pax_adults}</td>
                   <td style={{ padding: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                     
-                   {(b.status === 'INQUIRY_RECEIVED' || b.status === 'PENDING_SECURITY_VETTING' || b.status === 'PENDING_DEPOSIT') && b.gmail_draft_id && (
-                      <a href={`https://mail.google.com/mail/u/?authuser=info@turismojudaico.com#drafts?compose=${b.gmail_draft_id}`} 
+                   {b.status === 'INQUIRY_RECEIVED' ? (
+                      <a 
+                        href={`/api/admin/drafts/open?id=${b.booking_uuid || b.id}&draftId=${b.gmail_draft_id}`} 
                         target="_blank" 
                         rel="noreferrer" 
-                        style={{ padding: '6px 10px', backgroundColor: '#ffc107', color: '#000', textDecoration: 'none', borderRadius: '4px', fontSize: '12px' }}
+                        className="btn btn-warning btn-sm text-dark font-weight-bold"
                       >
                         ✍️ Abrir Borrador
                       </a>
+                    ) : (
+                      <a 
+                        href={`/api/admin/threads/open?id=${b.booking_uuid || b.id}`} 
+                        target="_blank" 
+                        rel="noreferrer" 
+                        className="btn btn-secondary btn-sm"
+                      >
+                        Ver Historial
+                      </a>
                     )}
 
+                    {b.status === 'SECURITY_APPROVED' && (
+                      <div style={{ backgroundColor: '#e8f8f5', border: '1px solid #27ae60', padding: '10px', borderRadius: '5px', marginTop: '10px' }}>
+                        <p style={{ color: '#27ae60', margin: '0 0 10px 0', fontWeight: 'bold', fontSize: '14px' }}>
+                          ✅ Seguridad Aprobada
+                        </p>
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                          <button 
+                            onClick={() => triggerPayment(b.booking_uuid, 'draft')}
+                            className="btn btn-outline-primary btn-sm"
+                          >
+                            📝 Crear Borrador de Pago
+                          </button>
+                          <button 
+                            onClick={() => triggerPayment(b.booking_uuid, 'direct')}
+                            className="btn btn-success btn-sm"
+                          >
+                            💸 Enviar Pago Directo
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    
                     {/* Botones Dinámicos de Avance */}
                     {b.status === 'INQUIRY_RECEIVED' && (
                       <button onClick={() => handleNextStage(b)} style={{ padding: '6px 10px', backgroundColor: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>
@@ -177,7 +232,6 @@ export default function DashboardTableBookings({ bookings: initialBookings }) {
         </table>
       </div>
 
-      {/* VENTANA EMERGENTE (MODAL) DE EDICIÓN */}
       {editingBooking && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
           <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '8px', width: '400px', maxWidth: '90%' }}>

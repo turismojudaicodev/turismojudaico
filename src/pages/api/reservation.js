@@ -98,9 +98,10 @@ export default async function handler(req, res) {
 
     const infoSubject = `${destination} City Tour Details - ${desiredDate}`;
 
-    // 🔀 7. BIFURCACIÓN INTELIGENTE (Borrador vs Envío Directo)
     if (hasMessage) {
-        const draftId = await createDraftEmail(email, infoSubject, finalHtml);
+        const cleanRef = uuid.replace(/-/g, ''); 
+        const trackedHtml = finalHtml + `<br><br><span style="color:#cccccc; font-size:10px;">Ref: ${cleanRef}</span>`;
+        const draftId = await createDraftEmail(email, infoSubject, trackedHtml);
         await query(`UPDATE bookings_pipeline SET gmail_draft_id = ? WHERE booking_uuid = ?`, [draftId, uuid]);
     } else {
         await sendDirectEmail(email, infoSubject, finalHtml);
