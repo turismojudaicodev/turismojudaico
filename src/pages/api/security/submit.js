@@ -106,32 +106,59 @@ export default async function handler(req, res) {
     const religious_denomination = getString(fields.religious_denomination);
     const rabbi_name = getString(fields.rabbi_name);
 
+    const tour_type = getString(fields.tour_type);
+    const start_time = getString(fields.start_time);
+    const dropoff_location = getString(fields.dropoff_location);
+    const difficulty_walking = fields.difficulty_walking === 'on' ? 1 : 0;
+    
+    const extra_amia = fields.extra_amia === 'on' ? 1 : 0;
+    const extra_airport = fields.extra_airport_transfer === 'on' ? 1 : 0;
+    
     try {
-      const sql = `
+      // 1. Guardamos todo en la tabla de seguridad (¡Ahora con 23 signos de interrogación!)
+      const sqlSecurity = `
         INSERT INTO booking_security_details 
-        (booking_uuid, passengers_names, passengers_ages, passengers_passports, travel_type, arrival_date, departure_date, hotel_name, phone_number, profession, home_address, community_name, religious_denomination, rabbi_name, visit_reason, knows_someone, other_institutions)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (booking_uuid, passengers_names, passengers_ages, passengers_passports, travel_type, arrival_date, departure_date, hotel_name, phone_number, profession, home_address, community_name, religious_denomination, rabbi_name, visit_reason, knows_someone, other_institutions, tour_type, start_time, dropoff_location, difficulty_walking, extra_amia, extra_airport)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
       
-      const values = [
+      const valuesSecurity = [
         booking_uuid, passengers_names, passengers_ages, passengers_passports, 
         travel_type, arrival_date, departure_date, hotel_name, 
         phone_number, profession, home_address, 
         community_name, religious_denomination, rabbi_name,
-        visit_reason, knows_someone, other_institutions
+        visit_reason, knows_someone, other_institutions, tour_type,
+        start_time, dropoff_location, difficulty_walking, extra_amia, extra_airport
       ];
 
-      await db.promise().query(sql, values);
-      console.log(`✅ Datos completos guardados en MySQL para la reserva: ${booking_uuid}`);
+      await db.promise().query(sqlSecurity, valuesSecurity);
+      console.log(`✅ Datos de seguridad guardados.`);
 
-      await db.promise().query(`UPDATE bookings_pipeline SET status = 'SECURITY_DOCS_RECEIVED' WHERE booking_uuid = ?`, [booking_uuid]);
+      const sqlPipeline = `
+        UPDATE bookings_pipeline 
+        SET status = 'SECURITY_DOCS_RECEIVED', 
+            tour_option = ?, 
+            start_time = ?, 
+            pick_up_hotel = ?, 
+            drop_off_hotel = ?, 
+            walking_difficulties = ?
+        WHERE booking_uuid = ?
+      `;
       
+      const valuesPipeline = [
+        tour_type, start_time, hotel_name, dropoff_location, 
+        difficulty_walking === 1 ? 'Yes' : 'No', booking_uuid
+      ];
+
+      await db.promise().query(sqlPipeline, valuesPipeline);
+      console.log(`✅ CRM actualizado con logística.`);
       console.log('Generando PDF...');
       const formDataForPDF = {
         passengers_names, passengers_ages, passengers_passports, travel_type, 
         arrival_date, departure_date, hotel_name, phone_number, profession, 
         home_address, community_name, religious_denomination, rabbi_name, 
-        visit_reason, knows_someone, other_institutions
+        visit_reason, knows_someone, other_institutions,tour_type,
+        start_time, dropoff_location, difficulty_walking, extra_amia, extra_airport
       };
       
       const pdfBuffer = await generateSecurityPDF(formDataForPDF, files);
