@@ -23,7 +23,7 @@ export default function DashboardTableBookings({ bookings: initialBookings }) {
       })
       setBookings(bookings.map(b => b.id === booking.id ? { ...b, status: 'PENDING_SECURITY_VETTING' } : b))
     
-    } else if (booking.status === 'PENDING_SECURITY_VETTING') {
+    } else if (booking.status === 'PENDING_SECURITY_VETTING' ||booking.status === 'SECURITY_DOCS_RECEIVED' || booking.status === 'SECURITY_APPROVED') {
       await fetch('/api/admin/send-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -83,24 +83,46 @@ export default function DashboardTableBookings({ bookings: initialBookings }) {
   const triggerPayment = async (uuid, mode) => {
   const confirmMsg = mode === 'direct' 
     ? '¿Estás seguro de enviar el correo de pago DIRECTAMENTE al cliente ahora?' 
-    : '¿Quieres crear un borrador de pago en Gmail?';
+    : '¿Quieres crear un borrador de pago en Gmail y abrirlo?';
     
   if (!window.confirm(confirmMsg)) return;
 
   try {
-    const res = await fetch('/api/admin/payments/trigger', {
+    const res = await fetch('/api/admin/send-payment', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ uuid, mode })
     });
 
     if (res.ok) {
-      alert(mode === 'direct' ? '✅ Correo enviado con éxito.' : '✅ Borrador creado. Revisa tu Gmail.');
+      const data = await res.json();
+        
+        if (mode === 'draft' && data.draftId) {
+          setBookings(bookings.map(b => b.booking_uuid === uuid ? { ...b, status: 'PENDING_DEPOSIT', gmail_draft_id: data.draftId } : b));
+        } else {
+          alert('✅ Correo de cobro enviado directamente al cliente.');
+          setBookings(bookings.map(b => b.booking_uuid === uuid ? { ...b, status: 'PENDING_DEPOSIT' } : b));
+        }
     } else {
       alert('❌ Hubo un error al procesar el pago.');
     }
   } catch (error) {
     console.error(error);
+    alert('❌ Error de red.');
+  }
+};
+
+const handleRejectEmail = async (booking) => {
+  if (!window.confirm(`¿Enviar correo de rechazo a ${booking.client_name} y cancelar la reserva?`)) return;
+  try {
+    const res = await fetch('/api/admin/send-rejection', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: booking.client_email, name: booking.client_name, destination: booking.destination_name })
+    });
+    if (res.ok) alert('✅ Correo de cancelación enviado al pasajero.');
+    else alert('❌ Error al enviar el correo.');
+  } catch (error) {
     alert('❌ Error de red.');
   }
 };
@@ -111,7 +133,13 @@ export default function DashboardTableBookings({ bookings: initialBookings }) {
     return 0
   })
 
-  const filteredBookings = sortedBookings.filter(b => activeTab === 'ALL' || b.status === activeTab)
+  const filteredBookings = sortedBookings.filter(b => {
+  if (activeTab === 'ALL') return true;
+  if (activeTab === 'PENDING_SECURITY_VETTING') {
+    return ['PENDING_SECURITY_VETTING', 'SECURITY_DOCS_RECEIVED', 'SECURITY_APPROVED', 'SECURITY_REJECTED'].includes(b.status);
+  }
+  return b.status === activeTab;
+});
 
   const tabStyle = (tabName) => ({
     padding: '10px 20px', cursor: 'pointer', border: 'none',
@@ -147,14 +175,20 @@ export default function DashboardTableBookings({ bookings: initialBookings }) {
               <tr><td colSpan="6" style={{ padding: '20px', textAlign: 'center' }}>No hay reservas en esta vista.</td></tr>
             ) : (
               filteredBookings.map((b) => (
-                <tr key={b.id} style={{ borderBottom: '1px solid #eee' }}>
+                <tr 
+                  key={b.id} 
+                  style={{ 
+                    borderBottom: '1px solid #eee', 
+                    backgroundColor: b.status === 'SECURITY_APPROVED' ? '#e8f8f5' : b.status === 'SECURITY_REJECTED' ? '#f8d7da' : 'transparent' 
+                  }}
+                >
                   <td style={{ padding: '12px' }}>{new Date(b.created_at).toLocaleDateString()}</td>
                   <td style={{ padding: '12px' }}><strong>{b.client_name}</strong><br/><small>{b.client_email}</small></td>
                   <td style={{ padding: '12px' }}>{b.destination_name}</td>
                   <td style={{ padding: '12px' }}>{new Date(b.tour_date).toLocaleDateString()}</td>
                   <td style={{ padding: '12px' }}>{b.pax_adults}</td>
-                  <td style={{ padding: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    
+                  <td style={{ padding: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+
                    {b.status === 'INQUIRY_RECEIVED' ? (
                       <a 
                         href={`/api/admin/drafts/open?id=${b.booking_uuid || b.id}&draftId=${b.gmail_draft_id}`} 
@@ -175,26 +209,36 @@ export default function DashboardTableBookings({ bookings: initialBookings }) {
                       </a>
                     )}
 
+                    {/* Botones estilizados para Seguridad Aprobada sin deformar la tabla */}
                     {b.status === 'SECURITY_APPROVED' && (
-                      <div style={{ backgroundColor: '#e8f8f5', border: '1px solid #27ae60', padding: '10px', borderRadius: '5px', marginTop: '10px' }}>
-                        <p style={{ color: '#27ae60', margin: '0 0 10px 0', fontWeight: 'bold', fontSize: '14px' }}>
-                          ✅ Seguridad Aprobada
-                        </p>
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                          <button 
-                            onClick={() => triggerPayment(b.booking_uuid, 'draft')}
-                            className="btn btn-outline-primary btn-sm"
-                          >
-                            📝 Crear Borrador de Pago
-                          </button>
-                          <button 
-                            onClick={() => triggerPayment(b.booking_uuid, 'direct')}
-                            className="btn btn-success btn-sm"
-                          >
-                            💸 Enviar Pago Directo
-                          </button>
-                        </div>
-                      </div>
+                      <>
+                        <button 
+                          onClick={() => triggerPayment(b.booking_uuid, 'draft')}
+                          href={`/api/admin/drafts/open?id=${b.booking_uuid || b.id}&draftId=${b.gmail_draft_id}`} 
+                          target="_blank" 
+                          rel="noreferrer" 
+                          style={{ padding: '6px 10px', backgroundColor: '#fff', color: '#007bff', border: '1px solid #007bff', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+                        >
+                          📝 Borrador Pago
+                        </button>
+                        <button 
+                          onClick={() => triggerPayment(b.booking_uuid, 'direct')}
+                          style={{ padding: '6px 10px', backgroundColor: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+                        >
+                          💸 Enviar Directo
+                        </button>
+                      </>
+                    )}
+
+                    {b.status === 'SECURITY_REJECTED' && (
+                      <>
+                        <button 
+                          onClick={() => handleRejectEmail(b)}
+                          style={{ padding: '6px 10px', backgroundColor: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+                        >
+                          📧 Enviar Rechazo
+                        </button>
+                      </>
                     )}
                     
                     {/* Botones Dinámicos de Avance */}

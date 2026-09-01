@@ -2,11 +2,9 @@ import { db } from '../../../../lib/mysql';
 
 export default async function handler(req, res) {
   const { id } = req.query;
-  
   if (!id) return res.status(400).send('Missing ID');
 
   try {
-    // 🚀 Movemos la tarjeta a un estado de alerta o rechazo
     await db.promise().query(`UPDATE bookings_pipeline SET status = 'SECURITY_REJECTED' WHERE booking_uuid = ?`, [id]);
     
     res.setHeader('Content-Type', 'text/html; charset=utf-8');

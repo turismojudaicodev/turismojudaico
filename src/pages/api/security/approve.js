@@ -1,15 +1,13 @@
 import { db } from '../../../../lib/mysql';
 
 export default async function handler(req, res) {
-  const { id } = req.query; // Atrapamos el UUID que viene en la URL
+  const { id } = req.query;
   
   if (!id) return res.status(400).send('Missing ID');
 
   try {
-    // 🚀 La magia: Movemos la tarjeta a la columna de Aprobado
     await db.promise().query(`UPDATE bookings_pipeline SET status = 'SECURITY_APPROVED' WHERE booking_uuid = ?`, [id]);
     
-    // Le mostramos una web sencilla al guía
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.status(200).send(`
       <div style="text-align: center; font-family: Arial; margin-top: 100px; color: #333;">
