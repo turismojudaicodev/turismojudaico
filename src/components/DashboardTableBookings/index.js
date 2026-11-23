@@ -14,53 +14,71 @@ export default function DashboardTableBookings({ bookings: initialBookings }) {
     setSortConfig({ key, direction })
   }
 
-  const handleNextStage = async (booking) => {
-    if (booking.status === 'INQUIRY_RECEIVED') {
-      await fetch('/api/admin/booking', {
-        method: 'PUT',
+  const updateLocalBooking = (id, changes) =>
+    setBookings((current) => current.map((b) => (b.id === id ? { ...b, ...changes } : b)))
+
+  /** Hace el request y muestra el error del servidor si falla. Devuelve los datos o null. */
+  const apiRequest = async (url, method, body) => {
+    try {
+      const response = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: booking.id, status: 'PENDING_SECURITY_VETTING' })
+        body: JSON.stringify(body),
       })
-      setBookings(bookings.map(b => b.id === booking.id ? { ...b, status: 'PENDING_SECURITY_VETTING' } : b))
-    
-    } else if (booking.status === 'PENDING_SECURITY_VETTING' ||booking.status === 'SECURITY_DOCS_RECEIVED' || booking.status === 'SECURITY_APPROVED') {
-      await fetch('/api/admin/send-payment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: booking.id, email: booking.client_email, name: booking.client_name, destination: booking.destination_name })
-      })
-      setBookings(bookings.map(b => b.id === booking.id ? { ...b, status: 'PENDING_DEPOSIT' } : b))
-    
-    } else if (booking.status === 'PENDING_DEPOSIT') {
-      await fetch('/api/admin/send-voucher', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: booking.id, email: booking.client_email, name: booking.client_name, destination: booking.destination_name })
-      })
-      setBookings(bookings.map(b => b.id === booking.id ? { ...b, status: 'CONFIRMED_ASSIGNED' } : b))
+      const data = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        alert(`❌ ${data.error || 'Error en el servidor'}`)
+        return null
+      }
+      return data
+    } catch (error) {
+      console.error(error)
+      alert('❌ Error de red.')
+      return null
     }
   }
 
- const handleDelete = async (id) => {
-    const isConfirmed = window.confirm('¿Estás seguro de que quieres borrar esta reserva de forma permanente?')
-    if (!isConfirmed) return
+  const moveToSecurity = async (booking) => {
+    const data = await apiRequest('/api/admin/booking', 'PUT', { id: booking.id, status: 'PENDING_SECURITY_VETTING' })
+    if (!data) return
+    if (!data.draftSent) alert('⚠️ Estado actualizado, pero no se encontró el borrador para enviar. Revisá Gmail.')
+    updateLocalBooking(booking.id, { status: 'PENDING_SECURITY_VETTING' })
+  }
 
-    try {
-      const response = await fetch('/api/admin/booking', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id })
-      });
+  const triggerPayment = async (booking, mode) => {
+    const confirmMsg = mode === 'direct'
+      ? '¿Estás seguro de enviar el correo de pago DIRECTAMENTE al cliente ahora?'
+      : '¿Querés crear un borrador de pago en Gmail?'
+    if (!window.confirm(confirmMsg)) return
 
-      if (response.ok) {
-        setBookings(bookings.filter(b => b.id !== id));
-      } else {
-        const errorData = await response.json();
-        alert(`Fallo en el servidor: ${errorData.error}`);
-      }
-    } catch (error) {
-      console.error("Error en la petición de borrado:", error);
-    }
+    const data = await apiRequest('/api/admin/send-payment', 'POST', { uuid: booking.booking_uuid, mode })
+    if (!data) return
+    if (mode === 'direct') alert(`✅ Correo de cobro enviado (total: USD ${data.total}).`)
+    updateLocalBooking(booking.id, {
+      status: 'PENDING_DEPOSIT',
+      total_price_usd: data.total,
+      ...(data.draftId && { gmail_draft_id: data.draftId }),
+    })
+  }
+
+  const confirmPayment = async (booking) => {
+    const data = await apiRequest('/api/admin/send-voucher', 'POST', { id: booking.id })
+    if (!data) return
+    updateLocalBooking(booking.id, { status: 'CONFIRMED_ASSIGNED', gmail_draft_id: data.draftId })
+  }
+
+  const handleRejectEmail = async (booking) => {
+    if (!window.confirm(`¿Enviar correo de rechazo a ${booking.client_name} y cancelar la reserva?`)) return
+    const data = await apiRequest('/api/admin/send-rejection', 'POST', { id: booking.id })
+    if (!data) return
+    alert('✅ Correo de cancelación enviado al pasajero.')
+    updateLocalBooking(booking.id, { status: 'CANCELLED' })
+  }
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('¿Estás seguro de que querés borrar esta reserva de forma permanente?')) return
+    const data = await apiRequest('/api/admin/booking', 'DELETE', { id })
+    if (data) setBookings((current) => current.filter((b) => b.id !== id))
   }
 
   const openEditModal = (booking) => {
@@ -71,61 +89,14 @@ export default function DashboardTableBookings({ bookings: initialBookings }) {
 
   const handleSaveEdit = async (e) => {
     e.preventDefault()
-    await fetch('/api/admin/booking', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData)
+    const { id, client_name, client_email, destination_name, tour_date, pax_adults, status } = formData
+    const data = await apiRequest('/api/admin/booking', 'PUT', {
+      id, client_name, client_email, destination_name, tour_date, pax_adults, status,
     })
-    setBookings(bookings.map(b => b.id === formData.id ? { ...b, ...formData } : b))
+    if (!data) return
+    updateLocalBooking(id, formData)
     setEditingBooking(null)
   }
-
-  const triggerPayment = async (uuid, mode) => {
-  const confirmMsg = mode === 'direct' 
-    ? '¿Estás seguro de enviar el correo de pago DIRECTAMENTE al cliente ahora?' 
-    : '¿Quieres crear un borrador de pago en Gmail y abrirlo?';
-    
-  if (!window.confirm(confirmMsg)) return;
-
-  try {
-    const res = await fetch('/api/admin/send-payment', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uuid, mode })
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-        
-        if (mode === 'draft' && data.draftId) {
-          setBookings(bookings.map(b => b.booking_uuid === uuid ? { ...b, status: 'PENDING_DEPOSIT', gmail_draft_id: data.draftId } : b));
-        } else {
-          alert('✅ Correo de cobro enviado directamente al cliente.');
-          setBookings(bookings.map(b => b.booking_uuid === uuid ? { ...b, status: 'PENDING_DEPOSIT' } : b));
-        }
-    } else {
-      alert('❌ Hubo un error al procesar el pago.');
-    }
-  } catch (error) {
-    console.error(error);
-    alert('❌ Error de red.');
-  }
-};
-
-const handleRejectEmail = async (booking) => {
-  if (!window.confirm(`¿Enviar correo de rechazo a ${booking.client_name} y cancelar la reserva?`)) return;
-  try {
-    const res = await fetch('/api/admin/send-rejection', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: booking.client_email, name: booking.client_name, destination: booking.destination_name })
-    });
-    if (res.ok) alert('✅ Correo de cancelación enviado al pasajero.');
-    else alert('❌ Error al enviar el correo.');
-  } catch (error) {
-    alert('❌ Error de red.');
-  }
-};
 
   const sortedBookings = [...bookings].sort((a, b) => {
     if (a[sortConfig.key] < b[sortConfig.key]) return sortConfig.direction === 'asc' ? -1 : 1
@@ -213,16 +184,13 @@ const handleRejectEmail = async (booking) => {
                     {b.status === 'SECURITY_APPROVED' && (
                       <>
                         <button 
-                          onClick={() => triggerPayment(b.booking_uuid, 'draft')}
-                          href={`/api/admin/drafts/open?id=${b.booking_uuid || b.id}&draftId=${b.gmail_draft_id}`} 
-                          target="_blank" 
-                          rel="noreferrer" 
+                          onClick={() => triggerPayment(b, 'draft')}
                           style={{ padding: '6px 10px', backgroundColor: '#fff', color: '#007bff', border: '1px solid #007bff', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
                         >
                           📝 Borrador Pago
                         </button>
                         <button 
-                          onClick={() => triggerPayment(b.booking_uuid, 'direct')}
+                          onClick={() => triggerPayment(b, 'direct')}
                           style={{ padding: '6px 10px', backgroundColor: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
                         >
                           💸 Enviar Directo
@@ -243,17 +211,17 @@ const handleRejectEmail = async (booking) => {
                     
                     {/* Botones Dinámicos de Avance */}
                     {b.status === 'INQUIRY_RECEIVED' && (
-                      <button onClick={() => handleNextStage(b)} style={{ padding: '6px 10px', backgroundColor: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>
+                      <button onClick={() => moveToSecurity(b)} style={{ padding: '6px 10px', backgroundColor: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>
                         ✅ Pasar a Seguridad 
                       </button>
                     )}
                     {b.status === 'PENDING_SECURITY_VETTING' && (
-                      <button onClick={() => handleNextStage(b)} style={{ padding: '6px 10px', backgroundColor: '#17a2b8', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>
+                      <button onClick={() => triggerPayment(b, 'draft')} style={{ padding: '6px 10px', backgroundColor: '#17a2b8', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>
                         💳 Armar Cobro 
                       </button>
                     )}
                     {b.status === 'PENDING_DEPOSIT' && (
-                      <button onClick={() => handleNextStage(b)} style={{ padding: '6px 10px', backgroundColor: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>
+                      <button onClick={() => confirmPayment(b)} style={{ padding: '6px 10px', backgroundColor: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>
                         🚀 Confirmar Pago 
                       </button>
                     )}
@@ -307,8 +275,13 @@ const handleRejectEmail = async (booking) => {
                 <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} style={{ width: '100%', padding: '8px', marginTop: '4px' }}>
                   <option value="INQUIRY_RECEIVED">Por Responder</option>
                   <option value="PENDING_SECURITY_VETTING">Seguridad Pendiente</option>
+                  <option value="SECURITY_DOCS_RECEIVED">Documentos Recibidos</option>
+                  <option value="SECURITY_APPROVED">Seguridad Aprobada</option>
+                  <option value="SECURITY_REJECTED">Seguridad Rechazada</option>
                   <option value="PENDING_DEPOSIT">Esperando Pago</option>
                   <option value="CONFIRMED_ASSIGNED">Confirmado</option>
+                  <option value="COMPLETED">Completado</option>
+                  <option value="CANCELLED">Cancelado</option>
                 </select>
               </label>
 

@@ -1,17 +1,30 @@
-import { db } from '../../../../lib/mysql'
+import { query } from '../../../../lib/mysql'
+
+const BOOKING_STATUSES = `ENUM(
+  'INQUIRY_RECEIVED',
+  'PENDING_SECURITY_VETTING',
+  'SECURITY_DOCS_RECEIVED',
+  'SECURITY_APPROVED',
+  'SECURITY_REJECTED',
+  'PENDING_DEPOSIT',
+  'CONFIRMED_ASSIGNED',
+  'COMPLETED',
+  'CANCELLED'
+)`
+
+/** Agrega una columna solo si no existe (MySQL no soporta ADD COLUMN IF NOT EXISTS). */
+async function addColumnIfMissing(table, column, definition) {
+  const rows = await query(
+    `SELECT 1 FROM information_schema.COLUMNS
+     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?`,
+    [table, column]
+  )
+  if (rows.length === 0) {
+    await query(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`)
+  }
+}
 
 export default async function handler(req, res) {
-  // 1. Convertir la conexión basada en callbacks de mysql2 a Promesas
-  // Esto nos permite usar async/await para ejecutar las tablas en orden.
-  const query = (sql, params = []) => {
-    return new Promise((resolve, reject) => {
-      db.query(sql, params, (err, results) => {
-        if (err) reject(err)
-        else resolve(results)
-      })
-    })
-  }
-
   try {
     console.log('🚀 Iniciando creación de tablas...')
 
@@ -65,27 +78,20 @@ export default async function handler(req, res) {
         -- Datos del Tour
         destination_name VARCHAR(100) NOT NULL,
         tour_date DATE NOT NULL,
-        tour_option VARCHAR(50) DEFAULT 'Half Day',
+        tour_option VARCHAR(100) DEFAULT 'Half Day',
         start_time VARCHAR(20) DEFAULT '09:00 AM',
         pick_up_hotel VARCHAR(200),
         drop_off_hotel VARCHAR(200),
         guide_id INT NULL,
         
         -- Máquina de Estados (El panel del Empleado)
-        status ENUM(
-          'INQUIRY_RECEIVED', 
-          'PENDING_SECURITY_VETTING', 
-          'SECURITY_APPROVED', 
-          'PENDING_DEPOSIT', 
-          'CONFIRMED_ASSIGNED', 
-          'COMPLETED', 
-          'CANCELLED'
-        ) DEFAULT 'INQUIRY_RECEIVED',
+        status ${BOOKING_STATUSES} DEFAULT 'INQUIRY_RECEIVED',
         
         -- Control de Seguridad
         security_policy_applied ENUM('NONE', 'EXTERNAL_FORM', 'GUIDE_VETTED') NOT NULL,
         passport_files_json JSON NULL,
         security_token VARCHAR(100) NULL,
+        gmail_draft_id VARCHAR(100) NULL,
         
         -- Matemáticas y Finanzas Autocalculadas
         total_price_usd DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
@@ -105,12 +111,54 @@ export default async function handler(req, res) {
     `)
     console.log('✅ Tabla bookings_pipeline creada.')
 
-    // 5. Opcional: Insertar configuración semilla para testear
+    // 5. Datos del formulario de seguridad que completa el cliente (una fila por reserva)
+    await query(`
+      CREATE TABLE IF NOT EXISTS booking_security_details (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        booking_uuid VARCHAR(36) NOT NULL,
+        passengers_names TEXT,
+        passengers_ages TEXT,
+        passengers_passports TEXT,
+        travel_type VARCHAR(50),
+        arrival_date DATE NULL,
+        departure_date DATE NULL,
+        hotel_name VARCHAR(200),
+        phone_number VARCHAR(50),
+        profession VARCHAR(100),
+        home_address VARCHAR(200),
+        community_name VARCHAR(200),
+        religious_denomination VARCHAR(50),
+        rabbi_name VARCHAR(150),
+        visit_reason VARCHAR(200),
+        knows_someone BOOLEAN DEFAULT FALSE,
+        other_institutions TEXT,
+        tour_type VARCHAR(100),
+        start_time VARCHAR(20),
+        dropoff_location VARCHAR(200),
+        difficulty_walking BOOLEAN DEFAULT FALSE,
+        extra_amia BOOLEAN DEFAULT FALSE,
+        extra_airport BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX (booking_uuid)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `)
+    console.log('✅ Tabla booking_security_details creada.')
+
+    // 6. Migraciones para bases creadas con versiones anteriores de este script
+    await query(`ALTER TABLE bookings_pipeline MODIFY status ${BOOKING_STATUSES} DEFAULT 'INQUIRY_RECEIVED'`)
+    await query(`ALTER TABLE bookings_pipeline MODIFY tour_option VARCHAR(100) DEFAULT 'Half Day'`)
+    await addColumnIfMissing('bookings_pipeline', 'gmail_draft_id', 'VARCHAR(100) NULL')
+    for (const extra of ['extra_port', 'extra_casapueblo', 'extra_callao', 'extra_kosher_food']) {
+      await addColumnIfMissing('booking_security_details', extra, 'BOOLEAN DEFAULT FALSE')
+    }
+    console.log('✅ Migraciones aplicadas.')
+
+    // 7. Configuración semilla (los nombres tienen que coincidir con los del sitio)
     await query(`
       INSERT IGNORE INTO destinations_config (destination_name, security_policy_type, external_form_url)
       VALUES 
         ('Panama', 'EXTERNAL_FORM', 'https://comunidadpanama.org/formulario-seguridad'),
-        ('Santiago', 'GUIDE_VETTED', NULL),
+        ('Santiago de Chile', 'GUIDE_VETTED', NULL),
         ('Curacao', 'NONE', NULL);
     `)
 

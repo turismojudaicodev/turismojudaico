@@ -1,14 +1,14 @@
-import { findDraftByBookingId } from '../../../../../lib/gmail';
+import { findDraftByBookingId, getDraftMessageId } from '../../../../../lib/gmail'
 
+const GMAIL_DRAFTS_URL = 'https://mail.google.com/mail/u/?authuser=info@turismojudaico.com#drafts'
+
+/** Redirige al borrador de Gmail de una reserva (o a la carpeta de borradores si no lo encuentra). */
 export default async function handler(req, res) {
-  const { id, draftId } = req.query;
-  const ids = await findDraftByBookingId(id);
-  
-  const finalMessageId = (ids && ids.messageId) ? ids.messageId : draftId;
-  
-  if (finalMessageId && finalMessageId !== 'null' && finalMessageId !== 'undefined') {
-    res.redirect(307, `https://mail.google.com/mail/u/?authuser=info@turismojudaico.com#drafts?compose=${finalMessageId}`);
-  } else {
-    res.redirect(307, `https://mail.google.com/mail/u/?authuser=info@turismojudaico.com#drafts`);
-  }
+  const { id, draftId } = req.query
+
+  const messageId =
+    (draftId && (await getDraftMessageId(draftId))) ||
+    (await findDraftByBookingId(id))?.messageId
+
+  res.redirect(307, messageId ? `${GMAIL_DRAFTS_URL}?compose=${messageId}` : GMAIL_DRAFTS_URL)
 }

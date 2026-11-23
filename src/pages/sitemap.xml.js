@@ -16,7 +16,11 @@ export const getServerSideProps = async (ctx) => {
 }
 
 async function generateSitemap() {
-  const toursIds = await getToursIds()
+  // Si la base falla, igual devolvemos el sitemap con las páginas fijas.
+  const toursIds = await getToursIds().catch((error) => {
+    console.error('Sitemap: no se pudieron leer los tours', error)
+    return []
+  })
 
   return `<?xml version="1.0" encoding="UTF-8"?>
   <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

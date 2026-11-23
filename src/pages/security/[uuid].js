@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { db } from '../../../lib/mysql'; 
+import { getBookingByUuid, SECURITY_FORM_OPEN_STATUSES } from '../../../lib/bookings';
+import { normalizeDestination } from '../../../lib/pricing';
 
 const cityConfig = {
   "Buenos Aires": {
@@ -13,7 +14,7 @@ const cityConfig = {
     tours: ["Half-day Tour (4 hrs)", "Mix Tour (6 hrs)", "Full Day Tour (8 hrs)", "Walking Tour (3 hrs)"],
     requirePassport: true,
     extraQuestions: [
-      { id: "airport_transfer", label: "Need extra transportation to GIG international airport? (Extra cost)" }
+      { id: "airport", label: "Need extra transportation to GIG international airport? (Extra cost)" }
     ]
   },
   "Santos": {
@@ -35,8 +36,8 @@ const cityConfig = {
     tours: ["Half Day (4-5 hrs)", "Full Day (6-7 hrs)", "San Antonio Cruise Pick-up + Tour + SCL Drop-off"],
     requirePassport: true,
     extraQuestions: [
-      { id: "airport_transfer", label: "Start/End at SCL Airport? (Extra cost applies)" },
-      { id: "port_transfer", label: "Pick up/Drop off at Valparaiso or San Antonio cruise dock? (Extra cost)" }
+      { id: "airport", label: "Start/End at SCL Airport? (Extra cost applies)" },
+      { id: "port", label: "Pick up/Drop off at Valparaiso or San Antonio cruise dock? (Extra cost)" }
     ]
   },
   "Montevideo": {
@@ -56,7 +57,7 @@ const cityConfig = {
     requirePassport: true,
     extraQuestions: [
       { id: "kosher_food", label: "Are you interested in Kosher Lunch-Boxes delivery?" },
-      { id: "callao_port", label: "Pick up from the cruise port in Callao? (+ USD 40/60)" }
+      { id: "callao", label: "Pick up from the cruise port in Callao? (+ USD 40/60)" }
     ]
   },
   "Bogota": {
@@ -76,36 +77,36 @@ const cityConfig = {
   }
 };
 
-export async function getServerSideProps(context) {
-  const { uuid } = context.params;
-  try {
-    const cleanUuid = uuid.trim();
-    const [rows] = await db.promise().query(
-      'SELECT destination_name FROM bookings_pipeline WHERE booking_uuid = ? OR id = ?',
-      [cleanUuid, cleanUuid]
-    );
+export async function getServerSideProps({ params }) {
+  const booking = await getBookingByUuid(params.uuid.trim());
+  if (!booking) return { notFound: true };
 
-    if (rows.length === 0) {
-      return { props: { uuid: cleanUuid, destinationCity: "Unknown" } }; 
-    }
-    return {
-      props: {
-        uuid: cleanUuid,
-        destinationCity: rows[0].destination_name || "Unknown",
-      },
-    };
-  } catch (error) {
-    return { props: { uuid: "ERROR", destinationCity: "Connection Error" } };
-  }
+  return {
+    props: {
+      uuid: booking.booking_uuid,
+      destinationCity: booking.destination_name,
+      isOpen: SECURITY_FORM_OPEN_STATUSES.includes(booking.status),
+    },
+  };
 }
 
-export default function SecurityPortal({ uuid, destinationCity }) {
+const DEFAULT_CONFIG = { tours: ["Standard Tour", "Half Day", "Full Day"], requirePassport: true, extraQuestions: [] };
+
+const centeredMessage = (title, text) => (
+  <div style={{ maxWidth: '600px', margin: '80px auto', padding: '20px', fontFamily: 'Arial', textAlign: 'center' }}>
+    <h2 style={{ color: '#2c3e50' }}>{title}</h2>
+    <p style={{ color: '#7f8c8d' }}>{text}</p>
+  </div>
+);
+
+export default function SecurityPortal({ uuid, destinationCity, isOpen }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+  const [isSent, setIsSent] = useState(false);
+
   const cityKey = Object.keys(cityConfig).find(
-    key => key.toLowerCase() === destinationCity.trim().toLowerCase()
+    key => normalizeDestination(key) === normalizeDestination(destinationCity)
   );
-  const config = cityConfig[cityKey] || { tours: ["Standard Tour", "Half Day", "Full Day"], requirePassport: true, extraQuestions: [] };
+  const config = cityConfig[cityKey] || DEFAULT_CONFIG;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -115,14 +116,25 @@ export default function SecurityPortal({ uuid, destinationCity }) {
 
     try {
       const response = await fetch('/api/security/submit', { method: 'POST', body: formData });
-      if (response.ok) alert('✅ Information sent successfully!');
-      else alert('❌ Error sending information.');
+      if (response.ok) {
+        setIsSent(true);
+      } else {
+        const { error } = await response.json().catch(() => ({}));
+        alert(`❌ ${error || 'Error sending information.'}`);
+      }
     } catch (error) {
-      alert('Network error.');
+      alert('❌ Network error. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (isSent) {
+    return centeredMessage('✅ Thank you!', 'We received your information. We will contact you by email with the next steps.');
+  }
+  if (!isOpen) {
+    return centeredMessage('Information already received', 'We already have your trip details for this booking. If you need to change something, please reply to our email.');
+  }
 
   return (
     <div style={{ maxWidth: '800px', margin: '40px auto', padding: '20px', fontFamily: 'Arial' }}>

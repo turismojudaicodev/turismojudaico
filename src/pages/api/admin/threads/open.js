@@ -1,16 +1,11 @@
-import { findThreadByBookingId } from '../../../../../lib/gmail';
+import { bookingRef, findThreadByBookingId } from '../../../../../lib/gmail'
 
+const GMAIL_URL = 'https://mail.google.com/mail/u/?authuser=info@turismojudaico.com'
+
+/** Redirige al hilo de Gmail de una reserva, o a una búsqueda por su referencia. */
 export default async function handler(req, res) {
-  const { id } = req.query;
-  console.log(`🔎 Buscando historial para ID:`, id);
+  const { id } = req.query
+  const threadId = await findThreadByBookingId(id)
 
-  const threadId = await findThreadByBookingId(id);
-
-  if (threadId) {
-    // #all/ abre el correo directamente en pantalla completa
-    res.redirect(307, `https://mail.google.com/mail/u/?authuser=info@turismojudaico.com#all/${threadId}`);
-  } else {
-    const cleanId = String(id).replace(/-/g, '');
-    res.redirect(307, `https://mail.google.com/mail/u/?authuser=info@turismojudaico.com#search/${cleanId}`);
-  }
+  res.redirect(307, threadId ? `${GMAIL_URL}#all/${threadId}` : `${GMAIL_URL}#search/${bookingRef(id)}`)
 }
