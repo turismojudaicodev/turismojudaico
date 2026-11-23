@@ -13,7 +13,7 @@ Hoy está en el paso de **cobro**: el mail se arma, pero no hay link de pago rea
 
 ---
 
-## Resultado de las pruebas (5/11/2026)
+## Resultado de las pruebas (5/11/2026, repetidas el 23/11/2026 con el mismo resultado)
 
 Prueba local con `next build` + `next start`, MariaDB local y la API de Gmail simulada (los mails se guardaban en un archivo en vez de enviarse). Sin `.env` real ni las tablas viejas (`paquetes`, etc.), así que no se probó el contenido del sitio público.
 
@@ -22,7 +22,7 @@ Prueba local con `next build` + `next start`, MariaDB local y la API de Gmail si
 | `npm ci` + `next build` | ✅ Compila sin errores |
 | `next lint` | ✅ Sin errores (solo warnings de `<img>` y dependencias de `useEffect`) |
 | Páginas públicas (`/`, `/tours`, `/contact`, `/blogs`, etc.) | ✅ Responden 200 |
-| `/sitemap.xml` | ❌ Se cuelga si falla la consulta a la base (`lib/sitemap.js` usa `res`, que no existe) |
+| `/sitemap.xml` | ❌ Si falla la consulta a la base, **tira abajo todo el servidor** (`lib/sitemap.js` usa `res`, que no existe). En Vercel solo falla ese pedido |
 | Reserva **sin** mensaje | ✅ Se guarda y manda 2 mails al cliente |
 | Reserva **con** mensaje (base creada con `setup-db.js`) | ❌ 500: no existe la columna `gmail_draft_id`. El cliente igual recibe el mail y la reserva queda guardada |
 | Reserva sin fecha | ⚠️ Se guarda con la fecha de hoy sin avisar |
@@ -119,7 +119,7 @@ Precios calculados con `lib/pricing.js`:
   - [ ] agregar la "Ref" a **todos** los mails, no solo a los borradores, para que "Ver Historial" encuentre el hilo;
   - [ ] guardar el `draft.id` real (hoy se guarda el message id con el nombre `gmail_draft_id`) y usarlo directo, en vez de recorrer los últimos 20 borradores.
 - [ ] `reservation.js`: hacer obligatoria la fecha (hoy, si no viene, pone la de hoy)
-- [ ] `lib/sitemap.js`: usar `reject(err)` en vez de `res.status(...)` (hoy `/sitemap.xml` se cuelga si falla la base)
+- [ ] `lib/sitemap.js`: usar `reject(err)` en vez de `res.status(...)` (hoy, si falla la base, `/sitemap.xml` tira abajo todo el servidor Node)
 
 ## 🟡 Prioridad 3: Lo que falta construir
 
