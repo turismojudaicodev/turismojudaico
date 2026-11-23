@@ -13,6 +13,17 @@ Hoy está en el paso de **cobro**: el mail se arma, pero no hay link de pago rea
 
 ---
 
+## Correcciones del 23/11/2026
+
+Se arreglaron los bugs del flujo de reservas (prioridad 2) y parte de la prioridad 1. Prueba automática: 50 de 50 casos del flujo pasan, más una prueba en navegador del formulario y del panel.
+
+**Antes de usarlo en producción:**
+- [ ] Entrar una vez a `/api/admin/setup-db`: crea las columnas nuevas (extras, `gmail_draft_id`) y amplía los estados. Se puede correr varias veces sin problema.
+- [ ] Cargar `contact_security_email` en `destinations_config` para cada destino, o definir `SECURITY_FALLBACK_EMAIL` (si no, el mail al guía va a `GMAIL_USER`).
+- [ ] Verificar que `NEXT_PUBLIC_BASE_URL` apunte al dominio real (se usa en los links del formulario y de aprobación).
+
+Sigue pendiente la autenticación de la API y el login (prioridad 1).
+
 ## Resultado de las pruebas (5/11/2026, repetidas el 23/11/2026 con el mismo resultado)
 
 Prueba local con `next build` + `next start`, MariaDB local y la API de Gmail simulada (los mails se guardaban en un archivo en vez de enviarse). Sin `.env` real ni las tablas viejas (`paquetes`, etc.), así que no se probó el contenido del sitio público.
@@ -71,74 +82,74 @@ Precios calculados con `lib/pricing.js`:
   - [ ] no guardar la contraseña en la cookie;
   - [ ] usar una sesión firmada (JWT o iron-session) en una cookie `httpOnly`;
   - [ ] comparar con bcrypt (ya está instalado) en vez de texto plano.
-- [ ] Middleware: envolver `JSON.parse` en try/catch y validar la sesión firmada, no solo `role`
-- [ ] Sacar o proteger `/api/admin/setup-db`, `/api/admin/check-schema` y `/admin/db-viewer`
+- [ ] Middleware: validar una sesión firmada, no solo `role` (el try/catch de `JSON.parse` ya está)
+- [ ] Proteger `/api/admin/setup-db` y `/api/admin/check-schema` (`db-viewer` ya se movió a `/admin/dashboard/db-viewer`, detrás del login)
 - [ ] Links de aprobar/rechazar del guía:
   - [ ] agregarles un token secreto (la columna `security_token` ya existe);
-  - [ ] pasar a una página con botón de confirmación (POST), para que los antivirus de mail no los activen solos;
-  - [ ] validar que la reserva exista y esté en `SECURITY_DOCS_RECEIVED`.
-- [ ] `/security/[uuid]`:
-  - [ ] buscar solo por `booking_uuid`, no por `id`;
-  - [ ] mostrar 404 si no existe;
-  - [ ] no mostrar el formulario si la reserva ya pasó esa etapa.
-- [ ] `/api/security/submit`: validar que el uuid exista y que el estado lo permita antes de guardar o mandar mails
-- [ ] Escapar el HTML de todo lo que escribe el cliente antes de meterlo en mails, y validar el email (evitar saltos de línea en el header `To:`)
+  - [x] pasar a una página con botón de confirmación (POST), para que los antivirus de mail no los activen solos;
+  - [x] validar que la reserva exista y esté en `SECURITY_DOCS_RECEIVED`.
+- [x] `/security/[uuid]`:
+  - [x] buscar solo por `booking_uuid`, no por `id`;
+  - [x] mostrar 404 si no existe;
+  - [x] no mostrar el formulario si la reserva ya pasó esa etapa.
+- [x] `/api/security/submit`: validar que el uuid exista y que el estado lo permita antes de guardar o mandar mails
+- [x] Escapar el HTML de todo lo que escribe el cliente antes de meterlo en mails, y validar el email (evitar saltos de línea en el header `To:`)
 - [ ] Agregar captcha o límite de envíos al formulario de reserva (hoy cualquiera puede usar el Gmail de la empresa para mandar mails a terceros)
 - [ ] Datos de pasaportes:
-  - [ ] borrar los temporales de formidable después de generar el PDF;
+  - [x] borrar los temporales de formidable después de generar el PDF;
   - [ ] definir cuánto tiempo se guardan esos datos.
 
 ## 🟠 Prioridad 2: Bugs que rompen el flujo
 
-- [ ] `api/security/submit.js`: leer los checkboxes con `getString()` (formidable v3 devuelve arrays). Hoy todos se guardan en 0
-- [ ] Unificar los nombres de los extras entre las tres partes. Hoy no coinciden:
-  - [ ] el formulario manda `extra_port_transfer`, `extra_casapueblo`, `extra_callao_port`, `extra_kosher_food`;
-  - [ ] `submit.js` solo guarda `extra_amia` y `extra_airport`;
-  - [ ] `pricing.js` lee `extra_port`, `extra_casapueblo`, `extra_callao`.
-- [ ] Agregar las columnas que faltan en `booking_security_details` para esos extras
-- [ ] `pricing.js`:
-  - [ ] corregir el nombre de Río (`'Tour Judaico Rio de Janeiro  '`);
-  - [ ] si `finalTotal === 0`, no mandar el mail y avisar en el panel.
-- [ ] `api/admin/booking.js` (PUT y DELETE):
-  - [ ] no usar `WHERE id = ? OR booking_uuid = ?`, sino uno u otro según el tipo;
-  - [ ] mandar el borrador de Gmail **después** de que el UPDATE salga bien.
-- [ ] `DashboardTableBookings` → `handleNextStage`:
-  - [ ] el paso "Armar Cobro" tiene que mandar `uuid` (y `mode`);
-  - [ ] revisar `res.ok` antes de actualizar la tabla, en todos los pasos.
-- [ ] Formulario de seguridad: impedir el doble envío
-  - [ ] `UNIQUE(booking_uuid)` + `ON DUPLICATE KEY UPDATE`;
-  - [ ] o bloquear el formulario después de enviarlo, con pantalla de "gracias".
-- [ ] PDF de seguridad:
-  - [ ] incluir los pasaportes subidos en PDF (adjuntarlos aparte o unirlos);
-  - [ ] rechazar o convertir HEIC (pdfkit solo acepta JPG y PNG).
-- [ ] Rechazo: `send-rejection` tiene que pasar la reserva a `CANCELLED`
-- [ ] Modal de edición:
-  - [ ] agregar los estados `SECURITY_DOCS_RECEIVED`, `SECURITY_APPROVED`, `SECURITY_REJECTED` y `CANCELLED`;
-  - [ ] usar un select de destinos existentes (hay una foreign key a `destinations_config`).
-- [ ] Gmail:
-  - [ ] agregar la "Ref" a **todos** los mails, no solo a los borradores, para que "Ver Historial" encuentre el hilo;
-  - [ ] guardar el `draft.id` real (hoy se guarda el message id con el nombre `gmail_draft_id`) y usarlo directo, en vez de recorrer los últimos 20 borradores.
-- [ ] `reservation.js`: hacer obligatoria la fecha (hoy, si no viene, pone la de hoy)
-- [ ] `lib/sitemap.js`: usar `reject(err)` en vez de `res.status(...)` (hoy, si falla la base, `/sitemap.xml` tira abajo todo el servidor Node)
+- [x] `api/security/submit.js`: leer los checkboxes con `getString()` (formidable v3 devuelve arrays). Hoy todos se guardan en 0
+- [x] Unificar los nombres de los extras entre las tres partes. Hoy no coinciden:
+  - [x] el formulario manda `extra_port_transfer`, `extra_casapueblo`, `extra_callao_port`, `extra_kosher_food`;
+  - [x] `submit.js` solo guarda `extra_amia` y `extra_airport`;
+  - [x] `pricing.js` lee `extra_port`, `extra_casapueblo`, `extra_callao`.
+- [x] Agregar las columnas que faltan en `booking_security_details` para esos extras
+- [x] `pricing.js`:
+  - [x] corregir el nombre de Río (`'Tour Judaico Rio de Janeiro  '`);
+  - [x] si `finalTotal === 0`, no mandar el mail y avisar en el panel.
+- [x] `api/admin/booking.js` (PUT y DELETE):
+  - [x] no usar `WHERE id = ? OR booking_uuid = ?`, sino uno u otro según el tipo;
+  - [x] mandar el borrador de Gmail **después** de que el UPDATE salga bien.
+- [x] `DashboardTableBookings` → `handleNextStage`:
+  - [x] el paso "Armar Cobro" tiene que mandar `uuid` (y `mode`);
+  - [x] revisar `res.ok` antes de actualizar la tabla, en todos los pasos.
+- [x] Formulario de seguridad: impedir el doble envío
+  - [x] `UNIQUE(booking_uuid)` + `ON DUPLICATE KEY UPDATE`;
+  - [x] o bloquear el formulario después de enviarlo, con pantalla de "gracias".
+- [x] PDF de seguridad:
+  - [x] incluir los pasaportes subidos en PDF (adjuntarlos aparte o unirlos);
+  - [x] rechazar o convertir HEIC (pdfkit solo acepta JPG y PNG). → los archivos que no son JPG/PNG se adjuntan aparte
+- [x] Rechazo: `send-rejection` tiene que pasar la reserva a `CANCELLED`
+- [x] Modal de edición:
+  - [x] agregar los estados `SECURITY_DOCS_RECEIVED`, `SECURITY_APPROVED`, `SECURITY_REJECTED` y `CANCELLED`;
+  - [ ] usar un select de destinos existentes (hay una foreign key a `destinations_config`). (por ahora devuelve un error claro)
+- [x] Gmail:
+  - [x] agregar la "Ref" a **todos** los mails, no solo a los borradores, para que "Ver Historial" encuentre el hilo;
+  - [x] guardar el `draft.id` real (hoy se guarda el message id con el nombre `gmail_draft_id`) y usarlo directo, en vez de recorrer los últimos 20 borradores.
+- [x] `reservation.js`: hacer obligatoria la fecha (hoy, si no viene, pone la de hoy)
+- [x] `lib/sitemap.js`: usar `reject(err)` en vez de `res.status(...)` (hoy, si falla la base, `/sitemap.xml` tira abajo todo el servidor Node)
 
 ## 🟡 Prioridad 3: Lo que falta construir
 
-- [ ] **Mandar al cliente el link a `/security/<uuid>`** en el mail de "Pasar a Seguridad" (hoy no se manda en ningún lado)
+- [x] **Mandar al cliente el link a `/security/<uuid>`** en el mail de "Pasar a Seguridad" (hoy no se manda en ningún lado)
 - [ ] **Pagos con Stripe** (ya está instalado):
   - [ ] crear la sesión de Checkout con el total;
   - [ ] poner el link real en el mail de cobro;
   - [ ] webhook `checkout.session.completed` que pase la reserva a confirmada y guarde `deposit_paid_usd`;
   - [ ] definir si se cobra seña o el total.
-- [ ] Guardar `total_price_usd` al calcular el precio (hoy la parte de finanzas queda en 0)
-- [ ] Guía por destino: usar `destinations_config.default_guide_id` / `contact_security_email` en vez del mail fijo `lucasschlez@gmail.com` en `submit.js`
+- [x] Guardar `total_price_usd` al calcular el precio (hoy la parte de finanzas queda en 0)
+- [x] Guía por destino: el mail va a `destinations_config.contact_security_email`; si no está cargado, a `SECURITY_FALLBACK_EMAIL` o `GMAIL_USER`
 - [ ] ABM de guías y de destinos en el panel (las tablas existen pero no hay pantallas)
 - [ ] Mails definitivos: reemplazar los textos "[MOCKUP]" de `reservation.js` (BA, Panamá, Lima, default) y del voucher
 - [ ] Voucher: cargar guía, punto de encuentro y saldo desde el panel en vez de completarlos a mano en el borrador
-- [ ] Actualizar `setup-db.js` para que coincida con la base real:
-  - [ ] tabla `booking_security_details`;
-  - [ ] columna `gmail_draft_id`;
-  - [ ] estados `SECURITY_DOCS_RECEIVED` y `SECURITY_REJECTED` en el ENUM;
-  - [ ] semillas con los nombres de destino que usa el sitio ("Santiago de Chile", no "Santiago").
+- [x] Actualizar `setup-db.js` para que coincida con la base real:
+  - [x] tabla `booking_security_details`;
+  - [x] columna `gmail_draft_id`;
+  - [x] estados `SECURITY_DOCS_RECEIVED` y `SECURITY_REJECTED` en el ENUM;
+  - [x] semillas con los nombres de destino que usa el sitio ("Santiago de Chile", no "Santiago").
 - [ ] Ver si conviene seguir en Vercel para subir pasaportes: el límite por request es ~4.5 MB. Opción: subirlos directo a Cloudinary o S3 desde el navegador
 - [ ] Mostrar en el panel el total calculado y los datos de seguridad de cada reserva
 
@@ -153,13 +164,13 @@ Precios calculados con `lib/pricing.js`:
 
 - [ ] Que el flujo no dependa de si el cliente escribió un mensaje: hoy con mensaje va a "Por responder" y sin mensaje salta directo a Seguridad. Debería depender de la política del destino (`security_policy_type`)
 - [ ] Respetar `EXTERNAL_FORM` (Panamá) y `NONE` (sin control de seguridad): no mostrar el formulario interno en esos casos
-- [ ] Mail de cobro: no decir "approved by the local community" en destinos sin control de seguridad (por ejemplo, Buenos Aires no pide pasaporte)
+- [x] Mail de cobro: no decir "approved by the local community" en destinos sin control de seguridad (por ejemplo, Buenos Aires no pide pasaporte)
 - [ ] Pasar las tarifas de `pricing.js` a una tabla en la base (destino + opción + rango de pax), en vez de buscar texto con `includes('4 hrs')`
 - [ ] Cobrar según la cantidad real de pasajeros del formulario de seguridad, no según `pax_adults` de la consulta
 - [ ] Revisar los precios dudosos: Bogotá (5 pax y 6+ fijo), Callao (el formulario dice +40/60, se cobra 60 fijo), Panamá "afternoon" con 1 pax
-- [ ] Unificar `/api/bookings` y `GET /api/admin/booking` (hacen lo mismo)
-- [ ] Usar `db.promise()` en todos lados y borrar los wrappers `query()` repetidos
-- [ ] Sacar los `console.log` de debug ("PASO 1…8", etc.)
+- [x] Unificar `/api/bookings` y `GET /api/admin/booking` (hacen lo mismo)
+- [ ] Usar `db.promise()` en todos lados (ya está el helper `query()` en `lib/mysql.js`; falta migrar los endpoints de contenido viejos)
+- [x] Sacar los `console.log` de debug ("PASO 1…8", etc.)
 - [ ] Dejar una sola librería de Excel (`xlsx` o `exceljs`)
 - [ ] Agregar un `.env.example` con las variables necesarias:
   - `DB_*`
