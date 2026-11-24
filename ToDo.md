@@ -70,22 +70,26 @@ Precios calculados con `lib/pricing.js`:
 
 ## 🔴 Prioridad 1: Seguridad (urgente si está en producción)
 
-- [ ] Proteger **todas** las rutas `/api/admin/*` (`/api/bookings` ya se eliminó; el panel usa `GET /api/admin/booking`) y las de escritura de `/api/content/*` y `/api/newsletter/*` (hoy el middleware solo cubre las páginas `/admin/...`)
-- [ ] Rehacer el login de admin:
-  - [ ] no guardar la contraseña en la cookie;
-  - [ ] usar una sesión firmada (JWT o iron-session) en una cookie `httpOnly`;
-  - [ ] comparar con bcrypt (ya está instalado) en vez de texto plano.
-- [ ] Middleware: validar una sesión firmada, no solo `role` (el try/catch de `JSON.parse` ya está)
-- [ ] Proteger `/api/admin/setup-db` y `/api/admin/check-schema` (`db-viewer` ya se movió a `/admin/dashboard/db-viewer`, detrás del login)
-- [ ] Links de aprobar/rechazar del guía:
-  - [ ] agregarles un token secreto (la columna `security_token` ya existe);
-  - [ ] pasar a una página con botón de confirmación (POST), para que los antivirus de mail no los activen solos;
-  - [ ] validar que la reserva exista y esté en `SECURITY_DOCS_RECEIVED`.
-- [ ] `/security/[uuid]`:
-  - [ ] buscar solo por `booking_uuid`, no por `id`;
-  - [ ] mostrar 404 si no existe;
-  - [ ] no mostrar el formulario si la reserva ya pasó esa etapa.
-- [ ] `/api/security/submit`: validar que el uuid exista y que el estado lo permita antes de guardar o mandar mails
+- [x] Proteger **todas** las rutas `/api/admin/*`, la lista/export/borrado de `/api/newsletter` y las escrituras (POST/PUT/DELETE) de `/api/content/*` → middleware + `withAdmin` en cada handler de admin y newsletter. La suscripción al newsletter y los GET de contenido siguen públicos.
+- [x] Rehacer el login de admin (`/api/auth/admin`, sigue usando la tabla `usuarios`):
+  - [x] la cookie ya no lleva la contraseña: sesión firmada HMAC-SHA256 (`lib/session.js`) en cookie `tj_session` `httpOnly`, `SameSite=Lax`, `Secure` en producción, 12 h;
+  - [x] el login rechaza la clave incorrecta (antes seteaba la cookie igual), filtra `estado = 1` y limita a 10 intentos fallidos por IP cada 15 min;
+  - [x] compara con bcrypt si la clave ya está hasheada; si está en texto plano la acepta y la reemplaza por el hash **cuando la columna lo permite** (ver migración 003);
+  - [x] botón "Cerrar sesión" en el menú del panel.
+- [x] Middleware: valida la sesión firmada (la cookie vieja `user` ya no sirve)
+- [x] Proteger `/api/admin/setup-db` y `/api/admin/check-schema` (quedan bajo `/api/admin/*`)
+- [ ] **Antes de deployar:** cargar `SESSION_SECRET` (mínimo 32 caracteres, distinto al de local) en Vercel. Sin esa variable nadie puede entrar al panel (falla cerrado).
+- [ ] Correr `db/migrations/003_usuarios_clave_hash.sql` (amplía `usuarios.clave` a 255) para que las claves se guarden hasheadas al loguearse. Antes, confirmar que ningún sistema viejo lea `usuarios.clave` en texto plano.
+- [ ] Next 13.1.2 tiene la falla CVE-2025-29927 (saltear el middleware con la cabecera `x-middleware-subrequest`). En Vercel no aplica; igual, las APIs de admin y newsletter chequean la sesión también en el handler. Las escrituras de `/api/content/*` dependen solo del middleware: actualizar Next (≥ 13.5.9) si alguna vez se hostea fuera de Vercel.
+- [x] Links de aprobar/rechazar del guía:
+  - [x] token secreto de un solo uso (`security_token`);
+  - [x] pasar a una página con botón de confirmación (POST), para que los antivirus de mail no los activen solos;
+  - [x] validar que la reserva exista y esté en `SECURITY_DOCS_RECEIVED`.
+- [x] `/security/[uuid]`:
+  - [x] buscar solo por `booking_uuid`, no por `id`;
+  - [x] mostrar 404 si no existe;
+  - [x] no mostrar el formulario si la reserva ya pasó esa etapa.
+- [x] `/api/security/submit`: validar que el uuid exista y que el estado lo permita antes de guardar o mandar mails
 - [ ] Escapar el HTML de todo lo que escribe el cliente antes de meterlo en mails, y validar el email (evitar saltos de línea en el header `To:`)
 - [ ] Agregar captcha o límite de envíos al formulario de reserva (hoy cualquiera puede usar el Gmail de la empresa para mandar mails a terceros)
 - [ ] Datos de pasaportes:

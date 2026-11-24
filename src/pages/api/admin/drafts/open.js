@@ -1,6 +1,7 @@
+import { withAdmin } from '../../../../../lib/session'
 import { findDraftByBookingId } from '../../../../../lib/gmail';
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   const { id, draftId } = req.query;
   const ids = await findDraftByBookingId(id);
   
@@ -12,3 +13,4 @@ export default async function handler(req, res) {
     res.redirect(307, `https://mail.google.com/mail/u/?authuser=info@turismojudaico.com#drafts`);
   }
 }
+export default withAdmin(handler)

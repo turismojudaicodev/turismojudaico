@@ -1,7 +1,10 @@
 import { db } from 'lib/mysql'
+import { getSession } from '../../../../lib/session'
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
+    // Listar suscriptores requiere admin; suscribirse (POST) es público.
+    if (!(await getSession(req))) return res.status(401).json({ error: 'No autorizado' })
     const params = req.query
 
     let queryParams = []

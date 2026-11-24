@@ -1,8 +1,9 @@
+import { withAdmin } from '../../../../lib/session'
 import { db } from '../../../../lib/mysql';
 import { sendDirectEmail } from '../../../../lib/gmail';
 import { escapeHtml, refFooter } from '../../../../lib/html';
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ message: 'Method Not Allowed' });
 
   const { booking_uuid } = req.body || {};
@@ -38,3 +39,5 @@ export default async function handler(req, res) {
     res.status(500).json({ error: 'Error sending email' });
   }
 }
+
+export default withAdmin(handler)

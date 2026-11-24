@@ -1,7 +1,8 @@
+import { withAdmin } from '../../../../lib/session'
 import { db } from 'lib/mysql'
 import { uploadJSON } from 'lib/cloudinary'
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method === 'GET') {
     return new Promise((resolve, reject) => {
       db.query(
@@ -30,3 +31,5 @@ export default async function handler(req, res) {
     return res.status(403).json({ error: 'Method not allowed' })
   }
 }
+
+export default withAdmin(handler)

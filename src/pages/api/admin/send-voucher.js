@@ -1,8 +1,9 @@
+import { withAdmin } from '../../../../lib/session'
 import { db } from '../../../../lib/mysql'
 import { createDraftEmail } from '../../../../lib/gmail'
 import { escapeHtml, refFooter } from '../../../../lib/html'
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Método no permitido' })
 
   const { booking_uuid } = req.body || {}
@@ -63,3 +64,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Error al generar el voucher' })
   }
 }
+
+export default withAdmin(handler)

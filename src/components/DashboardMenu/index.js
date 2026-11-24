@@ -53,6 +53,11 @@ const DASHBOARD_SECTIONS = [
   },
 ]
 
+async function logout() {
+  await fetch('/api/auth/admin', { method: 'DELETE' }).catch(() => {})
+  window.location.href = '/admin'
+}
+
 export default function DashboardMenu() {
   return (
     <section className={styles.menu}>
@@ -68,6 +73,11 @@ export default function DashboardMenu() {
             </Link>
           </li>
         ))}
+        <li>
+          <button type="button" onClick={logout} className={utils.navButton}>
+            Cerrar sesión
+          </button>
+        </li>
       </ul>
     </section>
   )

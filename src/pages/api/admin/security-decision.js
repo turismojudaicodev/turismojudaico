@@ -1,3 +1,4 @@
+import { withAdmin } from '../../../../lib/session'
 import { db } from '../../../../lib/mysql'
 import { POLICIES } from '../../../../lib/securityPolicy'
 
@@ -5,7 +6,7 @@ import { POLICIES } from '../../../../lib/securityPolicy'
 // y el empleado registra la decisión desde el panel.
 const DECISIONS = { approve: 'SECURITY_APPROVED', reject: 'SECURITY_REJECTED' }
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Método no permitido' })
 
   const { booking_uuid, decision } = req.body || {}
@@ -36,3 +37,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Error interno del servidor' })
   }
 }
+
+export default withAdmin(handler)

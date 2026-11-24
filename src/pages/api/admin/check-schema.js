@@ -1,6 +1,7 @@
+import { withAdmin } from '../../../../lib/session'
 import { db } from '../../../../lib/mysql'
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   const query = (sql) => {
     return new Promise((resolve, reject) => {
       db.query(sql, (err, results) => {
@@ -40,3 +41,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: error.message })
   }
 }
+
+export default withAdmin(handler)

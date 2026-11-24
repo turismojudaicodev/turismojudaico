@@ -1,6 +1,7 @@
+import { withAdmin } from '../../../../lib/session'
 import { db } from '../../../../lib/mysql'
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   // 1. Convertir la conexión basada en callbacks de mysql2 a Promesas
   // Esto nos permite usar async/await para ejecutar las tablas en orden.
   const query = (sql, params = []) => {
@@ -175,3 +176,4 @@ export default async function handler(req, res) {
     })
   }
 }
+export default withAdmin(handler)

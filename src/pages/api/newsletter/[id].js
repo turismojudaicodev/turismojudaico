@@ -1,6 +1,7 @@
+import { withAdmin } from '../../../../lib/session'
 import { db } from 'lib/mysql'
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method === 'GET') {
     const id = req.query.id
 
@@ -45,3 +46,5 @@ export default async function handler(req, res) {
     return res.status(403).json({ error: 'Method not allowed' })
   }
 }
+
+export default withAdmin(handler)

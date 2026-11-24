@@ -1,3 +1,4 @@
+import { withAdmin } from '../../../../lib/session'
 import { db } from '../../../../lib/mysql'
 import { findDraftByBookingId, sendExistingDraft } from '../../../../lib/gmail';
 
@@ -15,7 +16,7 @@ const whereFor = (value) => {
   return null
 }
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   const query = (sql, params) => new Promise((resolve, reject) => {
     db.query(sql, params, (err, results) => err ? reject(err) : resolve(results))
   })
@@ -89,3 +90,5 @@ export default async function handler(req, res) {
 
   return res.status(405).json({ error: 'Método no permitido' })
 }
+
+export default withAdmin(handler)

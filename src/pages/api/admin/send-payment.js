@@ -1,3 +1,4 @@
+import { withAdmin } from '../../../../lib/session'
 import { db } from '../../../../lib/mysql';
 import { sendDirectEmail, createDraftEmail } from '../../../../lib/gmail';
 import { calculateBookingPrice } from '../../../../lib/pricing';
@@ -8,7 +9,7 @@ import { POLICIES } from '../../../../lib/securityPolicy';
 // para pegar el link a mano antes de enviarlo.
 const PAYMENT_LINK_URL = process.env.PAYMENT_LINK_URL || '';
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method Not Allowed' });
   }
@@ -116,3 +117,5 @@ export default async function handler(req, res) {
     res.status(500).json({ error: 'Error interno del servidor al procesar el pago' });
   }
 }
+
+export default withAdmin(handler)

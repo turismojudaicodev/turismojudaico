@@ -1,6 +1,7 @@
+import { withAdmin } from '../../../../../lib/session'
 import { findThreadByBookingId } from '../../../../../lib/gmail';
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   const { id } = req.query;
   console.log(`🔎 Buscando historial para ID:`, id);
 
@@ -14,3 +15,4 @@ export default async function handler(req, res) {
     res.redirect(307, `https://mail.google.com/mail/u/?authuser=info@turismojudaico.com#search/${cleanId}`);
   }
 }
+export default withAdmin(handler)
