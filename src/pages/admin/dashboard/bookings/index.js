@@ -13,7 +13,7 @@ export default function Dashboard() {
     async function fetchBookings() {
       try {
 
-        const data = await getContent('/api/bookings')
+        const data = await getContent('/api/admin/booking')
         
         setContent(data)
       } catch (error) {

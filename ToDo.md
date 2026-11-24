@@ -13,6 +13,10 @@ Hoy está en el paso de **cobro**: el mail se arma, pero no hay link de pago rea
 
 ---
 
+**Antes de usarlo en producción:**
+- [ ] Cargar `contact_security_email` en `destinations_config` para cada destino con guía, o definir `SECURITY_FALLBACK_EMAIL`.
+- [ ] Verificar que `NEXT_PUBLIC_BASE_URL` apunte al dominio real (links del formulario y de aprobación).
+
 ## Resultado de las pruebas (5/11/2026, repetidas el 23/11/2026 con el mismo resultado)
 
 Prueba local con `next build` + `next start`, MariaDB local y la API de Gmail simulada (los mails se guardaban en un archivo en vez de enviarse). Sin `.env` real ni las tablas viejas (`paquetes`, etc.), así que no se probó el contenido del sitio público.
@@ -66,13 +70,13 @@ Precios calculados con `lib/pricing.js`:
 
 ## 🔴 Prioridad 1: Seguridad (urgente si está en producción)
 
-- [ ] Proteger **todas** las rutas `/api/admin/*`, `/api/bookings` y las de escritura de `/api/content/*` y `/api/newsletter/*` (hoy el middleware solo cubre las páginas `/admin/...`)
+- [ ] Proteger **todas** las rutas `/api/admin/*` (`/api/bookings` ya se eliminó; el panel usa `GET /api/admin/booking`) y las de escritura de `/api/content/*` y `/api/newsletter/*` (hoy el middleware solo cubre las páginas `/admin/...`)
 - [ ] Rehacer el login de admin:
   - [ ] no guardar la contraseña en la cookie;
   - [ ] usar una sesión firmada (JWT o iron-session) en una cookie `httpOnly`;
   - [ ] comparar con bcrypt (ya está instalado) en vez de texto plano.
-- [ ] Middleware: envolver `JSON.parse` en try/catch y validar la sesión firmada, no solo `role`
-- [ ] Sacar o proteger `/api/admin/setup-db`, `/api/admin/check-schema` y `/admin/db-viewer`
+- [ ] Middleware: validar una sesión firmada, no solo `role` (el try/catch de `JSON.parse` ya está)
+- [ ] Proteger `/api/admin/setup-db` y `/api/admin/check-schema` (`db-viewer` ya se movió a `/admin/dashboard/db-viewer`, detrás del login)
 - [ ] Links de aprobar/rechazar del guía:
   - [ ] agregarles un token secreto (la columna `security_token` ya existe);
   - [ ] pasar a una página con botón de confirmación (POST), para que los antivirus de mail no los activen solos;
@@ -123,7 +127,7 @@ Precios calculados con `lib/pricing.js`:
   - [ ] agregar la "Ref" a **todos** los mails, no solo a los borradores, para que "Ver Historial" encuentre el hilo;
   - [ ] guardar el `draft.id` real (hoy se guarda el message id con el nombre `gmail_draft_id`) y usarlo directo, en vez de recorrer los últimos 20 borradores.
 - [ ] `reservation.js`: hacer obligatoria la fecha (hoy, si no viene, pone la de hoy)
-- [ ] `lib/sitemap.js`: usar `reject(err)` en vez de `res.status(...)` (hoy, si falla la base, `/sitemap.xml` tira abajo todo el servidor Node)
+- [x] `lib/sitemap.js`: usar `reject(err)` en vez de `res.status(...)` (hoy, si falla la base, `/sitemap.xml` tira abajo todo el servidor Node)
 
 ## 🟡 Prioridad 3: Lo que falta construir
 
