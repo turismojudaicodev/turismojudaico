@@ -1,58 +1,75 @@
 import { db } from '../../../../lib/mysql';
 import { sendDirectEmail, createDraftEmail } from '../../../../lib/gmail';
 import { calculateBookingPrice } from '../../../../lib/pricing';
+import { escapeHtml, refFooter } from '../../../../lib/html';
+import { POLICIES } from '../../../../lib/securityPolicy';
+
+// Link de pago (Stripe todavía no está integrado). Sin esta variable solo se permite "Borrador",
+// para pegar el link a mano antes de enviarlo.
+const PAYMENT_LINK_URL = process.env.PAYMENT_LINK_URL || '';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method Not Allowed' });
   }
 
-  const { uuid, mode } = req.body;
+  const { uuid } = req.body || {};
+  const mode = req.body?.mode === 'direct' ? 'direct' : 'draft';
 
-  console.log(`\n========================================`);
-  console.log(`[PASO 1] Iniciando trigger de pago...`);
-  console.log(`UUID recibido:`, uuid, `| Modo:`, mode);
+  if (!uuid) {
+    return res.status(400).json({ error: 'Falta el uuid de la reserva' });
+  }
+  if (mode === 'direct' && !PAYMENT_LINK_URL) {
+    return res.status(409).json({ error: 'No hay link de pago configurado (PAYMENT_LINK_URL). Usá "Borrador Pago" y pegá el link a mano.' });
+  }
 
   try {
-    console.log(`[PASO 2] Buscando datos en la BD...`);
+    // 1. Datos de la reserva + el último formulario de seguridad (tour elegido y extras)
     const [rows] = await db.promise().query(`
-      SELECT 
-        bp.client_name, 
-        bp.client_email, 
-        bp.destination_name, 
-        bp.pax_adults, 
-        bsd.tour_type as tour_option, 
-        bsd.* 
+      SELECT
+        bp.client_name,
+        bp.client_email,
+        bp.destination_name,
+        bp.pax_adults,
+        bp.security_policy_applied,
+        COALESCE(bsd.tour_type, bp.tour_option) AS tour_option,
+        bsd.extra_amia, bsd.extra_airport, bsd.extra_port, bsd.extra_casapueblo, bsd.extra_callao
       FROM bookings_pipeline bp
       LEFT JOIN booking_security_details bsd ON bp.booking_uuid = bsd.booking_uuid
       WHERE bp.booking_uuid = ?
+      ORDER BY bsd.id DESC
+      LIMIT 1
     `, [uuid]);
 
     if (rows.length === 0) {
-      console.log(`❌ ERROR: No se encontró la reserva con UUID:`, uuid);
       return res.status(404).json({ error: 'Reserva no encontrada' });
     }
-    
+
     const booking = rows[0];
-    console.log(`[PASO 3] Reserva encontrada para:`, booking.client_name, `| Destino:`, booking.destination_name);
-    console.log(`Datos de tour_option leídos:`, booking.tour_option, `| Pax:`, booking.pax_adults);
 
-    console.log(`[PASO 4] Calculando precios en pricing.js...`);
+    // 2. Calculamos el precio exacto usando tu motor de reglas
     const pricing = calculateBookingPrice(booking);
-    console.log(`Precios calculados:`, pricing);
+    if (!pricing.finalTotal) {
+      return res.status(422).json({
+        error: `No se pudo calcular el precio para "${String(booking.destination_name).trim()}" / "${booking.tour_option || 'sin opción de tour'}". Revisá el destino y la opción elegida (lib/pricing.js).`,
+      });
+    }
 
-    console.log(`[PASO 5] Armando HTML del correo...`);
-
-    const subject = `Payment Details for your Jewish Tour in ${booking.destination_name}`;
+    // 3. Armamos el diseño del correo
+    const destination = escapeHtml(String(booking.destination_name).trim());
+    const subject = `Payment Details for your Jewish Tour in ${String(booking.destination_name).trim()}`;
+    const paymentHref = PAYMENT_LINK_URL || 'PEGAR_LINK_DE_PAGO_AQUI';
     const htmlBody = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
         <h2 style="color: #2c3e50;">Jewish Tours - Payment Details</h2>
-        <p>Dear ${booking.client_name},</p>
-        <p>Great news! Your security profile has been approved by the local community in ${booking.destination_name}. We are ready to proceed with your booking.</p>
-        
+        <p>Dear ${escapeHtml(booking.client_name)},</p>
+        <p>${booking.security_policy_applied === POLICIES.NONE
+          ? `Thank you for sending your trip details for ${destination}.`
+          : `Great news! Your security profile has been approved by the local community in ${destination}.`} We are ready to proceed with your booking.</p>
+
         <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0; border: 1px solid #ddd;">
           <h3 style="margin-top: 0; color: #2980b9;">Booking Summary</h3>
-          <p><b>Tour Option:</b> ${booking.tour_option}</p>
+          <p><b>Tour Option:</b> ${escapeHtml(booking.tour_option)}</p>
           <p><b>Passengers:</b> ${pricing.pax}</p>
           <hr style="border: 0; border-top: 1px solid #ccc;" />
           <p><b>Base Tour Cost:</b> $${pricing.baseTotal} USD</p>
@@ -61,56 +78,41 @@ export default async function handler(req, res) {
         </div>
 
         <p>To confirm your reservation and secure your guide, please complete your payment using our secure link below:</p>
-        
+
         <div style="text-align: center; margin: 30px 0;">
-          <a href="LINK_DE_PAYPAL_O_STRIPE_AQUI" style="background-color: #27ae60; color: white; padding: 15px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;">
+          <a href="${paymentHref}" style="background-color: #27ae60; color: white; padding: 15px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;">
             💳 Proceed to Payment
           </a>
         </div>
 
         <p>If you have any questions or need to adjust your itinerary, please reply to this email.</p>
         <p>Best regards,<br><b>Judaic Tourism Operations</b></p>
+        ${refFooter(uuid)}
       </div>
     `;
 
-    console.log(`[PASO 6] Conectando con Gmail API...`);
-
+    // 4. Ejecutamos la acción según el botón que tocaste (Borrador o Directo)
     let draftId = null;
     if (mode === 'direct') {
       await sendDirectEmail(booking.client_email, subject, htmlBody);
-      console.log(`✅ Correo de cobro enviado directamente a ${booking.client_email}`);
     } else {
       draftId = await createDraftEmail(booking.client_email, subject, htmlBody);
-      console.log(`✅ Borrador de cobro creado en Gmail para ${booking.client_email}`);
     }
 
-    console.log(`[PASO 7] Actualizando estado de la reserva en BD...`);
-    
-    let updateQuery = `UPDATE bookings_pipeline SET status = 'PENDING_DEPOSIT'`;
-    let updateParams = [];
-    
-    // Si creaste un borrador, guardamos el ID para que puedas abrirlo con un clic desde el panel
-    if (draftId && mode === 'draft') {
-      updateQuery += `, gmail_draft_id = ?`;
-      updateParams.push(draftId);
+    // 5. Estado "Esperando Pago" + total calculado (para finanzas)
+    const sets = [`status = 'PENDING_DEPOSIT'`, `total_price_usd = ?`];
+    const params = [pricing.finalTotal];
+    if (draftId) {
+      sets.push(`gmail_draft_id = ?`);
+      params.push(draftId);
     }
-    
-    updateQuery += ` WHERE booking_uuid = ?`;
-    updateParams.push(uuid);
+    params.push(uuid);
+    await db.promise().query(`UPDATE bookings_pipeline SET ${sets.join(', ')} WHERE booking_uuid = ?`, params);
 
-    await db.promise().query(updateQuery, updateParams);
-    console.log(`[PASO 8] Proceso finalizado exitosamente.`);
-    console.log(`========================================\n`);
-
-    res.status(200).json({ success: true, draftId });
+    res.status(200).json({ success: true, draftId, total: pricing.finalTotal });
 
   } catch (error) {
     console.error('🔥 Error generando el pago:', error);
-
-    console.error(`\n🔥🔥🔥 ERROR CRÍTICO EN EL SERVIDOR 🔥🔥🔥`);
-    console.error(`Mensaje:`, error.message);
-    console.error(`Stack trace:`, error.stack);
-    console.log(`========================================\n`);
     res.status(500).json({ error: 'Error interno del servidor al procesar el pago' });
   }
 }

@@ -90,6 +90,10 @@ Precios calculados con `lib/pricing.js`:
 
 ## 🟠 Prioridad 2: Bugs que rompen el flujo
 
+- [x] **Base real (23/11/2026, aplicado):** el ENUM `status` de `bookings_pipeline` **no tenía `SECURITY_DOCS_RECEIVED`**. La base no está en modo estricto, así que cuando `submit.js` ponía ese estado se guardaba `''` sin error y la reserva desaparecía de los filtros del panel. Falta probar un envío real del formulario. Migración aplicada:
+  `ALTER TABLE bookings_pipeline MODIFY status ENUM('INQUIRY_RECEIVED','PENDING_SECURITY_VETTING','SECURITY_DOCS_RECEIVED','SECURITY_APPROVED','SECURITY_REJECTED','PENDING_DEPOSIT','CONFIRMED_ASSIGNED','COMPLETED','CANCELLED') DEFAULT 'INQUIRY_RECEIVED';`
+- [ ] `WHERE id = ? OR booking_uuid = ?` en la base real (no estricta) no da 500: un uuid que empieza con dígitos se convierte a número y puede coincidir con el `id` de **otra** reserva (PUT/DELETE sobre la fila equivocada)
+
 - [ ] `api/security/submit.js`: leer los checkboxes con `getString()` (formidable v3 devuelve arrays). Hoy todos se guardan en 0
 - [ ] Unificar los nombres de los extras entre las tres partes. Hoy no coinciden:
   - [ ] el formulario manda `extra_port_transfer`, `extra_casapueblo`, `extra_callao_port`, `extra_kosher_food`;
@@ -134,11 +138,13 @@ Precios calculados con `lib/pricing.js`:
 - [ ] ABM de guías y de destinos en el panel (las tablas existen pero no hay pantallas)
 - [ ] Mails definitivos: reemplazar los textos "[MOCKUP]" de `reservation.js` (BA, Panamá, Lima, default) y del voucher
 - [ ] Voucher: cargar guía, punto de encuentro y saldo desde el panel en vez de completarlos a mano en el borrador
-- [ ] Actualizar `setup-db.js` para que coincida con la base real:
-  - [ ] tabla `booking_security_details`;
-  - [ ] columna `gmail_draft_id`;
-  - [ ] estados `SECURITY_DOCS_RECEIVED` y `SECURITY_REJECTED` en el ENUM;
-  - [ ] semillas con los nombres de destino que usa el sitio ("Santiago de Chile", no "Santiago").
+- [x] Actualizar `setup-db.js` para que coincida con la base real:
+  - [x] tabla `booking_security_details` (con `UNIQUE(booking_uuid)` y utf8mb4, a diferencia de la real);
+  - [x] columna `gmail_draft_id`;
+  - [x] estados `SECURITY_DOCS_RECEIVED` y `SECURITY_REJECTED` en el ENUM;
+  - [x] semillas con los 8 nombres de destino reales ("Tour Judaico en Santiago", etc.).
+- [ ] Base real: aplicar `UNIQUE(booking_uuid)` + utf8mb4 en `booking_security_details` (verificar duplicados antes)
+- [ ] `.env.local`: `DB_HOST=turismojudaico.com` apunta a Vercel y no conecta; el host de la base es otro
 - [ ] Ver si conviene seguir en Vercel para subir pasaportes: el límite por request es ~4.5 MB. Opción: subirlos directo a Cloudinary o S3 desde el navegador
 - [ ] Mostrar en el panel el total calculado y los datos de seguridad de cada reserva
 

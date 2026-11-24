@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { db } from '../../../lib/mysql'; 
+import { db } from '../../../lib/mysql';
+import { resolveCity } from '../../../lib/destinations';
+import { POLICIES, normalizePolicy } from '../../../lib/securityPolicy';
 
 const cityConfig = {
   "Buenos Aires": {
@@ -9,7 +11,7 @@ const cityConfig = {
       { id: "amia", label: "Add AMIA inside visit? (Morning only, +$20 USD/pax)" }
     ]
   },
-  "Tour Judaico Rio de Janeiro": {
+  "Rio de Janeiro": {
     tours: ["Half-day Tour (4 hrs)", "Mix Tour (6 hrs)", "Full Day Tour (8 hrs)", "Walking Tour (3 hrs)"],
     requirePassport: true,
     extraQuestions: [
@@ -76,58 +78,89 @@ const cityConfig = {
   }
 };
 
-export async function getServerSideProps(context) {
-  const { uuid } = context.params;
-  try {
-    const cleanUuid = uuid.trim();
-    const [rows] = await db.promise().query(
-      'SELECT destination_name FROM bookings_pipeline WHERE booking_uuid = ? OR id = ?',
-      [cleanUuid, cleanUuid]
-    );
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-    if (rows.length === 0) {
-      return { props: { uuid: cleanUuid, destinationCity: "Unknown" } }; 
-    }
-    return {
-      props: {
-        uuid: cleanUuid,
-        destinationCity: rows[0].destination_name || "Unknown",
-      },
-    };
-  } catch (error) {
-    return { props: { uuid: "ERROR", destinationCity: "Connection Error" } };
-  }
+export async function getServerSideProps(context) {
+  const cleanUuid = String(context.params.uuid || '').trim();
+  // Solo uuid (no ids numéricos): así no se pueden recorrer reservas ajenas
+  if (!UUID_RE.test(cleanUuid)) return { notFound: true };
+
+  const [rows] = await db.promise().query(
+    `SELECT bp.destination_name, bp.status, bp.security_policy_applied, dc.external_form_url
+       FROM bookings_pipeline bp
+       LEFT JOIN destinations_config dc ON dc.destination_name = bp.destination_name
+      WHERE bp.booking_uuid = ?`,
+    [cleanUuid]
+  );
+  if (rows.length === 0) return { notFound: true };
+
+  return {
+    props: {
+      uuid: cleanUuid,
+      destinationCity: String(rows[0].destination_name || '').trim(),
+      policy: normalizePolicy(rows[0].security_policy_applied),
+      externalFormUrl: rows[0].external_form_url || null,
+      // El formulario solo se muestra mientras la reserva lo está esperando
+      alreadySubmitted: rows[0].status !== 'PENDING_SECURITY_VETTING',
+    },
+  };
 }
 
-export default function SecurityPortal({ uuid, destinationCity }) {
+// Destinos con formulario de la comunidad (ej. Panamá): recordatorio con el link externo
+const ExternalFormNotice = ({ url }) => (
+  <div style={{ padding: '15px', border: '1px solid #f39c12', borderRadius: '5px', backgroundColor: '#fef5e7', margin: '15px 0' }}>
+    <b>Important:</b> the local community also requires its own security form.{' '}
+    {url
+      ? <>Please complete it here: <a href={url} target="_blank" rel="noreferrer">{url}</a></>
+      : <>We will send you the link by email.</>}
+  </div>
+);
+
+const ThankYou = ({ destinationCity, policy, externalFormUrl }) => (
+  <div style={{ maxWidth: '800px', margin: '80px auto', padding: '20px', fontFamily: 'Arial', textAlign: 'center' }}>
+    <h2 style={{ color: '#27ae60' }}>✅ Thank you!</h2>
+    <p>We received your trip details for <b>{destinationCity}</b>.</p>
+    {policy === POLICIES.EXTERNAL_FORM && <ExternalFormNotice url={externalFormUrl} />}
+    <p style={{ color: '#7f8c8d' }}>Our team will contact you by email with the next steps.</p>
+  </div>
+);
+
+export default function SecurityPortal({ uuid, destinationCity, alreadySubmitted, policy, externalFormUrl }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const cityKey = Object.keys(cityConfig).find(
-    key => key.toLowerCase() === destinationCity.trim().toLowerCase()
-  );
+  const [submitted, setSubmitted] = useState(alreadySubmitted);
+  const [errorMsg, setErrorMsg] = useState('');
+
+  const cityKey = resolveCity(destinationCity);
   const config = cityConfig[cityKey] || { tours: ["Standard Tour", "Half Day", "Full Day"], requirePassport: true, extraQuestions: [] };
+  // Datos de comunidad y pasaporte solo los pide el control del guía
+  const vetted = policy === POLICIES.GUIDE_VETTED;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setErrorMsg('');
     const formData = new FormData(e.target);
     formData.append('booking_uuid', uuid);
 
     try {
       const response = await fetch('/api/security/submit', { method: 'POST', body: formData });
-      if (response.ok) alert('✅ Information sent successfully!');
-      else alert('❌ Error sending information.');
+      if (response.ok || response.status === 409) setSubmitted(true);
+      else setErrorMsg('There was an error sending your information. Please try again or reply to our email.');
     } catch (error) {
-      alert('Network error.');
+      setErrorMsg('Network error. Please check your connection and try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  if (submitted) return <ThankYou destinationCity={destinationCity} policy={policy} externalFormUrl={externalFormUrl} />;
+
   return (
     <div style={{ maxWidth: '800px', margin: '40px auto', padding: '20px', fontFamily: 'Arial' }}>
       <h2 style={{ textAlign: 'center', color: '#2c3e50' }}>Jewish Tours - Trip Details & Security</h2>
       <p style={{ textAlign: 'center', color: '#7f8c8d' }}>Complete your travel details for <b>{destinationCity}</b>.</p>
+      {policy === POLICIES.EXTERNAL_FORM && <ExternalFormNotice url={externalFormUrl} />}
+      {errorMsg && <p role="alert" style={{ textAlign: 'center', color: '#c0392b', fontWeight: 'bold' }}>{errorMsg}</p>}
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
         
@@ -176,7 +209,8 @@ export default function SecurityPortal({ uuid, destinationCity }) {
           </div>
         </fieldset>
 
-        {/* COMUNIDAD Y SEGURIDAD */}
+        {/* COMUNIDAD Y SEGURIDAD (solo destinos con control del guía) */}
+        {vetted && (
         <fieldset style={{ padding: '15px', border: '1px solid #ccc', borderRadius: '5px' }}>
           <legend style={{ fontWeight: 'bold' }}>3. Community Background</legend>
           <input type="text" name="community_name" placeholder="Name of your home Jewish Community/Synagogue" className="form-control mb-2" required />
@@ -196,8 +230,10 @@ export default function SecurityPortal({ uuid, destinationCity }) {
           </div>
         </fieldset>
 
-        {/* PASAPORTES (FOTOS Y NÚMEROS) */}
-        {config.requirePassport && (
+        )}
+
+        {/* PASAPORTES (FOTOS Y NÚMEROS) - solo destinos con control del guía */}
+        {vetted && config.requirePassport && (
           <fieldset style={{ padding: '15px', border: '1px solid #e74c3c', borderRadius: '5px', backgroundColor: '#fdf3f2' }}>
             <legend style={{ fontWeight: 'bold', color: '#c0392b' }}>4. Passport Information</legend>
             <input type="text" name="passengers_passports" placeholder="Passport Numbers (comma separated)" className="form-control mb-2" required />

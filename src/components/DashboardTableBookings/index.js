@@ -1,5 +1,11 @@
 import { useState } from 'react'
 
+// Etiqueta de la política de seguridad de cada reserva (la de control del guía es la normal y no se marca)
+const POLICY_LABELS = {
+  EXTERNAL_FORM: '📝 Form. externo (comunidad)',
+  NONE: '🟢 Sin control de seguridad',
+}
+
 export default function DashboardTableBookings({ bookings: initialBookings }) {
   const [activeTab, setActiveTab] = useState('INQUIRY_RECEIVED')
   const [bookings, setBookings] = useState(initialBookings)
@@ -14,30 +20,42 @@ export default function DashboardTableBookings({ bookings: initialBookings }) {
     setSortConfig({ key, direction })
   }
 
+  // Lee el error que devuelve la API (si lo hay) para mostrarlo en el alert
+  const errorFrom = async (res) => {
+    try { return (await res.json()).error || `Error ${res.status}` } catch { return `Error ${res.status}` }
+  }
+
+  const postJson = (url, body, method = 'POST') => fetch(url, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  })
+
+  const setStatus = (uuid, patch) => setBookings(prev => prev.map(b => b.booking_uuid === uuid ? { ...b, ...patch } : b))
+
   const handleNextStage = async (booking) => {
-    if (booking.status === 'INQUIRY_RECEIVED') {
-      await fetch('/api/admin/booking', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: booking.id, status: 'PENDING_SECURITY_VETTING' })
-      })
-      setBookings(bookings.map(b => b.id === booking.id ? { ...b, status: 'PENDING_SECURITY_VETTING' } : b))
-    
-    } else if (booking.status === 'PENDING_SECURITY_VETTING' ||booking.status === 'SECURITY_DOCS_RECEIVED' || booking.status === 'SECURITY_APPROVED') {
-      await fetch('/api/admin/send-payment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: booking.id, email: booking.client_email, name: booking.client_name, destination: booking.destination_name })
-      })
-      setBookings(bookings.map(b => b.id === booking.id ? { ...b, status: 'PENDING_DEPOSIT' } : b))
-    
-    } else if (booking.status === 'PENDING_DEPOSIT') {
-      await fetch('/api/admin/send-voucher', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: booking.id, email: booking.client_email, name: booking.client_name, destination: booking.destination_name })
-      })
-      setBookings(bookings.map(b => b.id === booking.id ? { ...b, status: 'CONFIRMED_ASSIGNED' } : b))
+    try {
+      if (booking.status === 'INQUIRY_RECEIVED') {
+        const res = await postJson('/api/admin/booking', { id: booking.id, status: 'PENDING_SECURITY_VETTING' }, 'PUT')
+        if (!res.ok) return alert(`❌ ${await errorFrom(res)}`)
+        const data = await res.json()
+        if (data.mailSent === false) alert('⚠️ La reserva pasó a Seguridad, pero no se encontró/envió el borrador en Gmail. Mandale al cliente el link al formulario a mano.')
+        setStatus(booking.booking_uuid, { status: 'PENDING_SECURITY_VETTING' })
+
+      } else if (booking.status === 'PENDING_SECURITY_VETTING') {
+        // "Armar Cobro" sin esperar al guía: arma el borrador de cobro
+        await triggerPayment(booking.booking_uuid, 'draft')
+
+      } else if (booking.status === 'PENDING_DEPOSIT') {
+        if (!window.confirm(`¿Confirmar el pago de ${booking.client_name} y crear el borrador del voucher?`)) return
+        const res = await postJson('/api/admin/send-voucher', { booking_uuid: booking.booking_uuid })
+        if (!res.ok) return alert(`❌ ${await errorFrom(res)}`)
+        const data = await res.json()
+        setStatus(booking.booking_uuid, { status: 'CONFIRMED_ASSIGNED', gmail_draft_id: data.draftId })
+      }
+    } catch (error) {
+      console.error(error)
+      alert('❌ Error de red.')
     }
   }
 
@@ -71,13 +89,15 @@ export default function DashboardTableBookings({ bookings: initialBookings }) {
 
   const handleSaveEdit = async (e) => {
     e.preventDefault()
-    await fetch('/api/admin/booking', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData)
-    })
-    setBookings(bookings.map(b => b.id === formData.id ? { ...b, ...formData } : b))
-    setEditingBooking(null)
+    try {
+      const res = await postJson('/api/admin/booking', formData, 'PUT')
+      if (!res.ok) return alert(`❌ ${await errorFrom(res)}`)
+      setBookings(bookings.map(b => b.id === formData.id ? { ...b, ...formData } : b))
+      setEditingBooking(null)
+    } catch (error) {
+      console.error(error)
+      alert('❌ Error de red.')
+    }
   }
 
   const triggerPayment = async (uuid, mode) => {
@@ -96,15 +116,16 @@ export default function DashboardTableBookings({ bookings: initialBookings }) {
 
     if (res.ok) {
       const data = await res.json();
-        
+
         if (mode === 'draft' && data.draftId) {
-          setBookings(bookings.map(b => b.booking_uuid === uuid ? { ...b, status: 'PENDING_DEPOSIT', gmail_draft_id: data.draftId } : b));
+          alert(`✅ Borrador de cobro creado en Gmail (total $${data.total} USD).`);
+          setStatus(uuid, { status: 'PENDING_DEPOSIT', gmail_draft_id: data.draftId, total_price_usd: data.total });
         } else {
-          alert('✅ Correo de cobro enviado directamente al cliente.');
-          setBookings(bookings.map(b => b.booking_uuid === uuid ? { ...b, status: 'PENDING_DEPOSIT' } : b));
+          alert(`✅ Correo de cobro enviado directamente al cliente (total $${data.total} USD).`);
+          setStatus(uuid, { status: 'PENDING_DEPOSIT', total_price_usd: data.total });
         }
     } else {
-      alert('❌ Hubo un error al procesar el pago.');
+      alert(`❌ ${await errorFrom(res)}`);
     }
   } catch (error) {
     console.error(error);
@@ -112,16 +133,30 @@ export default function DashboardTableBookings({ bookings: initialBookings }) {
   }
 };
 
+// Destinos con formulario externo (Panamá): el empleado registra lo que decidió la comunidad
+const handleCommunityDecision = async (booking, decision) => {
+  const label = decision === 'approve' ? 'APROBADA' : 'RECHAZADA';
+  if (!window.confirm(`¿Marcar la seguridad de ${booking.client_name} como ${label} por la comunidad?`)) return;
+  try {
+    const res = await postJson('/api/admin/security-decision', { booking_uuid: booking.booking_uuid, decision });
+    if (!res.ok) return alert(`❌ ${await errorFrom(res)}`);
+    const data = await res.json();
+    setStatus(booking.booking_uuid, { status: data.status });
+  } catch (error) {
+    alert('❌ Error de red.');
+  }
+};
+
 const handleRejectEmail = async (booking) => {
   if (!window.confirm(`¿Enviar correo de rechazo a ${booking.client_name} y cancelar la reserva?`)) return;
   try {
-    const res = await fetch('/api/admin/send-rejection', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: booking.client_email, name: booking.client_name, destination: booking.destination_name })
-    });
-    if (res.ok) alert('✅ Correo de cancelación enviado al pasajero.');
-    else alert('❌ Error al enviar el correo.');
+    const res = await postJson('/api/admin/send-rejection', { booking_uuid: booking.booking_uuid });
+    if (res.ok) {
+      alert('✅ Correo de cancelación enviado al pasajero.');
+      setStatus(booking.booking_uuid, { status: 'CANCELLED' });
+    } else {
+      alert(`❌ ${await errorFrom(res)}`);
+    }
   } catch (error) {
     alert('❌ Error de red.');
   }
@@ -184,7 +219,12 @@ const handleRejectEmail = async (booking) => {
                 >
                   <td style={{ padding: '12px' }}>{new Date(b.created_at).toLocaleDateString()}</td>
                   <td style={{ padding: '12px' }}><strong>{b.client_name}</strong><br/><small>{b.client_email}</small></td>
-                  <td style={{ padding: '12px' }}>{b.destination_name}</td>
+                  <td style={{ padding: '12px' }}>
+                    {b.destination_name}
+                    {POLICY_LABELS[b.security_policy_applied] && (
+                      <><br/><small style={{ color: '#7f8c8d' }}>{POLICY_LABELS[b.security_policy_applied]}</small></>
+                    )}
+                  </td>
                   <td style={{ padding: '12px' }}>{new Date(b.tour_date).toLocaleDateString()}</td>
                   <td style={{ padding: '12px' }}>{b.pax_adults}</td>
                   <td style={{ padding: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -226,6 +266,23 @@ const handleRejectEmail = async (booking) => {
                           style={{ padding: '6px 10px', backgroundColor: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
                         >
                           💸 Enviar Directo
+                        </button>
+                      </>
+                    )}
+
+                    {b.status === 'SECURITY_DOCS_RECEIVED' && b.security_policy_applied === 'EXTERNAL_FORM' && (
+                      <>
+                        <button
+                          onClick={() => handleCommunityDecision(b, 'approve')}
+                          style={{ padding: '6px 10px', backgroundColor: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+                        >
+                          ✅ Comunidad aprobó
+                        </button>
+                        <button
+                          onClick={() => handleCommunityDecision(b, 'reject')}
+                          style={{ padding: '6px 10px', backgroundColor: '#fff', color: '#dc3545', border: '1px solid #dc3545', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+                        >
+                          ❌ Comunidad rechazó
                         </button>
                       </>
                     )}
@@ -307,8 +364,13 @@ const handleRejectEmail = async (booking) => {
                 <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} style={{ width: '100%', padding: '8px', marginTop: '4px' }}>
                   <option value="INQUIRY_RECEIVED">Por Responder</option>
                   <option value="PENDING_SECURITY_VETTING">Seguridad Pendiente</option>
+                  <option value="SECURITY_DOCS_RECEIVED">Seguridad: Docs Recibidos</option>
+                  <option value="SECURITY_APPROVED">Seguridad Aprobada</option>
+                  <option value="SECURITY_REJECTED">Seguridad Rechazada</option>
                   <option value="PENDING_DEPOSIT">Esperando Pago</option>
                   <option value="CONFIRMED_ASSIGNED">Confirmado</option>
+                  <option value="COMPLETED">Completado</option>
+                  <option value="CANCELLED">Cancelado</option>
                 </select>
               </label>
 

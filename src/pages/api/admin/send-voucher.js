@@ -1,25 +1,32 @@
 import { db } from '../../../../lib/mysql'
 import { createDraftEmail } from '../../../../lib/gmail'
+import { escapeHtml, refFooter } from '../../../../lib/html'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Método no permitido' })
 
-  const { id, email, name, destination } = req.body
-
-  const query = (sql, params) => new Promise((resolve, reject) => {
-    db.query(sql, params, (err, results) => err ? reject(err) : resolve(results))
-  })
+  const { booking_uuid } = req.body || {}
+  if (!booking_uuid) return res.status(400).json({ error: 'Falta el uuid de la reserva' })
 
   try {
-    await query(`UPDATE bookings_pipeline SET status = 'CONFIRMED_ASSIGNED' WHERE id = ?`, [id])
+    const [rows] = await db.promise().query(
+      `SELECT client_name, client_email, destination_name, status FROM bookings_pipeline WHERE booking_uuid = ?`,
+      [booking_uuid]
+    )
+    if (rows.length === 0) return res.status(404).json({ error: 'Reserva no encontrada' })
+    const booking = rows[0]
+    if (booking.status !== 'PENDING_DEPOSIT') {
+      return res.status(409).json({ error: `La reserva está en ${booking.status}, no en "Esperando Pago"` })
+    }
 
-    const subject = `CONFIRMATION VOUCHER - Jewish Tour in ${destination}`;
+    const destination = escapeHtml(String(booking.destination_name).trim())
+    const subject = `CONFIRMATION VOUCHER - Jewish Tour in ${String(booking.destination_name).trim()}`;
     const html = `
       <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
         <h2 style="color: #28a745;">Tour Confirmed!</h2>
-        <p>Hi ${name},</p>
+        <p>Hi ${escapeHtml(booking.client_name)},</p>
         <p>Your payment has been received and your tour in <b>${destination}</b> is officially confirmed.</p>
-        
+
         <table style="border-collapse: collapse; width: 100%; max-width: 500px; margin-top: 15px;">
           <tr style="border-bottom: 1px solid #ddd;">
             <td style="padding: 8px;"><b>Meeting Point:</b></td>
@@ -37,13 +44,20 @@ export default async function handler(req, res) {
 
         <p>We wish you an amazing experience connecting with your roots!</p>
         <p>Best regards,<br>Judaic Tourism Team</p>
+        ${refFooter(booking_uuid)}
       </div>
     `;
 
-    // SE QUEDA COMO BORRADOR PARA QUE LLENES LOS DATOS DEL GUÍA
-    await createDraftEmail(email, subject, html)
+    // SE QUEDA COMO BORRADOR PARA QUE LLENES LOS DATOS DEL GUÍA.
+    // Primero el borrador: si Gmail falla, la reserva no queda "confirmada" sin voucher.
+    const draftId = await createDraftEmail(booking.client_email, subject, html)
 
-    return res.status(200).json({ success: true })
+    await db.promise().query(
+      `UPDATE bookings_pipeline SET status = 'CONFIRMED_ASSIGNED', gmail_draft_id = ? WHERE booking_uuid = ?`,
+      [draftId, booking_uuid]
+    )
+
+    return res.status(200).json({ success: true, draftId })
   } catch (error) {
     console.error(error)
     return res.status(500).json({ error: 'Error al generar el voucher' })

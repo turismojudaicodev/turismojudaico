@@ -73,12 +73,14 @@ export default async function handler(req, res) {
         
         -- Máquina de Estados (El panel del Empleado)
         status ENUM(
-          'INQUIRY_RECEIVED', 
-          'PENDING_SECURITY_VETTING', 
-          'SECURITY_APPROVED', 
-          'PENDING_DEPOSIT', 
-          'CONFIRMED_ASSIGNED', 
-          'COMPLETED', 
+          'INQUIRY_RECEIVED',
+          'PENDING_SECURITY_VETTING',
+          'SECURITY_DOCS_RECEIVED',
+          'SECURITY_APPROVED',
+          'SECURITY_REJECTED',
+          'PENDING_DEPOSIT',
+          'CONFIRMED_ASSIGNED',
+          'COMPLETED',
           'CANCELLED'
         ) DEFAULT 'INQUIRY_RECEIVED',
         
@@ -98,20 +100,66 @@ export default async function handler(req, res) {
         -- Fechas de registro
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        
+
+        -- Gmail (hoy guarda el message id, ver ToDo)
+        gmail_draft_id VARCHAR(255) NULL,
+
         FOREIGN KEY (guide_id) REFERENCES guides(id) ON DELETE SET NULL,
         FOREIGN KEY (destination_name) REFERENCES destinations_config(destination_name) ON DELETE RESTRICT
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `)
     console.log('✅ Tabla bookings_pipeline creada.')
 
-    // 5. Opcional: Insertar configuración semilla para testear
+    // 5. Datos del formulario de seguridad (/security/[uuid] → api/security/submit.js)
+    // Copia de la tabla real. Diferencias a propósito: utf8mb4 (la real es utf8mb3)
+    // y UNIQUE(booking_uuid) para evitar filas duplicadas al reenviar el formulario.
+    await query(`
+      CREATE TABLE IF NOT EXISTS booking_security_details (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        booking_uuid VARCHAR(255) NOT NULL UNIQUE,
+        passengers_names TEXT NULL,
+        passengers_ages TEXT NULL,
+        passengers_passports TEXT NULL,
+        travel_type VARCHAR(100) NULL,
+        arrival_date DATE NULL,
+        departure_date DATE NULL,
+        hotel_name VARCHAR(255) NULL,
+        phone_number VARCHAR(100) NULL,
+        profession VARCHAR(255) NULL,
+        home_address VARCHAR(255) NULL,
+        community_name VARCHAR(255) NULL,
+        religious_denomination VARCHAR(100) NULL,
+        rabbi_name VARCHAR(255) NULL,
+        visit_reason TEXT NULL,
+        knows_someone BOOLEAN DEFAULT FALSE,
+        other_institutions TEXT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        tour_type VARCHAR(100) NULL,
+        start_time VARCHAR(50) NULL,
+        dropoff_location VARCHAR(200) NULL,
+        difficulty_walking BOOLEAN DEFAULT FALSE,
+        extra_amia BOOLEAN DEFAULT FALSE,
+        extra_airport BOOLEAN DEFAULT FALSE,
+        extra_port BOOLEAN DEFAULT FALSE,
+        extra_casapueblo BOOLEAN DEFAULT FALSE,
+        extra_callao BOOLEAN DEFAULT FALSE,
+        extra_kosher_food BOOLEAN DEFAULT FALSE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `)
+    console.log('✅ Tabla booking_security_details creada.')
+
+    // 6. Semillas: los mismos destinos que hay en la base real (nombres = los que usa el sitio)
     await query(`
       INSERT IGNORE INTO destinations_config (destination_name, security_policy_type, external_form_url)
-      VALUES 
-        ('Panama', 'EXTERNAL_FORM', 'https://comunidadpanama.org/formulario-seguridad'),
-        ('Santiago', 'GUIDE_VETTED', NULL),
-        ('Curacao', 'NONE', NULL);
+      VALUES
+        ('Tour Judaico en Panama', 'EXTERNAL_FORM', 'https://visitors.centraldsi.com/'),
+        ('Tour Judaico en Recife', 'GUIDE_VETTED', NULL),
+        ('Tour Judaico en Lima', 'GUIDE_VETTED', NULL),
+        ('Tour Judaico Rio de Janeiro', 'GUIDE_VETTED', NULL),
+        ('Tour Judaico en Santiago', 'GUIDE_VETTED', NULL),
+        ('Tour Judaico Puerto Rico', 'GUIDE_VETTED', NULL),
+        ('Tour Judaico en Curazao', 'GUIDE_VETTED', NULL),
+        ('Tour Judaico en Buenos Aires', 'GUIDE_VETTED', NULL);
     `)
 
     return res.status(200).json({
