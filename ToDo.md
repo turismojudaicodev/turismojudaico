@@ -14,6 +14,12 @@ Hoy está en el paso de **cobro**: el mail se arma, pero no hay link de pago rea
 ---
 
 **Antes de usarlo en producción:**
+- [x] Correr `db/migrations/004_pagos.sql` (pagos) en la base.
+- [ ] Correr `db/migrations/005_pagos_fee.sql` (columna `fee_usd`, faltó en la 004 que se corrió).
+- [ ] Vercel: `STRIPE_SECRET_KEY` (**live**, nunca en el repo ni en chats), `STRIPE_WEBHOOK_SECRET`, `ZELLE_RECIPIENT`, `ZELLE_RECIPIENT_NAME`, `SESSION_SECRET`.
+- [ ] Stripe → Developers → Webhooks: endpoint `https://www.turismojudaico.com/api/stripe/webhook` con los eventos `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `checkout.session.expired`, `charge.refunded`. Su "signing secret" va en `STRIPE_WEBHOOK_SECRET`.
+- [ ] Rotar la clave `sk_test` (se compartió por chat el 24/11/2026).
+- [ ] Vercel: `GOOGLE_SHEETS_ID` y `GOOGLE_SHEETS_REFRESH_TOKEN` (planilla de pagos; usa el mismo cliente OAuth que Gmail, la organización no permite claves de cuentas de servicio).
 - [ ] Cargar `contact_security_email` en `destinations_config` para cada destino con guía, o definir `SECURITY_FALLBACK_EMAIL`.
 - [ ] Verificar que `NEXT_PUBLIC_BASE_URL` apunte al dominio real (links del formulario y de aprobación).
 
@@ -135,13 +141,22 @@ Precios calculados con `lib/pricing.js`:
 
 ## 🟡 Prioridad 3: Lo que falta construir
 
-- [ ] **Mandar al cliente el link a `/security/<uuid>`** en el mail de "Pasar a Seguridad" (hoy no se manda en ningún lado)
-- [ ] **Pagos con Stripe** (ya está instalado):
-  - [ ] crear la sesión de Checkout con el total;
-  - [ ] poner el link real en el mail de cobro;
-  - [ ] webhook `checkout.session.completed` que pase la reserva a confirmada y guarde `deposit_paid_usd`;
-  - [ ] definir si se cobra seña o el total.
-- [ ] Guardar `total_price_usd` al calcular el precio (hoy la parte de finanzas queda en 0)
+- [x] **Mandar al cliente el link a `/security/<uuid>`** en el mail de "Pasar a Seguridad"
+- [x] **Pagos** (seña fija USD 50 + saldo 14 días antes del tour; comisión de Stripe a cargo de la empresa):
+  - [x] tabla `booking_payments` (varios pagos por reserva) y estado `DEPOSIT_PAID` ("Seña recibida") → `db/migrations/004_pagos.sql`;
+  - [x] mail de cobro con seña, saldo y fecha límite, y link a `/pay/<uuid>` (si faltan < 14 días pide el total);
+  - [x] página `/pay/<uuid>`: tarjeta (Stripe Checkout), Zelle (el cliente informa nombre y n° de confirmación) o saldo en efectivo al guía;
+  - [x] webhook `/api/stripe/webhook`: confirma pagos, marca checkouts vencidos y reembolsos totales; idempotente;
+  - [x] al completarse la seña (Stripe, Zelle confirmado o pago cargado a mano) se arma solo el borrador del voucher con el saldo;
+  - [x] panel: columna "Pago" (pagado / total, 🔔 Zelle por verificar) y modal "💰 Pagos" para confirmar Zelle o registrar pagos a mano;
+  - [x] comisión real de Stripe guardada por pago (`booking_payments.fee_usd`);
+  - [x] **planilla de Google Sheets** (`lib/sheets.js`): planilla nueva, pestaña por año, bloque por mes del tour, fila de seña + fila del tour, ganancia y totales como fórmulas. La app nunca toca GASTOS / GUIA / ¿se le pagó al guía? (se cargan a mano). Se actualiza sola con cada pago o edición y con el botón "🔄 Actualizar planilla";
+  - [x] probado contra la planilla real "Pagos online" (16/16): fórmulas sin comas (la planilla está en español), 4 llamadas a Google por sincronización (límite de 60/min);
+  - [ ] borrar a mano las pestañas de prueba "2026", "2027" y "2028" (solo filas TEST-) antes de usarla en serio;
+  - [ ] recordatorio del saldo 14 días antes (cron diario que arma el borrador; columna `balance_reminder_at` ya creada);
+  - [ ] link "Cobré $X" para el guía (efectivo el día del tour);
+  - [ ] textos definitivos de los mails de cobro/voucher y datos de Zelle (`ZELLE_RECIPIENT`, `ZELLE_RECIPIENT_NAME`).
+- [x] Guardar `total_price_usd` al calcular el precio
 - [ ] Guía por destino: usar `destinations_config.default_guide_id` / `contact_security_email` en vez del mail fijo `lucasschlez@gmail.com` en `submit.js`
 - [ ] ABM de guías y de destinos en el panel (las tablas existen pero no hay pantallas)
 - [ ] Mails definitivos: reemplazar los textos "[MOCKUP]" de `reservation.js` (BA, Panamá, Lima, default) y del voucher

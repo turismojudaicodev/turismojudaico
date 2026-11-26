@@ -1,10 +1,11 @@
 import { withAdmin } from '../../../../lib/session'
 import { db } from '../../../../lib/mysql'
 import { findDraftByBookingId, sendExistingDraft } from '../../../../lib/gmail';
+import { syncBookingToSheetSafe } from '../../../../lib/sheets'
 
 const STATUSES = [
   'INQUIRY_RECEIVED', 'PENDING_SECURITY_VETTING', 'SECURITY_DOCS_RECEIVED', 'SECURITY_APPROVED',
-  'SECURITY_REJECTED', 'PENDING_DEPOSIT', 'CONFIRMED_ASSIGNED', 'COMPLETED', 'CANCELLED',
+  'SECURITY_REJECTED', 'PENDING_DEPOSIT', 'DEPOSIT_PAID', 'CONFIRMED_ASSIGNED', 'COMPLETED', 'CANCELLED',
 ]
 
 // Busca por id numérico O por uuid, nunca por los dos a la vez:
@@ -25,6 +26,15 @@ async function handler(req, res) {
   if (req.method === 'GET') {
     try {
       const bookings = await query(`SELECT * FROM bookings_pipeline ORDER BY created_at DESC`)
+      // Zelle informados por el cliente que falta verificar (para marcarlos en el panel).
+      try {
+        const reported = await query(`SELECT booking_uuid FROM booking_payments WHERE status = 'REPORTED'`, [])
+        const counts = {}
+        for (const r of reported) counts[r.booking_uuid] = (counts[r.booking_uuid] || 0) + 1
+        for (const b of bookings) b.payments_reported = counts[b.booking_uuid] || 0
+      } catch (error) {
+        console.error('Reservas: no se pudieron leer los pagos (¿falta la migración 004?)', error.code || error)
+      }
       return res.status(200).json(bookings)
     } catch (error) {
       return res.status(500).json({ error: 'Error al obtener reservas' })
@@ -62,6 +72,9 @@ async function handler(req, res) {
         mailSent = !!(ids && ids.draftId && await sendExistingDraft(ids.draftId));
       }
 
+      // Si la reserva ya tiene pagos, la planilla refleja el cambio (fecha, nombre, pax, cancelación).
+      await syncBookingToSheetSafe(current.booking_uuid)
+
       return res.status(200).json({ success: true, mailSent })
     } catch (error) {
       console.error('🔥 Error PUT:', error)
@@ -83,6 +96,10 @@ async function handler(req, res) {
       }
       return res.status(200).json({ success: true });
     } catch (error) {
+      // La FK de booking_payments no deja borrar una reserva con pagos registrados.
+      if (error.code === 'ER_ROW_IS_REFERENCED_2' || error.errno === 1451) {
+        return res.status(409).json({ error: 'La reserva tiene pagos registrados: no se puede borrar. Cancelala en su lugar.' })
+      }
       console.error('Error al borrar en MySQL:', error);
       return res.status(500).json({ error: 'Error al borrar la reserva' });
     }

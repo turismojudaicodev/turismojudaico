@@ -4,10 +4,15 @@ import { sendDirectEmail, createDraftEmail } from '../../../../lib/gmail';
 import { calculateBookingPrice } from '../../../../lib/pricing';
 import { escapeHtml, refFooter } from '../../../../lib/html';
 import { POLICIES } from '../../../../lib/securityPolicy';
+import { balanceDueDate, getPayments, paymentSummary } from '../../../../lib/payments';
 
-// Link de pago (Stripe todavía no está integrado). Sin esta variable solo se permite "Borrador",
-// para pegar el link a mano antes de enviarlo.
-const PAYMENT_LINK_URL = process.env.PAYMENT_LINK_URL || '';
+// El cobro se arma en la etapa de seguridad (el panel permite "Armar Cobro" sin esperar al guía)
+// o para reenviarlo mientras se espera la seña. Nunca después de cobrar la seña, ni en canceladas/rechazadas.
+const ALLOWED_STATUSES = ['PENDING_SECURITY_VETTING', 'SECURITY_DOCS_RECEIVED', 'SECURITY_APPROVED', 'PENDING_DEPOSIT'];
+
+const round = (n) => Math.round(n * 100) / 100;
+const formatDate = (iso) =>
+  iso ? new Date(`${iso}T12:00:00Z`).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' }) : '';
 
 async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -20,9 +25,6 @@ async function handler(req, res) {
   if (!uuid) {
     return res.status(400).json({ error: 'Falta el uuid de la reserva' });
   }
-  if (mode === 'direct' && !PAYMENT_LINK_URL) {
-    return res.status(409).json({ error: 'No hay link de pago configurado (PAYMENT_LINK_URL). Usá "Borrador Pago" y pegá el link a mano.' });
-  }
 
   try {
     // 1. Datos de la reserva + el último formulario de seguridad (tour elegido y extras)
@@ -30,6 +32,8 @@ async function handler(req, res) {
       SELECT
         bp.client_name,
         bp.client_email,
+        bp.status,
+        bp.tour_date,
         bp.destination_name,
         bp.pax_adults,
         bp.security_policy_applied,
@@ -47,6 +51,9 @@ async function handler(req, res) {
     }
 
     const booking = rows[0];
+    if (!ALLOWED_STATUSES.includes(booking.status)) {
+      return res.status(409).json({ error: `La reserva está en ${booking.status}: no se puede armar el cobro en este estado` });
+    }
 
     // 2. Calculamos el precio exacto usando tu motor de reglas
     const pricing = calculateBookingPrice(booking);
@@ -59,7 +66,12 @@ async function handler(req, res) {
     // 3. Armamos el diseño del correo
     const destination = escapeHtml(String(booking.destination_name).trim());
     const subject = `Payment Details for your Jewish Tour in ${String(booking.destination_name).trim()}`;
-    const paymentHref = PAYMENT_LINK_URL || 'PEGAR_LINK_DE_PAGO_AQUI';
+    const payHref = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/pay/${uuid}`;
+    // Si ya hubo pagos (reenvío), se descuentan del monto a pagar.
+    const summary = paymentSummary({ ...booking, total_price_usd: pricing.finalTotal }, await getPayments(uuid));
+    const dueDate = balanceDueDate(booking.tour_date);
+    const depositNow = summary.options.find((o) => o.kind === 'DEPOSIT');
+    const fullNow = summary.options.find((o) => o.kind === 'FULL');
     const htmlBody = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
         <h2 style="color: #2c3e50;">Jewish Tours - Payment Details</h2>
@@ -75,14 +87,20 @@ async function handler(req, res) {
           <hr style="border: 0; border-top: 1px solid #ccc;" />
           <p><b>Base Tour Cost:</b> $${pricing.baseTotal} USD</p>
           ${pricing.extrasTotal > 0 ? `<p><b>Extra Services Requested:</b> $${pricing.extrasTotal} USD</p>` : ''}
-          <h3 style="margin-bottom: 0; color: #27ae60;">Total to Pay: $${pricing.finalTotal} USD</h3>
+          <h3 style="margin-bottom: 0; color: #27ae60;">Tour Total: $${pricing.finalTotal} USD</h3>
+          ${summary.paid > 0 ? `<p style="margin: 4px 0 0;"><b>Already paid:</b> $${summary.paid} USD</p>` : ''}
         </div>
 
-        <p>To confirm your reservation and secure your guide, please complete your payment using our secure link below:</p>
+        ${depositNow
+          ? `<p>To confirm your reservation and secure your guide, please pay a <b>deposit of $${depositNow.amount} USD</b>.
+             The remaining balance of <b>$${round(summary.balance - depositNow.amount)} USD</b> is due by <b>${formatDate(dueDate)}</b>
+             (2 weeks before the tour), online or in cash to your guide on the day of the tour.</p>`
+          : `<p>Since your tour is less than 2 weeks away, please pay the <b>full amount of $${fullNow ? fullNow.amount : summary.balance} USD</b> to confirm your reservation.</p>`}
+        <p>You can pay by <b>credit card</b> or <b>Zelle</b> on our secure payment page:</p>
 
         <div style="text-align: center; margin: 30px 0;">
-          <a href="${paymentHref}" style="background-color: #27ae60; color: white; padding: 15px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;">
-            💳 Proceed to Payment
+          <a href="${payHref}" style="background-color: #27ae60; color: white; padding: 15px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;">
+            💳 Go to Payment Page
           </a>
         </div>
 
@@ -110,7 +128,7 @@ async function handler(req, res) {
     params.push(uuid);
     await db.promise().query(`UPDATE bookings_pipeline SET ${sets.join(', ')} WHERE booking_uuid = ?`, params);
 
-    res.status(200).json({ success: true, draftId, total: pricing.finalTotal });
+    res.status(200).json({ success: true, draftId, total: pricing.finalTotal, deposit: depositNow ? depositNow.amount : 0 });
 
   } catch (error) {
     console.error('🔥 Error generando el pago:', error);

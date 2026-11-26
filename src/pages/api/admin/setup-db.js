@@ -80,6 +80,7 @@ async function handler(req, res) {
           'SECURITY_APPROVED',
           'SECURITY_REJECTED',
           'PENDING_DEPOSIT',
+          'DEPOSIT_PAID',
           'CONFIRMED_ASSIGNED',
           'COMPLETED',
           'CANCELLED'
@@ -105,11 +106,40 @@ async function handler(req, res) {
         -- Gmail (hoy guarda el message id, ver ToDo)
         gmail_draft_id VARCHAR(255) NULL,
 
+        -- Recordatorio del saldo (14 días antes del tour), para no armarlo dos veces
+        balance_reminder_at DATETIME NULL,
+
         FOREIGN KEY (guide_id) REFERENCES guides(id) ON DELETE SET NULL,
         FOREIGN KEY (destination_name) REFERENCES destinations_config(destination_name) ON DELETE RESTRICT
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `)
     console.log('✅ Tabla bookings_pipeline creada.')
+
+    // Pagos (seña + saldo) por Stripe, Zelle y efectivo. Igual que db/migrations/004_pagos.sql.
+    await query(`
+      CREATE TABLE IF NOT EXISTS booking_payments (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        booking_uuid VARCHAR(36) NOT NULL,
+        kind ENUM('DEPOSIT', 'BALANCE', 'FULL', 'OTHER') NOT NULL,
+        method ENUM('STRIPE', 'ZELLE', 'CASH') NOT NULL,
+        amount_usd DECIMAL(10, 2) NOT NULL,
+        fee_usd DECIMAL(10, 2) NULL,
+        status ENUM('PENDING', 'REPORTED', 'CONFIRMED', 'FAILED', 'REFUNDED') NOT NULL DEFAULT 'PENDING',
+        stripe_session_id VARCHAR(255) NULL UNIQUE,
+        stripe_payment_intent VARCHAR(255) NULL,
+        reference VARCHAR(255) NULL,
+        payer_name VARCHAR(150) NULL,
+        notes TEXT NULL,
+        confirmed_by VARCHAR(100) NULL,
+        confirmed_at DATETIME NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_booking (booking_uuid),
+        INDEX idx_status (status),
+        CONSTRAINT fk_payments_booking FOREIGN KEY (booking_uuid) REFERENCES bookings_pipeline(booking_uuid) ON DELETE RESTRICT
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `)
+    console.log('✅ Tabla booking_payments creada.')
 
     // 5. Datos del formulario de seguridad (/security/[uuid] → api/security/submit.js)
     // Copia de la tabla real. Diferencias a propósito: utf8mb4 (la real es utf8mb3)

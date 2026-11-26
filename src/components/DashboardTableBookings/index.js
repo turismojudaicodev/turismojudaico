@@ -1,4 +1,7 @@
 import { useState } from 'react'
+import PaymentsModal from './PaymentsModal'
+
+const PAYMENT_STAGE = ['PENDING_DEPOSIT', 'DEPOSIT_PAID', 'CONFIRMED_ASSIGNED', 'COMPLETED']
 
 // Etiqueta de la política de seguridad de cada reserva (la de control del guía es la normal y no se marca)
 const POLICY_LABELS = {
@@ -13,6 +16,27 @@ export default function DashboardTableBookings({ bookings: initialBookings }) {
   
   const [editingBooking, setEditingBooking] = useState(null)
   const [formData, setFormData] = useState({})
+  const [paymentsFor, setPaymentsFor] = useState(null)
+  const [sheetBusy, setSheetBusy] = useState(false)
+
+  // Reescribe en Google Sheets todas las reservas con pagos (no toca gastos/guía, que se cargan a mano).
+  const syncSheet = async () => {
+    setSheetBusy(true)
+    try {
+      const res = await fetch('/api/admin/sheets-sync', { method: 'POST' })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) return alert(`❌ ${data.error || `Error ${res.status}`}`)
+      const msg = `${data.success ? '✅' : '⚠️'} Planilla actualizada: ${data.bookings} reservas, ${data.rows} filas` +
+        (data.fees ? `, ${data.fees} comisiones de Stripe completadas` : '') +
+        (data.errors?.length ? `\n${data.errors.length} reservas con error (ver logs)` : '') +
+        '\n\n¿Abrir la planilla?'
+      if (window.confirm(msg)) window.open(data.url, '_blank', 'noopener')
+    } catch (error) {
+      alert('❌ Error de red.')
+    } finally {
+      setSheetBusy(false)
+    }
+  }
 
   const handleSort = (key) => {
     let direction = 'asc'
@@ -46,8 +70,9 @@ export default function DashboardTableBookings({ bookings: initialBookings }) {
         // "Armar Cobro" sin esperar al guía: arma el borrador de cobro
         await triggerPayment(booking.booking_uuid, 'draft')
 
-      } else if (booking.status === 'PENDING_DEPOSIT') {
-        if (!window.confirm(`¿Confirmar el pago de ${booking.client_name} y crear el borrador del voucher?`)) return
+      } else if (booking.status === 'DEPOSIT_PAID') {
+        // Normalmente el voucher se arma solo al entrar la seña; esto es por si falló Gmail.
+        if (!window.confirm(`¿Crear el borrador del voucher de ${booking.client_name}?`)) return
         const res = await postJson('/api/admin/send-voucher', { booking_uuid: booking.booking_uuid })
         if (!res.ok) return alert(`❌ ${await errorFrom(res)}`)
         const data = await res.json()
@@ -173,6 +198,7 @@ const handleRejectEmail = async (booking) => {
   if (activeTab === 'PENDING_SECURITY_VETTING') {
     return ['PENDING_SECURITY_VETTING', 'SECURITY_DOCS_RECEIVED', 'SECURITY_APPROVED', 'SECURITY_REJECTED'].includes(b.status);
   }
+  if (activeTab === 'PENDING_DEPOSIT') return ['PENDING_DEPOSIT', 'DEPOSIT_PAID'].includes(b.status);
   return b.status === activeTab;
 });
 
@@ -191,6 +217,9 @@ const handleRejectEmail = async (booking) => {
         <button style={tabStyle('PENDING_DEPOSIT')} onClick={() => setActiveTab('PENDING_DEPOSIT')}>💳 3. Esperando Pago</button>
         <button style={tabStyle('CONFIRMED_ASSIGNED')} onClick={() => setActiveTab('CONFIRMED_ASSIGNED')}>🚀 4. Confirmados</button>
         <button style={tabStyle('ALL')} onClick={() => setActiveTab('ALL')}>🗄️ Todas</button>
+        <button onClick={syncSheet} disabled={sheetBusy} style={{ marginLeft: 'auto', padding: '6px 12px', backgroundColor: '#0f9d58', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '13px' }}>
+          {sheetBusy ? '⏳ Actualizando…' : '🔄 Actualizar planilla'}
+        </button>
       </div>
 
       <div style={{ overflowX: 'auto' }}>
@@ -202,12 +231,13 @@ const handleRejectEmail = async (booking) => {
               <th onClick={() => handleSort('destination_name')} style={{ padding: '12px', cursor: 'pointer' }}>Destino ↕️</th>
               <th onClick={() => handleSort('tour_date')} style={{ padding: '12px', cursor: 'pointer' }}>Fecha Tour ↕️</th>
               <th style={{ padding: '12px' }}>Pax</th>
+              <th style={{ padding: '12px' }}>Pago</th>
               <th style={{ padding: '12px' }}>Acciones Operativas</th>
             </tr>
           </thead>
           <tbody>
             {filteredBookings.length === 0 ? (
-              <tr><td colSpan="6" style={{ padding: '20px', textAlign: 'center' }}>No hay reservas en esta vista.</td></tr>
+              <tr><td colSpan="7" style={{ padding: '20px', textAlign: 'center' }}>No hay reservas en esta vista.</td></tr>
             ) : (
               filteredBookings.map((b) => (
                 <tr 
@@ -227,6 +257,16 @@ const handleRejectEmail = async (booking) => {
                   </td>
                   <td style={{ padding: '12px' }}>{new Date(b.tour_date).toLocaleDateString()}</td>
                   <td style={{ padding: '12px' }}>{b.pax_adults}</td>
+                  <td style={{ padding: '12px', whiteSpace: 'nowrap' }}>
+                    {PAYMENT_STAGE.includes(b.status) ? (
+                      <>
+                        ${Number(b.deposit_paid_usd || 0)} / ${Number(b.total_price_usd || 0)}
+                        {b.status === 'DEPOSIT_PAID' && <><br /><small style={{ color: '#27ae60' }}>✅ Seña recibida</small></>}
+                        {b.payment_method === 'CASH' && <><br /><small>💵 saldo en efectivo</small></>}
+                        {b.payments_reported > 0 && <><br /><small style={{ color: '#d35400', fontWeight: 'bold' }}>🔔 Zelle por verificar</small></>}
+                      </>
+                    ) : '—'}
+                  </td>
                   <td style={{ padding: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
 
                    {b.status === 'INQUIRY_RECEIVED' ? (
@@ -309,9 +349,14 @@ const handleRejectEmail = async (booking) => {
                         💳 Armar Cobro 
                       </button>
                     )}
-                    {b.status === 'PENDING_DEPOSIT' && (
-                      <button onClick={() => handleNextStage(b)} style={{ padding: '6px 10px', backgroundColor: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>
-                        🚀 Confirmar Pago 
+                    {PAYMENT_STAGE.includes(b.status) && (
+                      <button onClick={() => setPaymentsFor(b)} style={{ padding: '6px 10px', backgroundColor: b.payments_reported > 0 ? '#d35400' : '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>
+                        💰 Pagos
+                      </button>
+                    )}
+                    {b.status === 'DEPOSIT_PAID' && (
+                      <button onClick={() => handleNextStage(b)} style={{ padding: '6px 10px', backgroundColor: '#6f42c1', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>
+                        🎫 Armar Voucher
                       </button>
                     )}
 
@@ -332,6 +377,10 @@ const handleRejectEmail = async (booking) => {
           </tbody>
         </table>
       </div>
+
+      {paymentsFor && (
+        <PaymentsModal booking={paymentsFor} onClose={() => setPaymentsFor(null)} onChange={setStatus} />
+      )}
 
       {editingBooking && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
@@ -368,6 +417,7 @@ const handleRejectEmail = async (booking) => {
                   <option value="SECURITY_APPROVED">Seguridad Aprobada</option>
                   <option value="SECURITY_REJECTED">Seguridad Rechazada</option>
                   <option value="PENDING_DEPOSIT">Esperando Pago</option>
+                  <option value="DEPOSIT_PAID">Seña Recibida</option>
                   <option value="CONFIRMED_ASSIGNED">Confirmado</option>
                   <option value="COMPLETED">Completado</option>
                   <option value="CANCELLED">Cancelado</option>
