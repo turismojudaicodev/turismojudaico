@@ -35,3 +35,5 @@ yarn-error.log*
 .vercel
 
 design
+# Mails reales de ejemplo (tienen datos de clientes): nunca al repo
+/mails/

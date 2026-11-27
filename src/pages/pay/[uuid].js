@@ -119,11 +119,21 @@ export default function PayPage({ uuid, firstName, destination, tourDate, open, 
             <label key={o.kind} style={{ display: 'block', margin: '8px 0', cursor: 'pointer' }}>
               <input type="radio" name="kind" value={o.kind} checked={kind === o.kind} onChange={() => setKind(o.kind)} />{' '}
               <b>{KIND_LABEL[o.kind]}: ${o.amount} USD</b>
-              {o.kind === 'DEPOSIT' && <span style={{ color: '#7f8c8d' }}> (confirms your booking; the rest is due 2 weeks before the tour)</span>}
+              {o.kind === 'DEPOSIT' && (
+                <span style={{ color: '#7f8c8d' }}>
+                  {summary.plan?.balance === 'CASH'
+                    ? ' (confirms your booking; the rest is paid in cash to your guide on the day of the tour)'
+                    : ' (confirms your booking; the rest is due 15 days before the tour)'}
+                </span>
+              )}
             </label>
           ))}
           {summary.fullRequired && !summary.depositPaid && (
-            <p style={{ color: '#7f8c8d', fontSize: '14px' }}>Your tour is less than 2 weeks away, so the full amount is due now.</p>
+            <p style={{ color: '#7f8c8d', fontSize: '14px' }}>
+              {summary.plan?.upfront === 'FULL'
+                ? 'Tours in this destination are paid in full in advance.'
+                : 'Your tour is less than 15 days away, so the full amount is due now.'}
+            </p>
           )}
 
           <h3>2. How would you like to pay?</h3>
@@ -133,9 +143,11 @@ export default function PayPage({ uuid, firstName, destination, tourDate, open, 
             <div style={box}>
               <h4 style={{ marginTop: 0 }}>💳 Credit / debit card</h4>
               <button type="button" onClick={payCard} disabled={busy || !option} style={btn('#27ae60')}>
-                Pay ${option?.amount} USD by card
+                Pay ${option?.cardAmount} USD by card
               </button>
-              <p style={{ fontSize: '12px', color: '#7f8c8d' }}>Secure payment processed by Stripe.</p>
+              <p style={{ fontSize: '12px', color: '#7f8c8d' }}>
+                Includes a {summary.cardSurchargePct}% card fee (${option?.surcharge} USD). Zelle has no fee. Secure payment processed by Stripe.
+              </p>
             </div>
           )}
 
@@ -159,7 +171,7 @@ export default function PayPage({ uuid, firstName, destination, tourDate, open, 
             )}
           </div>
 
-          {summary.balance > (option?.kind === 'DEPOSIT' ? option.amount : 0) && (
+          {summary.plan?.balance === 'CASH' && summary.balance > (option?.kind === 'DEPOSIT' ? option.amount : 0) && (
             <div style={box}>
               <h4 style={{ marginTop: 0 }}>💵 Cash</h4>
               {done === 'cash' || summary.balanceMethod === 'CASH' ? (

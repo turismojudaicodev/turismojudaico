@@ -1,7 +1,7 @@
 {
   "head": {
     "title": "City Tours"
-  }, 
+  },
   "body": {
     "alerts": {
       "noContent": "No tours found matching your search criteria"
@@ -22,7 +22,14 @@
       "telephone": "Telephone",
       "desiredDate": "Desired date",
       "message": "Message",
-      "submit": "Book"
+      "submit": "Book",
+      "extra": {
+        "cruise": "Are you arriving on a cruise ship?",
+        "cruisePort": "Port where the ship docks",
+        "cruiseShip": "Name of the cruise ship",
+        "kosher": "Do you need kosher food?",
+        "luggage": "Should we pick you up with your luggage?"
+      }
     }
   }
 }

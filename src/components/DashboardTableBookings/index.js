@@ -1,5 +1,18 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import PaymentsModal from './PaymentsModal'
+import { cityOf } from '../../../lib/mails/flags'
+
+// TARDE: la reserva llegó con menos de una semana de anticipación (el mail TARDE quedó en borrador).
+const LATE_DAYS = 7
+const isLate = (b) => {
+  if (!b.created_at || !b.tour_date || ['CANCELLED', 'COMPLETED'].includes(b.status)) return false
+  const created = new Date(b.created_at)
+  const tour = new Date(`${String(b.tour_date).slice(0, 10)}T12:00:00Z`)
+  const createdDay = Date.UTC(created.getFullYear(), created.getMonth(), created.getDate(), 12)
+  return Math.round((tour.getTime() - createdDay) / 86400000) < LATE_DAYS
+}
+// Etapas en las que se puede elegir el guía (con la seña paga y el guía elegido, la confirmación sale sola).
+const GUIDE_STAGE = ['PENDING_DEPOSIT', 'DEPOSIT_PAID', 'CONFIRMED_ASSIGNED']
 
 const PAYMENT_STAGE = ['PENDING_DEPOSIT', 'DEPOSIT_PAID', 'CONFIRMED_ASSIGNED', 'COMPLETED']
 
@@ -18,6 +31,39 @@ export default function DashboardTableBookings({ bookings: initialBookings }) {
   const [formData, setFormData] = useState({})
   const [paymentsFor, setPaymentsFor] = useState(null)
   const [sheetBusy, setSheetBusy] = useState(false)
+  const [guides, setGuides] = useState([])
+
+  useEffect(() => {
+    fetch('/api/admin/guides')
+      .then((r) => (r.ok ? r.json() : []))
+      .then((g) => setGuides(Array.isArray(g) ? g : []))
+      .catch(() => setGuides([]))
+  }, [])
+
+  // Guías de la ciudad de la reserva (si no hay ninguno cargado para esa ciudad, todos).
+  const guidesFor = (b) => {
+    const slug = cityOf(b.destination_name).slug
+    const local = guides.filter((g) => slug && cityOf(g.city).slug === slug)
+    return local.length ? local : guides
+  }
+
+  const assignGuide = async (b, guideId) => {
+    const res = await fetch('/api/admin/guides', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ booking_uuid: b.booking_uuid, guide_id: guideId || null }),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) return alert(`❌ ${data.error || `Error ${res.status}`}`)
+    setBookings((prev) => prev.map((x) => (x.booking_uuid === b.booking_uuid
+      ? { ...x, guide_id: guideId ? Number(guideId) : null, ...(data.status ? { status: data.status } : {}), ...(data.confirmation?.draftId ? { gmail_draft_id: data.confirmation.draftId } : {}) }
+      : x)))
+    if (data.confirmation) {
+      alert(data.confirmation.sent
+        ? '✅ Confirmación enviada al cliente.'
+        : `📝 La confirmación quedó en borrador: ${data.confirmation.review || 'revisala en Gmail'}`)
+    }
+  }
 
   // Reescribe en Google Sheets todas las reservas con pagos (no toca gastos/guía, que se cargan a mano).
   const syncSheet = async () => {
@@ -71,12 +117,13 @@ export default function DashboardTableBookings({ bookings: initialBookings }) {
         await triggerPayment(booking.booking_uuid, 'draft')
 
       } else if (booking.status === 'DEPOSIT_PAID') {
-        // Normalmente el voucher se arma solo al entrar la seña; esto es por si falló Gmail.
-        if (!window.confirm(`¿Crear el borrador del voucher de ${booking.client_name}?`)) return
+        // Normalmente la confirmación sale sola (seña registrada + guía elegido); esto es por si falló Gmail.
+        if (!window.confirm(`¿Mandar la confirmación (voucher) a ${booking.client_name}?`)) return
         const res = await postJson('/api/admin/send-voucher', { booking_uuid: booking.booking_uuid })
         if (!res.ok) return alert(`❌ ${await errorFrom(res)}`)
         const data = await res.json()
-        setStatus(booking.booking_uuid, { status: 'CONFIRMED_ASSIGNED', gmail_draft_id: data.draftId })
+        setStatus(booking.booking_uuid, { status: 'CONFIRMED_ASSIGNED', ...(data.draftId ? { gmail_draft_id: data.draftId } : {}) })
+        alert(data.sent ? '✅ Confirmación enviada al cliente.' : `📝 La confirmación quedó en borrador: ${data.review || 'revisala en Gmail'}`)
       }
     } catch (error) {
       console.error(error)
@@ -255,7 +302,12 @@ const handleRejectEmail = async (booking) => {
                       <><br/><small style={{ color: '#7f8c8d' }}>{POLICY_LABELS[b.security_policy_applied]}</small></>
                     )}
                   </td>
-                  <td style={{ padding: '12px' }}>{new Date(b.tour_date).toLocaleDateString()}</td>
+                  <td style={{ padding: '12px' }}>
+                    {new Date(b.tour_date).toLocaleDateString()}
+                    {isLate(b) && (
+                      <><br /><small title="Reservó con menos de una semana: el mail TARDE quedó en borrador" style={{ color: '#fff', backgroundColor: '#c0392b', padding: '1px 6px', borderRadius: '4px', fontWeight: 'bold' }}>⏰ TARDE</small></>
+                    )}
+                  </td>
                   <td style={{ padding: '12px' }}>{b.pax_adults}</td>
                   <td style={{ padding: '12px', whiteSpace: 'nowrap' }}>
                     {PAYMENT_STAGE.includes(b.status) ? (
@@ -353,6 +405,17 @@ const handleRejectEmail = async (booking) => {
                       <button onClick={() => setPaymentsFor(b)} style={{ padding: '6px 10px', backgroundColor: b.payments_reported > 0 ? '#d35400' : '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>
                         💰 Pagos
                       </button>
+                    )}
+                    {GUIDE_STAGE.includes(b.status) && guides.length > 0 && (
+                      <select
+                        value={b.guide_id || ''}
+                        onChange={(e) => assignGuide(b, e.target.value)}
+                        title="Guía del tour: con la seña paga y el guía elegido, la confirmación sale sola"
+                        style={{ padding: '5px', fontSize: '12px', borderRadius: '4px', border: b.guide_id ? '1px solid #6f42c1' : '1px solid #e67e22' }}
+                      >
+                        <option value="">🧭 Elegir guía…</option>
+                        {guidesFor(b).map((g) => <option key={g.id} value={g.id}>{g.full_name} ({g.city})</option>)}
+                      </select>
                     )}
                     {b.status === 'DEPOSIT_PAID' && (
                       <button onClick={() => handleNextStage(b)} style={{ padding: '6px 10px', backgroundColor: '#6f42c1', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>

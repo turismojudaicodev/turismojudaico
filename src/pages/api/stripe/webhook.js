@@ -19,7 +19,12 @@ async function readRawBody(req) {
 async function confirmSession(session) {
   const uuid = session.metadata?.booking_uuid || session.client_reference_id
   if (!uuid) return 'sin reserva'
-  const amount = fromCents(session.amount_total)
+  // Lo cobrado incluye el 5% de recargo de tarjeta. Al saldo se acredita el monto base (metadata del checkout);
+  // si el checkout se creó por fuera de la app (sin metadata), se acredita todo lo cobrado.
+  const charged = fromCents(session.amount_total)
+  const base = Number(session.metadata?.base_usd)
+  const amount = Number.isFinite(base) && base > 0 && base <= charged ? base : charged
+  const surcharge = Math.round((charged - amount) * 100) / 100
   const paymentIntent = typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent?.id ?? null
 
   const rows = await q('SELECT * FROM booking_payments WHERE stripe_session_id = ?', [session.id])
@@ -32,6 +37,7 @@ async function confirmSession(session) {
       kind: ['DEPOSIT', 'BALANCE', 'FULL'].includes(session.metadata?.kind) ? session.metadata.kind : 'OTHER',
       method: 'STRIPE',
       amount_usd: amount,
+      surcharge_usd: surcharge,
       status: 'CONFIRMED',
       stripe_session_id: session.id,
       confirmed_by: 'stripe-webhook',
@@ -39,8 +45,8 @@ async function confirmSession(session) {
     if (paymentIntent) await q('UPDATE booking_payments SET stripe_payment_intent = ? WHERE stripe_session_id = ?', [paymentIntent, session.id])
   } else {
     const r = await q(
-      "UPDATE booking_payments SET status = 'CONFIRMED', amount_usd = ?, stripe_payment_intent = ?, confirmed_by = 'stripe-webhook', confirmed_at = ? WHERE stripe_session_id = ? AND status = 'PENDING'",
-      [amount, paymentIntent, new Date(), session.id]
+      "UPDATE booking_payments SET status = 'CONFIRMED', amount_usd = ?, surcharge_usd = ?, stripe_payment_intent = ?, confirmed_by = 'stripe-webhook', confirmed_at = ? WHERE stripe_session_id = ? AND status = 'PENDING'",
+      [amount, surcharge, paymentIntent, new Date(), session.id]
     )
     if (r.affectedRows === 0) return 'ya procesado'
   }

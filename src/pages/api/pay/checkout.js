@@ -1,5 +1,6 @@
 // Crea un Checkout de Stripe para la seña, el saldo o el total de una reserva.
 // Es público (lo usa el cliente desde /pay/<uuid>). El monto lo calcula el servidor; del cliente solo se acepta el tipo.
+// Con tarjeta se cobra el monto + 5% de recargo; en la base se guarda el monto (lo que descuenta del saldo) y el recargo aparte.
 import { getStripe, toCents } from '../../../../lib/stripe'
 import { PAYABLE_STATUSES, getBookingForPayment, getPayments, insertPayment, optionFor, paymentSummary } from '../../../../lib/payments'
 
@@ -27,7 +28,7 @@ export default async function handler(req, res) {
 
     const base = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
     const destination = String(booking.destination_name).trim()
-    const metadata = { booking_uuid, kind }
+    const metadata = { booking_uuid, kind, base_usd: String(option.amount), surcharge_usd: String(option.surcharge) }
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
@@ -36,8 +37,11 @@ export default async function handler(req, res) {
           quantity: 1,
           price_data: {
             currency: 'usd',
-            unit_amount: toCents(option.amount),
-            product_data: { name: `${destination} — ${LABELS[kind]}` },
+            unit_amount: toCents(option.cardAmount),
+            product_data: {
+              name: `${destination} — ${LABELS[kind]}`,
+              description: `USD ${option.amount} + ${summary.cardSurchargePct}% card fee`,
+            },
           },
         },
       ],
@@ -54,6 +58,7 @@ export default async function handler(req, res) {
       kind,
       method: 'STRIPE',
       amount_usd: option.amount,
+      surcharge_usd: option.surcharge,
       status: 'PENDING',
       stripe_session_id: session.id,
     })

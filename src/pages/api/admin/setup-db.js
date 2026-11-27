@@ -105,8 +105,10 @@ async function handler(req, res) {
 
         -- Gmail (hoy guarda el message id, ver ToDo)
         gmail_draft_id VARCHAR(255) NULL,
+        client_language CHAR(2) NOT NULL DEFAULT 'en',
+        booking_answers_json LONGTEXT NULL CHECK (booking_answers_json IS NULL OR JSON_VALID(booking_answers_json)),
 
-        -- Recordatorio del saldo (14 días antes del tour), para no armarlo dos veces
+        -- Recordatorio del saldo online (15 días antes del tour), para no armarlo dos veces
         balance_reminder_at DATETIME NULL,
 
         FOREIGN KEY (guide_id) REFERENCES guides(id) ON DELETE SET NULL,
@@ -124,6 +126,7 @@ async function handler(req, res) {
         method ENUM('STRIPE', 'ZELLE', 'CASH') NOT NULL,
         amount_usd DECIMAL(10, 2) NOT NULL,
         fee_usd DECIMAL(10, 2) NULL,
+        surcharge_usd DECIMAL(10, 2) NULL,
         status ENUM('PENDING', 'REPORTED', 'CONFIRMED', 'FAILED', 'REFUNDED') NOT NULL DEFAULT 'PENDING',
         stripe_session_id VARCHAR(255) NULL UNIQUE,
         stripe_payment_intent VARCHAR(255) NULL,

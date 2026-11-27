@@ -4,7 +4,7 @@
 // POST { action: 'reject', payment_id }        -> Zelle informado -> no llegó
 // POST { action: 'record', booking_uuid, method, kind, amount, reference?, payer_name?, notes? }
 //                                              -> pago cargado a mano (efectivo, Zelle visto en el banco, etc.)
-// Cuando la seña queda completa, la reserva pasa a "Seña recibida" y el voucher se arma solo.
+// Cuando la seña queda completa, la reserva pasa a "Seña recibida" y la confirmación sale sola (si ya hay guía elegido).
 import { withAdmin } from '../../../../lib/session'
 import { db } from '../../../../lib/mysql'
 import { KINDS, METHODS, getBookingForPayment, getPayments, insertPayment, paymentSummary, syncBookingPayments } from '../../../../lib/payments'
@@ -24,6 +24,8 @@ async function respondWithSync(res, uuid) {
     status: booking?.status,
     summary: sync.summary,
     voucherDraft: after.voucher,
+    voucherSent: !!after.sent,
+    waitingGuide: !!after.waitingGuide,
     sheetError: !!sheet?.error,
   })
 }

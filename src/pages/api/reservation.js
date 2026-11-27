@@ -1,10 +1,30 @@
 import { db } from '../../../lib/mysql'
-import { sendDirectEmail, createDraftEmail } from '../../../lib/gmail'
-import { escapeHtml, isValidEmail, refFooter } from '../../../lib/html'
-import { POLICIES, getDestinationPolicy, policyForNewDestination } from '../../../lib/securityPolicy'
+import { sendDirectEmail, createDraftEmail, replyInfo } from '../../../lib/gmail'
+import { isValidEmail, refFooter } from '../../../lib/html'
+import { getDestinationPolicy, policyForNewDestination } from '../../../lib/securityPolicy'
+import { lateMail, proposalMail, receivedMail } from '../../../lib/mails/index'
+import { daysUntil } from '../../../lib/mails/flags'
+import { isReturningCustomer } from '../../../lib/mails/returning'
 import crypto from 'crypto'
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+// Reservas que llegan con menos de esta anticipación van por el mail TARDE (borrador) y se marcan en el panel.
+export const LATE_DAYS = 7
+const todayIso = () => new Date().toISOString().slice(0, 10)
+
+const PORTS = ['amador', 'colon', 'santos', 'rio', 'san_antonio', 'callao', 'buenos_aires', 'montevideo', 'punta_del_este', 'otro']
+const oneLine = (v, max) => String(v || '').replace(/[\r\n\t]+/g, ' ').trim().slice(0, max)
+
+/** Respuestas extra del formulario (eligen los bloques de los mails). Solo valores conocidos. */
+export function bookingAnswers(data) {
+  const cruise = data.extra_crucero === 'si'
+  return {
+    cruise: cruise
+      ? { port: PORTS.includes(data.extra_crucero_puerto) ? data.extra_crucero_puerto : 'otro', ship: oneLine(data.extra_crucero_barco, 100) }
+      : null,
+    kosher: data.extra_kosher === 'si',
+    luggage: data.extra_valijas === 'si',
+  }
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
@@ -20,6 +40,9 @@ export default async function handler(req, res) {
   const desiredDate = String(data.contacto_fecha || '').trim();
   const message = data.contacto_mensaje || '';
   const destination = data.citytour_nombre || 'Ciudad General';
+  // Idioma de los mails: el del sitio desde el que reservó.
+  const language = data.idioma === 'es' ? 'es' : 'en';
+  const answers = bookingAnswers(data);
 
   if (!email) {
     return res.status(400).json({ error: 'El campo email es obligatorio para procesar la reserva.' });
@@ -37,32 +60,45 @@ export default async function handler(req, res) {
     db.query(sql, params, (err, results) => err ? reject(err) : resolve(results))
   })
 
-  // Versiones escapadas para meter en los mails
-  const safeName = escapeHtml(fullName);
-  const safeDestination = escapeHtml(destination.trim());
-  const safeDate = escapeHtml(desiredDate);
+  const hasMessage = !!(message && message.trim().length > 0);
+  const late = daysUntil(desiredDate, todayIso()) < LATE_DAYS;
 
-  const destLower = destination.toLowerCase();
-
-  // 2. ESTADO INICIAL: con mensaje primero hay que contestarle ("Por Responder")
-  const hasMessage = message && message.trim().length > 0;
-  const initialStatus = hasMessage ? 'INQUIRY_RECEIVED' : 'PENDING_SECURITY_VETTING';
-
-  let policy, externalFormUrl;
+  let policy, booking, mail, returning = false;
   try {
     // 🛡️ 3. AUTO-REGISTRO DE DESTINOS (INSERT IGNORE) + POLÍTICA DE SEGURIDAD DESDE LA BASE
     await query(`
       INSERT IGNORE INTO destinations_config (destination_name, security_policy_type)
       VALUES (?, ?)
     `, [destination, policyForNewDestination(destination)]);
-    ({ policy, externalFormUrl } = await getDestinationPolicy(query, destination));
+    ({ policy } = await getDestinationPolicy(query, destination));
+
+    // Mail que corresponde (plantillas del equipo, lib/mails):
+    // - TARDE (menos de una semana): borrador, lo decide el equipo.
+    // - Propuesta (rta 1): sale directo; queda en borrador si el cliente dejó un mensaje
+    //   o si la plantilla no tiene la sección de la ciudad.
+    try {
+      returning = await isReturningCustomer(email, uuid);
+    } catch (error) {
+      console.error('No se pudo ver si el cliente repite (sigue como cliente nuevo):', error.code || error);
+    }
+    booking = {
+      booking_uuid: uuid, client_name: fullName, client_email: email, client_phone: telephone, tour_date: desiredDate,
+      destination_name: destination, security_policy_applied: policy, pax_adults: passengers, client_language: language,
+      booking_answers_json: answers,
+    };
+    mail = late ? lateMail(booking) : proposalMail(booking, { returning });
+
+    // 2. ESTADO INICIAL: si el mail queda en borrador hay que contestarle ("Por Responder")
+    const asDraft = hasMessage || !!mail.review;
+    const initialStatus = asDraft ? 'INQUIRY_RECEIVED' : 'PENDING_SECURITY_VETTING';
+    mail.asDraft = asDraft;
 
     // 💾 4. GUARDAR LA RESERVA
     await query(`
       INSERT INTO bookings_pipeline
-      (booking_uuid, client_name, hometown, pax_adults, client_email, client_phone, tour_date, walking_difficulties, destination_name, security_policy_applied, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `, [uuid, fullName, hometown, passengers, email, telephone, desiredDate, message, destination, policy, initialStatus])
+      (booking_uuid, client_name, hometown, pax_adults, client_email, client_phone, tour_date, walking_difficulties, destination_name, security_policy_applied, status, client_language, booking_answers_json)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [uuid, fullName, hometown, passengers, email, telephone, desiredDate, message, destination, policy, initialStatus, language, JSON.stringify(answers)])
   } catch (error) {
     console.error('Error guardando la reserva:', error)
     return res.status(500).json({ error: 'Server error' })
@@ -71,73 +107,24 @@ export default async function handler(req, res) {
   // A partir de acá la reserva ya está guardada: si falla Gmail no le devolvemos error al cliente
   // (la reserva aparece igual en el panel y el mail se puede reenviar desde ahí).
   try {
-    // 📧 5. AUTO-RESPUESTA INMEDIATA (Se envía siempre directo)
-    const autoReplySubject = `Judaic Tourism - We received your inquiry for ${destination.trim()}`;
-    const autoReplyHtml = `
-      <div style="font-family: Arial, sans-serif; color: #333;">
-        <p>Dear <b>${safeName}</b>,</p>
-        <p>Thank you for getting in contact with Judaic Tourism! We have successfully received your inquiry for a Jewish Tour in <b>${safeDestination}</b> on <b>${safeDate}</b>.</p>
-        <p>Our team is currently reviewing your request and checking availability with our local coordinators.</p>
-        <p>We will get back to you very shortly with more details.</p>
-        <p>Best regards,<br><b>Judaic Tourism Team</b></p>
-        ${refFooter(uuid)}
-      </div>
-    `;
-    await sendDirectEmail(email, autoReplySubject, autoReplyHtml);
-
-    // 🏗️ 6. CONSTRUCTOR DE PLANTILLAS POR CIUDAD
-    let cityHtml = '';
-    let securityHtml = '';
-
-    switch (true) {
-      case destLower.includes('buenos aires'):
-        cityHtml = `<h3>[MOCKUP - BUENOS AIRES] Información del tour</h3><p>Recorrido por Once, AMIA, etc.</p>`;
-        securityHtml = `<p>[MOCKUP - SEGURIDAD BA] Por favor, envíanos las fotos de los pasaportes respondiendo a este correo.</p>`;
-        break;
-
-      case destLower.includes('panama') || destLower.includes('panamá'):
-        cityHtml = `<h3>[MOCKUP - PANAMÁ] Información del tour</h3><p>Detalles específicos de las sinagogas de Panamá.</p>`;
-        securityHtml = `<p>[MOCKUP - SEGURIDAD PANAMÁ] Por razones estrictas de seguridad, la comunidad local pide completar su propio formulario.</p>`;
-        break;
-
-      case destLower.includes('lima'):
-        cityHtml = `<h3>[MOCKUP - LIMA] Información del tour</h3><p>Detalles del recorrido en Lima.</p>`;
-        securityHtml = `<p>[MOCKUP - SEGURIDAD LIMA] Instrucciones específicas para entrar a la sinagoga 1870.</p>`;
-        break;
-
-      default:
-        cityHtml = `<h3>Tour en ${safeDestination}</h3><p>Estamos validando las opciones con nuestro equipo local.</p>`;
-        securityHtml = `<p>Solicitaremos copias de los pasaportes para el ingreso a las instituciones.</p>`;
-        break;
-    }
-
-    // 🔗 Links según la política del destino:
-    //    - formulario de la comunidad (EXTERNAL_FORM)
-    //    - nuestro formulario de viaje, siempre (tour, horario, hotel, extras; pasaporte solo si GUIDE_VETTED)
-    if (policy === POLICIES.EXTERNAL_FORM && externalFormUrl) {
-      securityHtml += `
-        <p><b>Step 1:</b> complete the local community's security form: <a href="${escapeHtml(externalFormUrl)}">${escapeHtml(externalFormUrl)}</a></p>`;
-    }
-    const securityLink = `${BASE_URL}/security/${uuid}`;
-    const tripFormText = policy === POLICIES.GUIDE_VETTED
-      ? 'Please complete your trip details and security information here:'
-      : `${policy === POLICIES.EXTERNAL_FORM ? '<b>Step 2:</b> p' : 'P'}lease complete your trip details here:`;
-    securityHtml += `
-        <p>${tripFormText}</p>
-        <p style="margin: 20px 0;"><a href="${securityLink}" style="background-color: #2980b9; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Complete my trip details</a></p>
-        <p style="font-size: 12px; color: #7f8c8d;">If the button does not work, copy this link: ${securityLink}</p>`;
-
-    const introHtml = `<div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;"><p>Hello ${safeName},</p>`;
-    const footerHtml = `<p>We await your confirmation!</p><p>Best regards,<br><b>Melina</b><br>Judaic Tourism</p>${refFooter(uuid)}</div>`;
-    const finalHtml = introHtml + cityHtml + securityHtml + footerHtml;
-
-    const infoSubject = `${destination.trim()} City Tour Details - ${desiredDate}`;
-
+    // 📧 5. Con mensaje: "Recibimos su consulta" sale directo (la propuesta queda en borrador para contestarle).
+    //    La propuesta / TARDE va después como respuesta en ese mismo hilo ("Re: Jewish Tour ...").
+    let thread = null;
+    let subject = mail.subject;
     if (hasMessage) {
-      const draftId = await createDraftEmail(email, infoSubject, finalHtml);
+      const received = receivedMail(booking);
+      const sent = await sendDirectEmail(email, received.subject, received.html + refFooter(uuid));
+      thread = await replyInfo(sent?.data?.id);
+      subject = `Re: ${received.subject}`;
+    }
+
+    // 6. Propuesta / TARDE
+    const html = mail.html + refFooter(uuid);
+    if (mail.asDraft) {
+      const draftId = await createDraftEmail(email, subject, html, thread);
       await query(`UPDATE bookings_pipeline SET gmail_draft_id = ? WHERE booking_uuid = ?`, [draftId, uuid]);
     } else {
-      await sendDirectEmail(email, infoSubject, finalHtml);
+      await sendDirectEmail(email, subject, html, '', thread);
     }
   } catch (error) {
     console.error(`Reserva ${uuid} guardada, pero falló el envío de mails:`, error)

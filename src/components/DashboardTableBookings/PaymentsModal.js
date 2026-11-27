@@ -45,7 +45,8 @@ export default function PaymentsModal({ booking, onClose, onChange }) {
       const j = await r.json().catch(() => ({}))
       if (!r.ok) return setError(j.error || `Error ${r.status}`)
       onChange(booking.booking_uuid, { status: j.status, deposit_paid_usd: j.summary?.paid, payments_reported: 0 })
-      if (j.voucherDraft) alert('✅ Seña completa: el borrador del voucher ya está en Gmail.')
+      if (j.voucherDraft) alert(j.voucherSent ? '✅ Seña completa: la confirmación ya salió al cliente.' : '✅ Seña completa: la confirmación quedó en borrador en Gmail.')
+      else if (j.waitingGuide) alert('✅ Seña completa. Elegí el guía y la confirmación sale sola.')
       await load()
     } finally {
       setBusy(false)

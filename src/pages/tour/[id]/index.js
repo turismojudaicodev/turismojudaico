@@ -8,6 +8,7 @@ import { fixUrl, setImageSrc } from 'helpers'
 import Layout from '@/components/Layout'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import ButtonLoader from '@/components/ButtonLoader'
+import BookingExtraQuestions from '@/components/BookingExtraQuestions'
 import {
   InputDate,
   InputEmail,
@@ -98,6 +99,7 @@ export default function CityTour() {
 
     const formData = Object.fromEntries(new FormData(ev.target))
     formData.citytour_nombre = tour.nombre
+    formData.idioma = router.locale === 'es' ? 'es' : 'en'
 
     const { message, error } = await postContent('/api/reservation', formData)
     setIsFormLoading(false)
@@ -146,6 +148,10 @@ export default function CityTour() {
               label={i18n?.body?.reservation?.desiredDate}
               name="contacto_fecha"
               required
+            />
+            <BookingExtraQuestions
+              labels={i18n?.body?.reservation?.extra}
+              locale={router.locale}
             />
             <Textarea
               label={i18n?.body?.reservation?.message}

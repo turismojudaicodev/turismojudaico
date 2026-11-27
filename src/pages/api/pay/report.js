@@ -46,6 +46,8 @@ export default async function handler(req, res) {
 
     if (action === 'cash') {
       if (summary.balance <= 0) return res.status(409).json({ error: 'Your booking is already fully paid' })
+      // Solo los destinos donde el saldo se paga al guía (BA, Chile, Lima, Río).
+      if (summary.plan.balance !== 'CASH') return res.status(409).json({ error: 'Cash payment is not available for this destination' })
       await db.promise().query("UPDATE bookings_pipeline SET payment_method = 'CASH' WHERE booking_uuid = ?", [booking_uuid])
       return res.status(200).json({ success: true, depositPaid: summary.depositPaid })
     }
